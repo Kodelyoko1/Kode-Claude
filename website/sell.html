@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="List your property to 100+ motivated cash buyers — free. Skip the listing, the agent, the showings. Investors contact you directly with offers.">
+  <title>List Your Property to Cash Buyers — Free | Omni Portal</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Omni Portal">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <button class="menu-toggle" aria-label="Toggle menu">Menu</button>
+    <nav class="site-nav">
+      <a href="sell.html">List My Property</a>
+      <a href="buyers.html">Cash Buyers</a>
+      <a href="tools.html">Tools for Wholesalers</a>
+      <a href="#form" class="nav-cta">List free</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero hero-bg-keys">
+  <div class="container">
+    <p class="eyebrow">For homeowners</p>
+    <h1>List your property to <span class="accent">100+ cash buyers</span> — free.</h1>
+    <p class="lede">
+      Skip the listing, the agent, the showings. Submit your property to our weekly investor list —
+      real cash buyers in your market call you directly with offers. No fees, ever.
+    </p>
+    <div class="hero-actions">
+      <a href="#form" class="btn btn-primary">List my property — free</a>
+      <a href="#process" class="btn btn-secondary">How it works</a>
+    </div>
+  </div>
+</section>
+
+<div class="trust-bar">
+  <div class="container">
+    <div class="row">
+      <div class="trust-item"><span class="check">✓</span>Listed in 24 hours</div>
+      <div class="trust-item"><span class="check">✓</span>100+ active cash buyers</div>
+      <div class="trust-item"><span class="check">✓</span>No fees, ever</div>
+      <div class="trust-item"><span class="check">✓</span>No public listing</div>
+    </div>
+  </div>
+</div>
+
+<section id="form">
+  <div class="container">
+    <div class="row">
+      <div class="col" style="max-width:480px;">
+        <p class="eyebrow">Get listed in 60 seconds</p>
+        <h2>Tell us about your property.</h2>
+        <p>Your details hit next Monday's investor list. Buyers in your market call or email you directly with offers. You decide who to talk to.</p>
+        <h3 style="margin-top:32px;">Properties that get the most interest:</h3>
+        <ul style="padding-left:18px; color:var(--slate-7);">
+          <li>Inherited houses you don't want to manage</li>
+          <li>Pre-foreclosure or behind on mortgage</li>
+          <li>Tired landlord with a problem tenant or vacant rental</li>
+          <li>Property needing major repairs you can't fund</li>
+          <li>Going through divorce, probate, or relocation</li>
+          <li>Sellers who want to avoid the MLS and agent fees</li>
+        </ul>
+
+        <div class="content-photo" style="margin-top:24px;">
+          <img src="https://images.unsplash.com/photo-1605276373954-0c4a0dac5b12?auto=format&fit=crop&w=900&q=75"
+               alt="Houses in any condition welcome" loading="lazy">
+        </div>
+      </div>
+
+      <div class="col" style="max-width:560px;">
+        <form class="lead" data-endpoint="/.netlify/functions/lead-capture"
+              name="seller-intake" method="POST" novalidate>
+          <input type="hidden" name="form-name" value="seller-intake">
+          <p style="display:none;">
+            <label>Leave this blank: <input name="bot-field"></label>
+          </p>
+          <div class="alert ok"></div>
+          <div class="alert error"></div>
+
+          <label for="address">Property address *</label>
+          <input id="address" name="address" type="text" required
+                 placeholder="123 Main Street">
+
+          <div class="row-2">
+            <div>
+              <label for="city">City *</label>
+              <input id="city" name="city" type="text" required placeholder="Detroit">
+            </div>
+            <div>
+              <label for="state">State *</label>
+              <input id="state" name="state" type="text" required maxlength="2" placeholder="MI" style="text-transform:uppercase;">
+            </div>
+          </div>
+
+          <label for="zip">ZIP (optional)</label>
+          <input id="zip" name="zip" type="text" maxlength="10" placeholder="48201">
+
+          <div class="row-2">
+            <div>
+              <label for="seller_name">Your name *</label>
+              <input id="seller_name" name="seller_name" type="text" required placeholder="Robert Johnson">
+            </div>
+            <div>
+              <label for="seller_phone">Phone *</label>
+              <input id="seller_phone" name="seller_phone" type="tel" required placeholder="(555) 555-5555">
+            </div>
+          </div>
+          <p class="form-note">Investors contact you on this number — make sure it's right.</p>
+
+          <label for="seller_email">Email (optional)</label>
+          <input id="seller_email" name="seller_email" type="email" placeholder="you@example.com">
+          <p class="form-note">Some buyers prefer to email first. Skip if you only want calls.</p>
+
+          <label for="timeline">When do you want to sell?</label>
+          <select id="timeline" name="timeline">
+            <option value="">Pick one</option>
+            <option value="asap">ASAP (within 30 days)</option>
+            <option value="60d">1–2 months</option>
+            <option value="90d">2–3 months</option>
+            <option value="flexible">Flexible / just exploring</option>
+          </select>
+
+          <label for="condition">Property condition</label>
+          <select id="condition" name="condition">
+            <option value="">Pick one</option>
+            <option value="move-in">Move-in ready</option>
+            <option value="minor">Needs minor work</option>
+            <option value="major">Needs major work</option>
+            <option value="distressed">Distressed / vacant / hoarder</option>
+          </select>
+
+          <label for="reason">What's prompting the sale? (optional)</label>
+          <textarea id="reason" name="reason" rows="3" placeholder="Inherited, divorce, foreclosure, behind on payments, tenant problems, etc."></textarea>
+
+          <button type="submit" class="btn btn-primary btn-block">List my property — free</button>
+          <p class="form-note center" style="margin-top:12px;">
+            By submitting you agree to share your property and contact info with cash buyers on our subscriber list. We never charge sellers, ever.
+            See our <a href="privacy.html">Privacy Policy</a>.
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="process">
+  <div class="container">
+    <div class="center" style="max-width:680px; margin:0 auto 48px;">
+      <p class="eyebrow">How it works</p>
+      <h2>From form to cash offers in about a week.</h2>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+        </div>
+        <div class="badge">Step 1</div>
+        <h3>You submit</h3>
+        <p>60-second form. Address, condition, timeline. Free, no obligations.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="badge">Step 2</div>
+        <h3>We verify and list</h3>
+        <p>We confirm property details and add you to next Monday's investor list — sent to 100+ active cash buyers.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="badge">Step 3</div>
+        <h3>Investors call you</h3>
+        <p>Cash buyers in your market reach out with cash offers. Pricing varies — they compete for the property.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="badge">Step 4</div>
+        <h3>You pick the offer</h3>
+        <p>Take the best offer, negotiate directly, or pass on all of them. Title company handles closing. You're paid in cash. We're never in the contract.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="container">
+    <div class="center" style="max-width:680px; margin:0 auto 36px;">
+      <p class="eyebrow">FAQ</p>
+      <h2>Honest answers.</h2>
+    </div>
+    <div class="faq" style="max-width:760px; margin:0 auto;">
+      <details>
+        <summary>Is this really free?</summary>
+        <p>Yes — completely free for sellers, forever. We make our money from investors who pay a monthly subscription to access the list. You'll never be charged a fee or commission for being on it.</p>
+      </details>
+      <details>
+        <summary>Will I definitely get an offer?</summary>
+        <p>No guarantees. Most properties get 2–5 inquiries within the first week of being on the list. Distressed, discounted, or unusually motivated situations tend to get more. Move-in-ready houses at retail price get fewer (investors look for deals).</p>
+      </details>
+      <details>
+        <summary>How much will buyers offer?</summary>
+        <p>Cash buyers typically offer 60–80% of after-repair value. The exact number depends on condition, location, and how motivated they are. It'll usually be less than retail (an agent listing) but more than foreclosure, and the close is fast.</p>
+      </details>
+      <details>
+        <summary>Am I obligated to accept any offer?</summary>
+        <p>Never. You're a free agent. Take the best offer, counter, or walk away from all of them. We're not in the contract — you negotiate directly with whichever buyer you choose.</p>
+      </details>
+      <details>
+        <summary>I'm behind on payments — can buyers still help?</summary>
+        <p>Often yes. Pre-foreclosure properties tend to attract the most attention from our cash buyers because they can close in 14–21 days, beating a trustee sale. Some buyers will even work directly with your lender on the payoff.</p>
+      </details>
+      <details>
+        <summary>Who actually buys the property?</summary>
+        <p>One of the investors on our list — a real cash buyer who calls you, makes an offer, signs a contract with you, and closes through a title company. Omni Portal — a Omni Portal LLC brand is not the buyer; we connect you with buyers.</p>
+      </details>
+      <details>
+        <summary>What about my privacy?</summary>
+        <p>Your property details, name, phone, and (if provided) email go to paying subscribers — typically 100+ active investors. They'll contact you directly. If you don't want your phone shared, this isn't the right channel for you. Full details in our <a href="privacy.html">Privacy Policy</a>.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="cta-strip">
+  <div class="container">
+    <h2>Get listed today.</h2>
+    <p>Call or text <strong>207-385-4041</strong> &nbsp;·&nbsp;
+       <a href="mailto:WholesaleOmniverse@gmail.com" style="color:var(--navy); text-decoration:underline;">WholesaleOmniverse@gmail.com</a></p>
+    <a class="btn btn-dark" href="#form">List my property — free</a>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Omni Portal">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5); font-size:14px; margin-top:16px; max-width:340px;">
+          A motivated-seller property marketplace. Sellers list for free. Buyers subscribe to weekly off-market lists.
+        </p>
+      </div>
+      <div class="col">
+        <h4>For Homeowners</h4>
+        <a href="sell.html">List my property — free</a>
+        <a href="sell.html#process">How the process works</a>
+        <a href="sell.html#faq">Frequently asked questions</a>
+      </div>
+      <div class="col">
+        <h4>For Investors</h4>
+        <a href="buyers.html">Weekly Buyers List ($97/mo)</a>
+        <a href="tools.html">Deal Analyzer ($197/mo)</a>
+        <a href="tools.html#oas">Outreach-as-a-Service</a>
+      </div>
+      <div class="col">
+        <h4>Contact &amp; Legal</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>© 2026 Omni Portal — a Omni Portal LLC brand. All rights reserved.</div>
+      <div><a href="index.html">Home</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy</a></div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

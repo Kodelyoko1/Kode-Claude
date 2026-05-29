@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""
+vr — one-shot ViralRecycler CLI.
+
+Usage:
+    ./vr "https://youtube.com/watch?v=..."
+    ./vr "https://tiktok.com/@user/video/..." --niche wellness --tier studio
+    ./vr "URL" --allow-copyrighted   # bypass CC safety gate (use responsibly)
+
+The fast path: paste a URL → finished Short on YouTube + TikTok-ready file
+emailed to you (or auto-posted if TikTok API is set up).
+"""
+import argparse
+import os
+import sys
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
+from viral_recycler.tools import process_one
+from autonomous import metrics
+
+console = Console()
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Drop a URL, get a posted Short.")
+    parser.add_argument("url", help="Viral video URL (YouTube, TikTok, IG, X, Reddit)")
+    parser.add_argument("--niche", default="motivational",
+                        choices=["motivational", "comedy", "wellness"])
+    parser.add_argument("--tier", default="pro",
+                        choices=["basic", "pro", "studio"],
+                        help="Quality tier: basic / pro / studio")
+    parser.add_argument("--allow-copyrighted", action="store_true",
+                        help="Bypass Creative-Commons gate (auto-credits original)")
+    parser.add_argument("--slug", default="",
+                        help="Custom slug for the output file")
+    args = parser.parse_args()
+
+    os.environ.setdefault("AGENT_PASSWORD", "owner")  # owner bypass
+
+    console.print(Panel(
+        Text.from_markup(
+            f"[bold yellow]ViralRecycler — one-shot[/bold yellow]\n\n"
+            f"  [white]URL:[/white]   [cyan]{args.url}[/cyan]\n"
+            f"  [white]Niche:[/white] {args.niche}\n"
+            f"  [white]Tier:[/white]  [bold]{args.tier}[/bold]\n"
+            f"  [white]CC gate:[/white] {'OFF (will credit original)' if args.allow_copyrighted else 'ON'}"
+        ),
+        title="[bold blue]Wholesale Omniverse · ViralRecycler[/bold blue]",
+        border_style="yellow"))
+
+    source = {
+        "url":  args.url,
+        "niche": args.niche,
+        "quality_tier": args.tier,
+        "allow_copyrighted": args.allow_copyrighted,
+        "slug": args.slug,
+    }
+
+    with Progress(SpinnerColumn(), TextColumn("[bold]{task.description}"),
+                  console=console) as p:
+        task = p.add_task("Downloading → transcribing → grading → mastering → uploading…", total=None)
+        result = process_one(source)
+        p.remove_task(task)
+
+    if "error" in result:
+        console.print(f"\n[red]✗ Stopped at stage:[/red] {result.get('stage', '?')}")
+        console.print(f"[red]  Reason:[/red] {result.get('error')}")
+        if result.get("stage") == "license_gate":
+            console.print(f"\n[yellow]Fix:[/yellow] re-run with [white]--allow-copyrighted[/white] "
+                          f"(agent will credit original creator: {result.get('uploader', '?')}).")
+        if result.get("stage") == "download":
+            console.print(f"\n[yellow]Fix:[/yellow] yt-dlp may need updating. Run "
+                          f"[white]pip install -U --break-system-packages yt-dlp[/white].")
+        sys.exit(1)
+
+    console.print(f"\n[bold green]✓ Done.[/bold green]\n")
+    console.print(f"  [white]Hook:[/white]       [cyan]{result.get('hook', '')}[/cyan]")
+    console.print(f"  [white]Title:[/white]      {result.get('title', '')}")
+    console.print(f"  [white]Output file:[/white] {result.get('output_path', '')}")
+    if result.get("thumbnail_path"):
+        console.print(f"  [white]Thumbnail:[/white]   {result['thumbnail_path']}")
+    if result.get("aspects"):
+        console.print(f"  [white]Aspects:[/white]    {', '.join(result['aspects'].keys())}")
+
+    yt = result.get("youtube", {})
+    if yt.get("status") == "uploaded":
+        console.print(f"\n  [bold green]▶ YouTube:[/bold green] {yt.get('shorts_url', yt.get('url'))}")
+    else:
+        console.print(f"\n  [yellow]▶ YouTube:[/yellow] {yt.get('error', 'not posted')}")
+        if "no_token" in (yt.get("error") or ""):
+            console.print(f"     [dim]Run: python3 setup_viral_recycler.py --authorize[/dim]")
+
+    tt = result.get("tiktok", {})
+    if tt.get("status") == "uploaded":
+        console.print(f"  [bold green]▶ TikTok:[/bold green] posted (publish_id={tt.get('publish_id', '?')})")
+    elif tt.get("status") == "handed_off":
+        console.print(f"  [bold cyan]▶ TikTok:[/bold cyan] file emailed to {tt.get('to')} — tap upload on phone")
+    else:
+        console.print(f"  [yellow]▶ TikTok:[/yellow] {tt.get('error', 'not posted')}")
+
+    # Bump metrics for the dashboard
+    metrics.record(
+        "viral_recycler",
+        videos_processed=1,
+        youtube_posts=1 if yt.get("status") == "uploaded" else 0,
+        tiktok_posts=1 if tt.get("status") in ("uploaded", "handed_off") else 0,
+        last_url=args.url,
+    )
+
+
+if __name__ == "__main__":
+    main()

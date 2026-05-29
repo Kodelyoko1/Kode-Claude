@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+
+# Secrets (NEVER commit these)
+.env
+.env.*
+data/yt_client_secrets.json
+data/yt_token.json
+*.pem
+*_secret.json
+
+# Customer/billing data (per-user, runtime only — re-creates on the server)
+data/agent_subscriptions.json
+data/agent_invoices.json
+data/agent_send_log.json
+data/agent_metrics.json
+data/trials.json
+data/vr_customers/
+data/leads.json
+data/cash_buyers.json
+data/email_log.json
+data/outreach_clients.json
+data/outreach_campaigns.json
+data/prospects.json
+data/saas_clients.json
+data/bounce_log.json
+data/bounces_seen_uids.json
+data/cash_blast_log.json
+data/enrichment_log.json
+data/enrichment.log
+
+# Heavy media that don't belong in git
+data/vr_downloads/
+data/vr_work/
+data/vr_output/
+data/gv_texts/
+data/gv_scripts/
+data/pb_pdfs/
+data/sf_transcripts/
+data/sf_briefs/
+data/*.pdf
+data/*.png
+data/*.jpg
+data/*.jpeg
+data/import/
+data/facebook_drafts/
+data/instagram_drafts/
+data/pinterest_drafts/
+data/social_posts.json
+
+# Node + Netlify
+website/node_modules/
+website/netlify/functions-cache/
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.claude/

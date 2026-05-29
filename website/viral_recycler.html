@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Omni Portal — ViralRecycler · Auto-Post Viral Shorts to YouTube + TikTok</title>
+<meta name="description" content="Turn viral videos into your own YouTube Shorts and TikToks — automated download, transformation, and upload. 30-day free trial.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#0a0f1a;color:#e2e8f0;line-height:1.6}
+  .container{max-width:1200px;margin:0 auto;padding:0 24px}
+  nav{background:rgba(15,23,42,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;
+      border-bottom:1px solid rgba(245,158,11,.2);padding:16px 0}
+  nav .row{display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:900;font-size:22px;letter-spacing:.5px}
+  .logo span{color:#f59e0b}
+  .nav-cta{background:#f59e0b;color:#0f172a;padding:10px 22px;border-radius:6px;
+           text-decoration:none;font-weight:700;font-size:14px}
+  .nav-cta:hover{background:#fbbf24}
+  /* HERO */
+  .hero{padding:80px 0 60px;background:radial-gradient(ellipse at top,rgba(245,158,11,.12),transparent 50%)}
+  .badge{display:inline-block;background:rgba(245,158,11,.12);color:#f59e0b;
+         padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;
+         letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px}
+  h1{font-size:60px;font-weight:900;line-height:1.05;margin-bottom:20px;letter-spacing:-1.5px}
+  h1 span{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;background-clip:text}
+  .hero-sub{font-size:20px;color:#94a3b8;max-width:680px;margin-bottom:36px;line-height:1.5}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+  .btn-primary{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;padding:16px 32px;
+               border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;
+               box-shadow:0 10px 30px rgba(239,68,68,.3);display:inline-block;transition:transform .2s}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-secondary{background:transparent;color:#e2e8f0;padding:16px 32px;border-radius:8px;
+                 text-decoration:none;font-weight:600;font-size:16px;border:1px solid #334155}
+  .trust{display:flex;gap:32px;color:#64748b;font-size:14px;flex-wrap:wrap}
+  .trust span{display:flex;align-items:center;gap:6px}
+  /* ENGINE */
+  .engine{padding:60px 0;background:#0f172a}
+  .engine h2{font-size:42px;font-weight:900;margin-bottom:14px;letter-spacing:-1px}
+  .engine .sub{color:#94a3b8;font-size:18px;margin-bottom:48px;max-width:600px}
+  .pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:32px}
+  .step{background:#1e293b;border-radius:10px;padding:24px 18px;border:1px solid #334155;
+        position:relative}
+  .step .num{position:absolute;top:-14px;left:18px;background:#f59e0b;color:#0f172a;
+             width:28px;height:28px;border-radius:50%;display:flex;align-items:center;
+             justify-content:center;font-weight:800;font-size:14px}
+  .step h3{color:#fff;font-size:16px;margin-bottom:8px;margin-top:6px}
+  .step p{color:#94a3b8;font-size:13px}
+  @media(max-width:900px){.pipeline{grid-template-columns:repeat(2,1fr)}h1{font-size:40px}}
+  .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+  .feature{background:#1e293b;border-radius:10px;padding:24px;border:1px solid #334155;
+           transition:transform .15s,border-color .15s}
+  .feature:hover{transform:translateY(-3px);border-color:#f59e0b}
+  .ficon{font-size:32px;margin-bottom:12px}
+  .feature h3{color:#fff;font-size:16px;margin-bottom:6px;font-weight:700}
+  .feature p{color:#94a3b8;font-size:13px;line-height:1.5}
+  @media(max-width:900px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.features-grid{grid-template-columns:1fr}}
+  /* DEMO PANEL */
+  .demo{padding:60px 0;background:#0a0f1a}
+  .demo-card{background:#1e293b;border-radius:14px;padding:36px;border:1px solid #334155}
+  .demo-card h3{color:#fff;font-size:24px;margin-bottom:8px}
+  .demo-card .lead{color:#94a3b8;margin-bottom:24px}
+  .demo-row{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  .demo-input{background:#0f172a;padding:24px;border-radius:8px;border:1px solid #334155}
+  .demo-input label{color:#94a3b8;font-size:12px;text-transform:uppercase;letter-spacing:1.5px;
+                    display:block;margin-bottom:8px}
+  .demo-input .v{color:#fff;font-size:14px;font-family:'JetBrains Mono',monospace;
+                 background:#0a0f1a;padding:12px;border-radius:4px;word-break:break-all}
+  .arrow-down{text-align:center;color:#475569;font-size:30px;margin:10px 0}
+  @media(max-width:700px){.demo-row{grid-template-columns:1fr}}
+  /* PRICING */
+  .pricing{padding:80px 0;background:radial-gradient(ellipse at bottom,rgba(16,185,129,.08),transparent 50%)}
+  .pricing h2{font-size:42px;font-weight:900;text-align:center;margin-bottom:14px;letter-spacing:-1px}
+  .pricing .sub{color:#94a3b8;font-size:18px;text-align:center;margin-bottom:48px}
+  .price-card{background:#1e293b;border-radius:14px;padding:40px;max-width:480px;margin:0 auto;
+              border:2px solid #f59e0b;position:relative}
+  .price-tag{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#10b981;
+             color:#fff;padding:6px 18px;border-radius:14px;font-size:12px;font-weight:700;
+             letter-spacing:1.5px;text-transform:uppercase}
+  .price-card h3{color:#fff;font-size:28px;margin-bottom:10px;text-align:center}
+  .price-card .price{text-align:center;margin-bottom:24px}
+  .price-card .price .big{font-size:54px;font-weight:900;color:#fff}
+  .price-card .price .per{color:#94a3b8}
+  .price-card .free{text-align:center;font-size:18px;color:#10b981;font-weight:700;
+                    margin-bottom:28px}
+  .price-card ul{list-style:none;margin-bottom:28px}
+  .price-card li{padding:8px 0;color:#cbd5e1;display:flex;align-items:start;gap:10px}
+  .price-card li::before{content:'✓';color:#10b981;font-weight:800;margin-top:2px}
+  .price-card .cta{display:block;background:linear-gradient(135deg,#f59e0b,#ef4444);
+                   color:#fff;text-align:center;padding:18px;border-radius:8px;text-decoration:none;
+                   font-weight:700;font-size:16px}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+  .tier{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:32px 28px;
+        position:relative;display:flex;flex-direction:column}
+  .tier.featured{border:2px solid #f59e0b;transform:scale(1.04)}
+  .tier .price-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+                   background:#f59e0b;color:#0f172a;padding:5px 14px;border-radius:14px;
+                   font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+  .tier h3{font-size:22px;color:#fff;margin-bottom:10px;text-align:center}
+  .tier .t-price{text-align:center;margin-bottom:6px}
+  .tier .t-price .big{font-size:44px;font-weight:900;color:#fff}
+  .tier .t-price .per{color:#94a3b8}
+  .tier .free{text-align:center;color:#10b981;font-weight:700;margin-bottom:24px;font-size:13px}
+  .tier ul{list-style:none;margin-bottom:24px;flex:1}
+  .tier li{padding:7px 0;color:#cbd5e1;font-size:14px;display:flex;align-items:start;gap:8px}
+  .tier li::before{content:'✓';color:#10b981;font-weight:800}
+  .tier .cta{display:block;background:#334155;color:#fff;text-align:center;padding:14px;
+             border-radius:8px;text-decoration:none;font-weight:700;font-size:15px}
+  .tier .cta-primary{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+  @media(max-width:900px){.tiers{grid-template-columns:1fr}.tier.featured{transform:none}}
+  /* FAQ */
+  .faq{padding:80px 0;background:#0f172a}
+  .faq h2{font-size:36px;font-weight:900;text-align:center;margin-bottom:40px}
+  .qa{max-width:780px;margin:0 auto}
+  .q{background:#1e293b;border-radius:8px;padding:22px;margin-bottom:12px;border:1px solid #334155}
+  .q h4{color:#fff;font-size:16px;margin-bottom:8px}
+  .q p{color:#94a3b8;font-size:14px}
+  /* FOOTER */
+  footer{background:#0a0f1a;padding:32px 0;border-top:1px solid #1e293b;text-align:center;
+         color:#64748b;font-size:13px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container row">
+    <div class="logo">OMNI <span>PORTAL</span></div>
+    <a href="/viral-recycler/signup" class="nav-cta">Start Free Trial</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="badge">⚡ Autonomous · No Editing · No API Headaches</div>
+    <h1>Turn viral videos<br>into <span>your own Shorts.</span></h1>
+    <p class="hero-sub">
+      ViralRecycler downloads trending videos in your niche, transforms them
+      (recut, rebrand, recaption, mirror, music swap), and posts them to
+      <b>your YouTube</b> and <b>your TikTok</b> automatically.
+    </p>
+    <div class="cta-row">
+      <a href="/viral-recycler/signup" class="btn-primary">Start 30-Day Free Trial →</a>
+      <a href="#engine" class="btn-secondary">See how it works</a>
+    </div>
+    <div class="trust">
+      <span>✓ No credit card required</span>
+      <span>✓ Cancel anytime</span>
+      <span>✓ Built-in copyright safeguards</span>
+    </div>
+  </div>
+</section>
+
+<section class="engine" id="engine">
+  <div class="container">
+    <h2>Studio-grade engine.<br><span style="color:#f59e0b">Adobe Pro features. Zero learning curve.</span></h2>
+    <p class="sub">Everything below is automatic. You drop URLs. The agent runs the studio.</p>
+
+    <div class="features-grid">
+      <div class="feature">
+        <div class="ficon">🎬</div>
+        <h3>Whisper AI Transcription</h3>
+        <p>Word-perfect captions. Same engine OpenAI uses. Local, free, accurate to 99%.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🎨</div>
+        <h3>Cinematic Color Grading</h3>
+        <p>6 LUTs: Cinematic, Teal-Orange, Vivid, Vintage, Mono, Noir. Auto-matched to niche.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🔊</div>
+        <h3>Broadcast Audio Mastering</h3>
+        <p>EBU R128 loudness, FFT denoise, de-essing, speech EQ. -16 LUFS for Shorts.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">📷</div>
+        <h3>Two-Pass Stabilization</h3>
+        <p>libvidstab analysis + transform. Shaky footage becomes gimbal-smooth.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">⚡</div>
+        <h3>Speed Ramping</h3>
+        <p>Variable speed on emphasis beats. Slow-mo the hook, fast-cut the filler.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🎯</div>
+        <h3>Smart Reframing</h3>
+        <p>16:9 → 9:16 with motion-aware crop. Keeps the subject in frame.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🖼</div>
+        <h3>Auto Thumbnails</h3>
+        <p>Scene-detected keyframes + bold hook overlay. YouTube-ready 1080×1920.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🔀</div>
+        <h3>A/B/C Variants</h3>
+        <p>3 hooks, 3 color grades, 3 caption positions. Test what wins.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">📐</div>
+        <h3>Multi-Aspect Export</h3>
+        <p>9:16 (Shorts/Reels), 1:1 (Feed), 16:9 (YouTube). One click, all formats.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🎞</div>
+        <h3>Vignette + Film Grain</h3>
+        <p>Cinematic vignette, film grain texture. Premium aesthetic out of the box.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🪄</div>
+        <h3>Hook + SEO AI</h3>
+        <p>Niche-tuned hooks. Title + description + 5 hashtags optimized for retention.</p>
+      </div>
+      <div class="feature">
+        <div class="ficon">🛡</div>
+        <h3>Copyright Safeguards</h3>
+        <p>Creative Commons gate. Auto-credit original. Mirror + recolor for transformation.</p>
+      </div>
+    </div>
+
+    <h2 style="margin-top:80px;font-size:32px">The 8-stage pipeline</h2>
+    <p class="sub">Click any stage to expand.</p>
+    <div class="pipeline">
+      <div class="step"><div class="num">1</div><h3>Source</h3><p>Paste viral URLs from YouTube, TikTok, IG, X, Reddit.</p></div>
+      <div class="step"><div class="num">2</div><h3>Download</h3><p>yt-dlp pulls original 1080p MP4 + metadata.</p></div>
+      <div class="step"><div class="num">3</div><h3>Transcribe</h3><p>Whisper AI generates word-timed captions.</p></div>
+      <div class="step"><div class="num">4</div><h3>Segment</h3><p>Density algorithm picks the 45-second viral peak.</p></div>
+      <div class="step"><div class="num">5</div><h3>Transform</h3><p>Crop, mirror, color grade, stabilize, speed ramp.</p></div>
+      <div class="step"><div class="num">6</div><h3>Master</h3><p>Audio loudnorm + denoise. Burn captions. Brand intro/outro.</p></div>
+      <div class="step"><div class="num">7</div><h3>SEO</h3><p>Hook, title, description, hashtags, thumbnail.</p></div>
+      <div class="step"><div class="num">8</div><h3>Post</h3><p>YouTube + TikTok upload. Original creator credited.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="demo">
+  <div class="container">
+    <div class="demo-card">
+      <h3>What the engine produces</h3>
+      <p class="lead">From a viral 2-minute clip → a posted Short in &lt;5 minutes.</p>
+      <div class="demo-row">
+        <div class="demo-input">
+          <label>Input</label>
+          <div class="v">https://youtube.com/watch?v=xxxxx<br>Original: 2:14 · 180k views</div>
+        </div>
+        <div class="demo-input">
+          <label>Output (your channel)</label>
+          <div class="v">▶ "Stop scrolling. Start moving." #shorts<br>0:45 · auto-captions · 9:16 vertical</div>
+        </div>
+      </div>
+      <div class="arrow-down">⤓</div>
+      <div class="demo-input">
+        <label>Auto-generated metadata</label>
+        <div class="v">Title: "Stop scrolling. Start moving. #shorts"<br>Description: 2 sentences, niche-tuned, original creator credited<br>Hashtags: #shorts #motivation #mindset #discipline #selfimprovement</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing">
+  <div class="container">
+    <h2>Three tiers. <span style="color:#10b981">30 days free.</span></h2>
+    <p class="sub">No credit card up front. Cancel any time.</p>
+    <div class="tiers">
+
+      <div class="tier">
+        <h3>Basic</h3>
+        <div class="t-price"><span class="big">$29</span><span class="per">/mo</span></div>
+        <div class="free">30-day free trial</div>
+        <ul>
+          <li>1 Short / day</li>
+          <li>YouTube + TikTok posting</li>
+          <li>Captions + hook + branded intro/outro</li>
+          <li>Auto-credit safeguards</li>
+          <li>Email support</li>
+        </ul>
+        <a href="/viral-recycler/signup?tier=basic" class="cta">Start Free</a>
+      </div>
+
+      <div class="tier featured">
+        <div class="price-tag">Most popular</div>
+        <h3>Pro</h3>
+        <div class="t-price"><span class="big">$79</span><span class="per">/mo</span></div>
+        <div class="free">30-day free trial</div>
+        <ul>
+          <li>2 Shorts / day</li>
+          <li>Everything in Basic, plus:</li>
+          <li>Whisper AI transcription</li>
+          <li>Cinematic color grading</li>
+          <li>Broadcast audio mastering</li>
+          <li>Auto-thumbnails</li>
+          <li>Priority email support</li>
+        </ul>
+        <a href="/viral-recycler/signup?tier=pro" class="cta cta-primary">Start Free</a>
+      </div>
+
+      <div class="tier">
+        <h3>Studio</h3>
+        <div class="t-price"><span class="big">$149</span><span class="per">/mo</span></div>
+        <div class="free">30-day free trial</div>
+        <ul>
+          <li>3 Shorts / day</li>
+          <li>Everything in Pro, plus:</li>
+          <li>Two-pass stabilization</li>
+          <li>Speed ramping</li>
+          <li>A/B/C variant generation</li>
+          <li>Multi-aspect export (9:16, 1:1, 16:9)</li>
+          <li>Vignette + film grain</li>
+          <li>Live chat support</li>
+        </ul>
+        <a href="/viral-recycler/signup?tier=studio" class="cta">Start Free</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="container">
+    <h2>Common questions</h2>
+    <div class="qa">
+      <div class="q">
+        <h4>Is this safe for my channel?</h4>
+        <p>The agent applies heavy transformation (recut, mirror, recolor, new captions, branded intro/outro), credits the original creator, and caps posts at 2/day to avoid spam detection. Default safety mode only processes Creative Commons sources unless you explicitly allow others.</p>
+      </div>
+      <div class="q">
+        <h4>What do I need to set up?</h4>
+        <p>One YouTube OAuth authorization (5 minutes, free). TikTok works via email handoff until your TikTok Business app is approved.</p>
+      </div>
+      <div class="q">
+        <h4>How does the free trial work?</h4>
+        <p>30 days of full access. No credit card up front. Day 23 we email you a reminder. Day 30 the agent stops posting until you pay. Cancel anytime by ignoring the renewal.</p>
+      </div>
+      <div class="q">
+        <h4>Can I choose the niche?</h4>
+        <p>Yes — Motivational, Comedy Skits, or Men's Wellness. Each niche has its own hook templates, B-roll suggestions, and hashtag bank.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 Omni Portal — a Wholesale Omniverse LLC brand · WholesaleOmniverse@gmail.com · 207-385-4041
+</footer>
+
+</body>
+</html>

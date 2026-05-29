@@ -1,0 +1,39 @@
+{
+  "742_evergreen_terrace_baton_rouge_la": {
+    "address": "742 Evergreen Terrace",
+    "city": "Baton Rouge",
+    "state": "LA",
+    "looked_up_at": "2026-05-25T16:25:15.187355",
+    "findings": []
+  },
+  "3438_belair_rd_baltimore_md": {
+    "address": "3438 Belair Rd",
+    "city": "Baltimore",
+    "state": "MD",
+    "looked_up_at": "2026-05-27T11:25:52.127537",
+    "findings": [
+      {
+        "title": "3438 Belair Rd, Baltimore, MD 21213 Property Record",
+        "info": "Thispropertyis a residential townhouse built in 1924 sitting on a 0.037 acre lot located at3438 Belair Rd,Baltimore,MD21213. Last sold in 2022 for $110,000, the 1,316 sq ftpropertyhas a porch and fireplace.",
+        "url": "www.countyoffice.org/property-record-3438-belair-rd-baltimore-md-21213-4e3/"
+      },
+      {
+        "title": "3438 Belair Rd, Baltimore, MD 21213 | MLS #MDBA2206312 | Zillow",
+        "info": "This 1645 square feet Townhouse home has 3 bedrooms and 2 bathrooms. It is located at3438 Belair Rd,Baltimore,MD.",
+        "url": "www.zillow.com/homedetails/3438-Belair-Rd-Baltimore-MD-21213/36575948_zpid/"
+      },
+      {
+        "title": "3438 Belair Rd, Baltimore, MD 21213 | Homes.com",
+        "info": "3438 Belair Rd,Baltimore,MD21213 - 1,645 sqft home built in 1924 . Browse photos, take a 3D tour & get detailed information about thispropertyfor sale. MLS# MDBA2206312.",
+        "url": "www.homes.com/property/3438-belair-rd-baltimore-md/53bc124dvl93r/"
+      }
+    ]
+  },
+  "2002_n_smallwood_st_baltimore_md": {
+    "address": "2002 N Smallwood St",
+    "city": "Baltimore",
+    "state": "MD",
+    "looked_up_at": "2026-05-27T11:25:55.661528",
+    "findings": []
+  }
+}

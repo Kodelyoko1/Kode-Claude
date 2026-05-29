@@ -1,0 +1,30 @@
+# Netlify site config — Wholesale Omniverse
+[build]
+  publish = "."
+  # No-op build command — ensures Netlify runs its post-processing pipeline
+  # (which includes form detection for static HTML forms with data-netlify="true")
+  command = "echo 'Static site — no build step needed.'"
+
+[build.processing.html]
+  pretty_urls = true
+
+# Cache static assets aggressively; HTML revalidates each request
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/styles.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/script.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

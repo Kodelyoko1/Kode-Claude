@@ -1,0 +1,49 @@
+# Render.com blueprint for ViralRecycler SaaS.
+# To deploy:
+#   1. Push this repo to GitHub
+#   2. Go to render.com → New → Blueprint → connect your repo
+#   3. Render picks up this file automatically
+#   4. Add the env vars listed below in the Render dashboard
+#   5. First deploy takes ~5min, then auto-redeploys on git push
+
+services:
+  - type: web
+    name: viral-recycler-saas
+    runtime: docker
+    plan: free                      # free tier: 750 hr/mo
+    region: oregon                  # change to your region
+    healthCheckPath: /
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    envVars:
+      # Required — Gmail SMTP for outbound emails
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false                 # set in Render dashboard
+      - key: SMTP_PASS
+        sync: false                 # set in Render dashboard
+
+      # Required — PayPal username for paypal.me links
+      - key: PAYPAL_ME_USERNAME
+        value: wholesaleomniverse
+
+      # Optional — TikTok official Content Posting API token
+      - key: TIKTOK_ACCESS_TOKEN
+        sync: false                 # add when TikTok approves your app
+
+      # Optional — bypass paywall for owner testing
+      - key: AGENT_PASSWORD
+        sync: false
+
+      # Server port (Render sets $PORT, app reads VR_PORT)
+      - key: VR_PORT
+        value: 10000                # Render's default
+
+    # Disk persistence — keeps trials, customers, uploads across deploys
+    disk:
+      name: viral-recycler-data
+      mountPath: /app/data
+      sizeGB: 1                     # free tier allows up to 1GB

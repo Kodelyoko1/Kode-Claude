@@ -1,0 +1,23 @@
+[
+  {
+    "contract_id": "CONTRACT-0001",
+    "lead_id": "LEAD-0001",
+    "address": "742 Evergreen Terrace",
+    "city": "Atlanta",
+    "state": "GA",
+    "seller_name": "Robert Johnson",
+    "contract_price": 92000,
+    "assignment_fee": 12000,
+    "net_profit": 12000,
+    "earnest_money": 500,
+    "inspection_period_days": 14,
+    "close_date": "2026-06-20",
+    "status": "assigned",
+    "notes": "Marcus confirmed, wire coming",
+    "created_at": "2026-05-25T16:09:13.930076",
+    "assigned_to_buyer": "Marcus Williams Investments",
+    "buyer_id": "BUYER-0001",
+    "final_assignment_fee": 12000,
+    "assigned_at": "2026-05-25T16:09:13.935340"
+  }
+]

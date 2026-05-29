@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Omni Portal — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',sans-serif;background:#0a0f1a;color:#e2e8f0}
+  header{background:#0f172a;padding:18px 32px;border-bottom:1px solid #1e293b;
+         display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:900;font-size:20px}
+  .logo span{color:#f59e0b}
+  .key-chip{background:#1e293b;color:#94a3b8;padding:6px 12px;border-radius:6px;
+            font-family:'JetBrains Mono',monospace;font-size:12px}
+  .container{max-width:1200px;margin:0 auto;padding:32px}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+  .stat{background:#1e293b;border-radius:10px;padding:22px;border-left:4px solid #f59e0b}
+  .stat .v{font-size:32px;font-weight:900;color:#fff}
+  .stat .l{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+  .trial-banner{background:linear-gradient(90deg,#0f172a,#1e293b);border:1px solid #f59e0b;
+                border-radius:10px;padding:18px 24px;margin-bottom:32px;
+                display:flex;justify-content:space-between;align-items:center}
+  .trial-banner.expired{border-color:#ef4444}
+  .trial-banner .text{color:#fff;font-weight:600}
+  .trial-banner .days{color:#f59e0b;font-weight:800}
+  .trial-banner a{background:#f59e0b;color:#0f172a;padding:10px 18px;border-radius:6px;
+                  text-decoration:none;font-weight:700;font-size:13px}
+  .card{background:#1e293b;border-radius:12px;padding:28px;margin-bottom:24px;border:1px solid #334155}
+  .card h2{color:#fff;font-size:20px;margin-bottom:6px}
+  .card .lead{color:#94a3b8;font-size:14px;margin-bottom:20px}
+  .url-form{display:flex;gap:10px;flex-wrap:wrap}
+  .url-form input{flex:1;min-width:300px;background:#0f172a;border:1px solid #334155;color:#fff;
+                  padding:14px 16px;border-radius:8px;font-size:15px;font-family:inherit}
+  .url-form select{background:#0f172a;border:1px solid #334155;color:#fff;padding:14px;
+                   border-radius:8px;font-family:inherit;min-width:120px}
+  .url-form button{background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;
+                   padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;
+                   font-family:inherit}
+  table{width:100%;background:#1e293b;border-radius:10px;border-collapse:separate;border-spacing:0;
+        overflow:hidden}
+  th,td{padding:12px 16px;text-align:left;font-size:13px;border-bottom:1px solid #334155}
+  th{background:#0f172a;color:#94a3b8;text-transform:uppercase;font-size:11px;letter-spacing:1px}
+  .status-ok{color:#10b981;font-weight:700}
+  .status-pending{color:#f59e0b}
+  .status-err{color:#ef4444}
+  a.link{color:#f59e0b;text-decoration:none}
+  a.link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">OMNI <span>PORTAL</span> · Dashboard</div>
+  <div class="key-chip" id="key-chip">—</div>
+</header>
+
+<div class="container">
+
+  <div id="trial-banner" class="trial-banner">
+    <div class="text"><span class="days" id="days-left">—</span> days left in your free trial</div>
+    <a href="#" id="upgrade-link" target="_blank">Upgrade now →</a>
+  </div>
+
+  <div class="summary">
+    <div class="stat"><div class="v" id="stat-processed">0</div><div class="l">Videos processed</div></div>
+    <div class="stat"><div class="v" id="stat-youtube">0</div><div class="l">YouTube posts</div></div>
+    <div class="stat"><div class="v" id="stat-tiktok">0</div><div class="l">TikTok posts</div></div>
+    <div class="stat"><div class="v" id="stat-pending">0</div><div class="l">In queue</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Drop a viral video URL</h2>
+    <p class="lead">Paste any YouTube, TikTok, IG, Twitter/X, or Reddit URL. The pipeline kicks off immediately.</p>
+    <form class="url-form" id="add-url-form">
+      <input name="url" type="url" placeholder="https://youtube.com/watch?v=..." required>
+      <select name="niche" required>
+        <option value="motivational">Motivational</option>
+        <option value="comedy">Comedy</option>
+        <option value="wellness">Wellness</option>
+      </select>
+      <select name="quality_tier" required>
+        <option value="basic">Basic</option>
+        <option value="pro" selected>Pro</option>
+        <option value="studio">Studio</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:6px;color:#94a3b8;font-size:13px">
+        <input type="checkbox" name="allow_copyrighted"> Allow non-CC (credits original)
+      </label>
+      <button type="submit">Process →</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Recent uploads</h2>
+    <p class="lead">Auto-refreshes every 15 seconds.</p>
+    <table id="uploads-table">
+      <thead><tr>
+        <th>When</th><th>Source</th><th>Niche</th><th>Tier</th><th>Hook</th><th>YouTube</th><th>TikTok</th>
+      </tr></thead>
+      <tbody><tr><td colspan="7" style="text-align:center;color:#64748b">No uploads yet — drop a URL above.</td></tr></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const key = params.get('key');
+document.getElementById('key-chip').textContent = key || 'no key';
+
+async function loadStatus() {
+  if (!key) return;
+  const res = await fetch('/api/customer/status?key=' + encodeURIComponent(key));
+  const data = await res.json();
+  if (data.error) { return; }
+  document.getElementById('stat-processed').textContent = data.processed || 0;
+  document.getElementById('stat-youtube').textContent = data.youtube_posts || 0;
+  document.getElementById('stat-tiktok').textContent = data.tiktok_posts || 0;
+  document.getElementById('stat-pending').textContent = data.pending || 0;
+
+  const banner = document.getElementById('trial-banner');
+  if (data.status === 'expired') {
+    banner.classList.add('expired');
+    document.getElementById('days-left').textContent = '0';
+    banner.querySelector('.text').innerHTML = 'Your trial has ended. Upgrade to keep posting.';
+    document.getElementById('upgrade-link').href = data.payment_url || '#';
+  } else if (data.status === 'active_paid') {
+    banner.style.display = 'none';
+  } else {
+    document.getElementById('days-left').textContent = data.days_left ?? '—';
+    document.getElementById('upgrade-link').href = data.payment_url || '#';
+  }
+
+  // uploads table
+  const tbody = document.querySelector('#uploads-table tbody');
+  if (data.uploads && data.uploads.length) {
+    tbody.innerHTML = data.uploads.map(u => `
+      <tr>
+        <td>${u.uploaded_at ? u.uploaded_at.slice(0,16).replace('T',' ') : '—'}</td>
+        <td><a class="link" href="${u.source_url}" target="_blank">source</a></td>
+        <td>${u.niche || '—'}</td>
+        <td>${u.quality_tier || '—'}</td>
+        <td>${u.hook || ''}</td>
+        <td>${u.youtube?.shorts_url ? `<a class="link" href="${u.youtube.shorts_url}" target="_blank">▶ open</a>` : `<span class="status-${u.youtube?.status === 'uploaded' ? 'ok' : 'err'}">${u.youtube?.status || 'queued'}</span>`}</td>
+        <td><span class="status-${u.tiktok?.status === 'uploaded' || u.tiktok?.status === 'handed_off' ? 'ok' : 'err'}">${u.tiktok?.status || 'queued'}</span></td>
+      </tr>`).join('');
+  }
+}
+
+document.getElementById('add-url-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  const body = Object.fromEntries(data.entries());
+  body.allow_copyrighted = form.allow_copyrighted.checked;
+  body.key = key;
+  const res = await fetch('/api/customer/submit', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+  });
+  const result = await res.json();
+  if (result.queued) {
+    form.url.value = '';
+    loadStatus();
+  } else {
+    alert(result.error || 'Submission failed');
+  }
+});
+
+loadStatus();
+setInterval(loadStatus, 15000);
+</script>
+
+</body>
+</html>
