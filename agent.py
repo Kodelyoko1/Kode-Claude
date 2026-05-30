@@ -86,13 +86,15 @@ def agent_loop(user_message: str, history: list) -> list:
 
     rate_limit_retries = 0
     MAX_RATE_RETRIES = 3
+    tool_format_retries = 0
+    MAX_TOOL_FORMAT_RETRIES = 2
 
     while rounds < MAX_TOOL_ROUNDS:
         try:
             with Live(console=console, refresh_per_second=10) as live:
                 live.update("[bold cyan]Agent working...[/bold cyan]")
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     max_tokens=2048,
                     tools=groq_tools,
                     tool_choice="auto",
@@ -109,6 +111,17 @@ def agent_loop(user_message: str, history: list) -> list:
                 wait = 60
                 console.print(f"[yellow]Rate limit hit (attempt {rate_limit_retries}/{MAX_RATE_RETRIES}) — waiting {wait}s...[/yellow]")
                 time.sleep(wait)
+                continue
+            if "tool_use_failed" in err:
+                tool_format_retries += 1
+                if tool_format_retries > MAX_TOOL_FORMAT_RETRIES:
+                    console.print("[red]Model kept emitting malformed tool calls — skipping rest of run.[/red]")
+                    break
+                console.print(f"[yellow]Malformed tool call (attempt {tool_format_retries}/{MAX_TOOL_FORMAT_RETRIES}) — nudging model to use proper format...[/yellow]")
+                messages.append({
+                    "role": "user",
+                    "content": "Your previous tool call was rejected as malformed. Emit the tool call using the standard tool_calls JSON format — do NOT wrap it in <function=...> tags, do NOT wrap arguments in a list. Retry now.",
+                })
                 continue
             raise
 
