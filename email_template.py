@@ -7,8 +7,10 @@ from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
+from datetime import datetime
 import smtplib
 import os
+import json
 
 LOGO_PATH     = Path(__file__).parent / "data" / "logo.png"
 LOGO_URL      = "https://files.catbox.moe/u534iv.png"
@@ -16,6 +18,59 @@ COMPANY_NAME  = "Wholesale Omniverse LLC"
 SENDER_NAME   = "Tyreese Lumiere"
 SENDER_PHONE  = "207-385-4041"
 SENDER_EMAIL  = "WholesaleOmniverse@gmail.com"
+
+# Daily SMTP send quota — Gmail free caps at 500/day, Workspace at 2000/day.
+# 480 default leaves headroom for retries and protects sender reputation.
+QUOTA_PATH = Path(__file__).parent / "data" / "email_quota.json"
+DAILY_EMAIL_CAP_DEFAULT = 480
+
+
+def _daily_cap() -> int:
+    try:
+        return int(os.environ.get("DAILY_EMAIL_CAP", DAILY_EMAIL_CAP_DEFAULT))
+    except ValueError:
+        return DAILY_EMAIL_CAP_DEFAULT
+
+
+def _read_quota() -> dict:
+    today = datetime.now().strftime("%Y-%m-%d")
+    try:
+        data = json.loads(QUOTA_PATH.read_text())
+        if data.get("date") != today:
+            return {"date": today, "count": 0}
+        return {"date": today, "count": int(data.get("count", 0))}
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
+        return {"date": today, "count": 0}
+
+
+def _write_quota(data: dict) -> None:
+    QUOTA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    QUOTA_PATH.write_text(json.dumps(data))
+
+
+def check_and_reserve_send() -> dict:
+    """Reserve one send-slot for today. Returns {ok, count, cap}. ok=False means at cap."""
+    cap = _daily_cap()
+    data = _read_quota()
+    if data["count"] >= cap:
+        return {"ok": False, "count": data["count"], "cap": cap}
+    data["count"] += 1
+    _write_quota(data)
+    return {"ok": True, "count": data["count"], "cap": cap}
+
+
+def release_send() -> None:
+    """Return a reserved slot — call on non-quota failure so retries aren't penalized."""
+    data = _read_quota()
+    if data["count"] > 0:
+        data["count"] -= 1
+        _write_quota(data)
+
+
+def get_quota_status() -> dict:
+    """Read-only snapshot of today's usage."""
+    data = _read_quota()
+    return {"date": data["date"], "count": data["count"], "cap": _daily_cap()}
 
 
 def build_html_email(body_html: str, sender_name: str = SENDER_NAME,
@@ -168,6 +223,10 @@ def send_branded_email(
     if not all([smtp_host, smtp_user, smtp_pass]):
         return {"status": "smtp_not_configured"}
 
+    quota = check_and_reserve_send()
+    if not quota["ok"]:
+        return {"status": "quota_exceeded", "count": quota["count"], "cap": quota["cap"]}
+
     try:
         full_html = build_html_email(
             body_html_inner,
@@ -223,4 +282,5 @@ def send_branded_email(
 
         return {"status": "sent"}
     except Exception as e:
+        release_send()
         return {"status": "failed", "error": str(e)}

@@ -13,6 +13,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from bs4 import BeautifulSoup
 from pathlib import Path
+from email_template import check_and_reserve_send, release_send
 
 DATA_DIR = Path(__file__).parent / "data"
 IMPORT_DIR = DATA_DIR / "import"
@@ -2038,6 +2039,10 @@ def send_outreach_email(
         company_email=COMPANY_EMAIL,
     )
 
+    quota = check_and_reserve_send()
+    if not quota["ok"]:
+        return {"error": "quota_exceeded", "count": quota["count"], "cap": quota["cap"]}
+
     try:
         # Correct MIME structure for inline images (Gmail-compatible):
         # multipart/mixed
@@ -2128,8 +2133,10 @@ def send_outreach_email(
             "template_used": template_type,
         }
     except smtplib.SMTPAuthenticationError:
+        release_send()
         return {"error": "Gmail authentication failed. Make sure you're using an App Password, not your regular password. See: myaccount.google.com/apppasswords"}
     except Exception as e:
+        release_send()
         return {"error": str(e)}
 
 
