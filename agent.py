@@ -94,7 +94,7 @@ def agent_loop(user_message: str, history: list) -> list:
             with Live(console=console, refresh_per_second=10) as live:
                 live.update("[bold cyan]Agent working...[/bold cyan]")
                 response = client.chat.completions.create(
-                    model="moonshotai/kimi-k2-instruct",
+                    model="openai/gpt-oss-120b",
                     max_tokens=2048,
                     tools=groq_tools,
                     tool_choice="auto",
