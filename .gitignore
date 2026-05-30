@@ -8,6 +8,7 @@ __pycache__/
 # Secrets (NEVER commit these)
 .env
 .env.*
+!.env.example
 data/yt_client_secrets.json
 data/yt_token.json
 *.pem
