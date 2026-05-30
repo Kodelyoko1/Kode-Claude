@@ -39,6 +39,7 @@ data/lm_prospects.json
 data/lm_clients.json
 data/lm_snapshots/
 data/lm_reports/
+data/ecosystem_dashboard.html
 
 # Heavy media that don't belong in git
 data/vr_downloads/
