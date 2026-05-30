@@ -20,16 +20,41 @@ REPORTS_DIR = Path(__file__).parent.parent / "data" / "lm_reports"
 
 # Resource pages have the highest broken-link density per minute spent auditing,
 # and the curator usually has a contact email on the page itself.
+# intitle: forces the phrase to appear in the page title, which is much harder
+# for dictionary/encyclopedia results to satisfy.
 DEFAULT_PROSPECT_QUERIES = [
-    '"useful links" "contact" -site:wikipedia.org -site:reddit.com',
-    '"resource page" small business "contact us"',
-    '"recommended tools" blog "email"',
-    '"link roundup" inurl:blog "contact"',
+    'intitle:"useful links" -wikipedia -reddit',
+    'intitle:"useful websites" -wikipedia',
+    'intitle:"helpful resources" -wikipedia -reddit',
+    'intitle:"recommended reading" inurl:blog -wikipedia',
 ]
 
 SKIP_EMAIL_FRAGMENTS = {"noreply", "no-reply", "donotreply", "postmaster",
                         "admin@", "webmaster@", "privacy@", "legal@",
                         "press@", "example.com", "sentry.io", "wixpress"}
+
+# Hosts we never want as prospects — they either have no contact, won't pay,
+# or are too institutional to act on cold outreach. Match by domain suffix.
+SKIP_DOMAINS = {
+    # Dictionaries, encyclopedias, linguistic reference (high false-positive rate
+    # for "useful/helpful/recommended" queries since they define those words)
+    "wikipedia.org", "wiktionary.org", "merriam-webster.com", "dictionary.com",
+    "thesaurus.com", "cambridge.org", "collinsdictionary.com",
+    "oxfordlearnersdictionaries.com", "oed.com", "vocabulary.com",
+    "britannica.com", "thefreedictionary.com", "wordreference.com",
+    "wordhippo.com", "englishgrammar.org", "7esl.com", "iciba.com",
+    "makingenglishfun.com",
+    # Social / forums (no business email, won't convert)
+    "reddit.com", "twitter.com", "x.com", "facebook.com", "linkedin.com",
+    "instagram.com", "youtube.com", "tiktok.com", "pinterest.com",
+    "quora.com", "medium.com", "substack.com", "github.com",
+    # Big media / corporate (cold outreach dead-on-arrival)
+    "cnn.com", "bbc.com", "nytimes.com", "washingtonpost.com", "forbes.com",
+    "bloomberg.com", "wsj.com", "reuters.com", "theguardian.com",
+    "timeout.com", "eater.com", "opentable.com",
+    # Generic shopping/job/utility
+    "amazon.com", "ebay.com", "indeed.com", "yelp.com", "tripadvisor.com",
+}
 
 # Real TLDs we'll accept — keeps "logo-245x245@1x.png" out of the email pool.
 VALID_TLD = {"com", "org", "net", "io", "co", "us", "uk", "ca", "info", "biz",
@@ -211,12 +236,19 @@ def discover_prospects(query: str = "", max_new: int = 8) -> dict:
     existing = storage.load("lm_prospects.json", [])
     existing_slugs = {p["site_slug"] for p in existing}
 
-    results = _bing_search(query, n=max_new * 2)
+    # Over-fetch since the domain blacklist will drop many results.
+    results = _bing_search(query, n=max_new * 4)
     added = []
     for r in results:
         if len(added) >= max_new:
             break
         url = r["url"]
+        host = urlparse(url).netloc.lower().replace("www.", "")
+        # Institutional TLDs (gov/edu/mil) won't convert from cold outreach.
+        if host.endswith(".gov") or host.endswith(".edu") or host.endswith(".mil"):
+            continue
+        if any(host == d or host.endswith("." + d) for d in SKIP_DOMAINS):
+            continue
         slug = _url_to_slug(url)
         if slug in existing_slugs or not slug:
             continue
