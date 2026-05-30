@@ -49,10 +49,17 @@ Be direct. Give real numbers. Tell the user clearly if a deal works or not and e
 Flag deals where the numbers don't make sense — protecting capital is priority #1."""
 
 
-def run_tool(tool_name: str, tool_input: dict) -> str:
+def run_tool(tool_name: str, tool_input) -> str:
     fn = TOOL_FUNCTIONS.get(tool_name)
     if not fn:
         return json.dumps({"error": f"Unknown tool: {tool_name}"})
+    # Normalize Llama-format arg quirks: null for no-arg tools, [args] list-wrap.
+    if tool_input is None:
+        tool_input = {}
+    elif isinstance(tool_input, list) and len(tool_input) == 1 and isinstance(tool_input[0], dict):
+        tool_input = tool_input[0]
+    elif not isinstance(tool_input, dict):
+        return json.dumps({"error": f"tool args wrong shape: got {type(tool_input).__name__}, expected dict"})
     try:
         result = fn(**tool_input)
         return json.dumps(result, indent=2)
@@ -146,9 +153,12 @@ def agent_loop(user_message: str, history: list) -> list:
 
         rounds += 1
         for tc in tool_calls:
-            tool_input = json.loads(tc.function.arguments)
             console.print(f"\n[bold yellow]>[/bold yellow] [cyan]{tc.function.name}[/cyan] [dim]{tc.function.arguments}[/dim]")
-            result = run_tool(tc.function.name, tool_input)
+            try:
+                tool_input = json.loads(tc.function.arguments) if tc.function.arguments else {}
+                result = run_tool(tc.function.name, tool_input)
+            except json.JSONDecodeError as e:
+                result = json.dumps({"error": f"tool args not valid JSON: {e}; raw={tc.function.arguments!r}"})
             preview = result if len(result) < 500 else result[:500] + "\n..."
             console.print(f"  [dim green]{preview}[/dim green]")
             stored = result if len(result) <= 400 else result[:400] + "\n... [truncated]"
