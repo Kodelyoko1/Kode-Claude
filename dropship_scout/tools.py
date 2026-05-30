@@ -115,9 +115,11 @@ def _is_real_hashtag(name: str) -> bool:
 def scrape_tiktok_trends(limit: int = 10) -> list:
     """Pull trending hashtags from TikTok Creative Center. JSON is embedded in the page.
 
-    Returns [] when the structured JSON blob isn't present — callers/templates render a
-    "refreshing" placeholder. We intentionally do NOT fall back to grepping `#word` from
-    the raw HTML; the page is a JS-rendered SPA, so the only matches are CSS hex colors.
+    Returns [] when the structured JSON blob isn't present (which is almost always now
+    that Creative Center is a JS-rendered SPA). We intentionally do NOT fall back to
+    grepping `#word` from the raw HTML; the only matches would be CSS hex colors.
+    Callers should use get_tiktok_hashtags() instead, which falls back to a curated
+    evergreen list when this returns empty.
     """
     html = _get(TIKTOK_TRENDS_URL)
     if not html:
@@ -135,9 +137,51 @@ def scrape_tiktok_trends(limit: int = 10) -> list:
              "scraped_at": datetime.now().isoformat()} for t in trends]
 
 
+# Curated evergreen TikTok-Shop discovery hashtags. These are the perennial
+# top-of-funnel tags dropshippers target — billions of cumulative views, stable
+# across years, ordered roughly by category-discovery volume. Used when Creative
+# Center isn't reachable so the lead-magnet page always has something to show.
+EVERGREEN_TIKTOK_SHOP_HASHTAGS = [
+    "TikTokMadeMeBuyIt",
+    "AmazonFinds",
+    "TikTokShop",
+    "AmazonMustHaves",
+    "TikTokShopFinds",
+    "FoundItOnAmazon",
+    "CleanTok",
+    "BeautyTok",
+    "KitchenGadgets",
+    "ViralProducts",
+    "MustHaves",
+    "GadgetsThatActuallyWork",
+    "LifeHacks",
+    "ProductReview",
+    "DealsAndSteals",
+]
+
+
+def get_tiktok_hashtags(limit: int = 10) -> list:
+    """Return TikTok hashtags for display — live Creative Center data when available,
+    otherwise the curated evergreen list. Same item shape either way."""
+    live = scrape_tiktok_trends(limit=limit)
+    if live:
+        return live
+    now = datetime.now().isoformat()
+    return [
+        {
+            "hashtag":    "#" + name,
+            "rank":       i + 1,
+            "source":     "evergreen_curated",
+            "url":        f"https://www.tiktok.com/tag/{name.lower()}",
+            "scraped_at": now,
+        }
+        for i, name in enumerate(EVERGREEN_TIKTOK_SHOP_HASHTAGS[:limit])
+    ]
+
+
 def gather_trending() -> dict:
     """Full sweep: TikTok hashtags + Amazon Best Sellers across all categories."""
-    tiktok = scrape_tiktok_trends(limit=15)
+    tiktok = get_tiktok_hashtags(limit=15)
     amazon_by_cat = {}
     for cat, url in AMAZON_BESTSELLER_CATEGORIES:
         prods = scrape_amazon_bestsellers(cat, url, limit=8)
@@ -156,7 +200,7 @@ def build_digest(trends: dict, is_preview: bool = False) -> Path:
     lines = [
         f"# DropshipScout — Trending Products Digest",
         f"_{datetime.now():%B %d, %Y}_\n",
-        "## TikTok Creative Center — trending hashtags this week",
+        "## TikTok — top shopping hashtags",
     ]
     tiktok = trends.get("tiktok_hashtags", [])
     show_tags = tiktok[:5] if is_preview else tiktok
@@ -197,10 +241,15 @@ def update_public_page(trends: dict) -> Path:
 
     rows = []
     for t in tiktok:
+        # Live Creative Center data has a real rank; evergreen curated entries
+        # just get a generic "TikTok-Shop discovery" label so we don't fake a rank.
+        label = ("evergreen TikTok-Shop discovery"
+                 if t.get("source") == "evergreen_curated"
+                 else f"rank #{t.get('rank', '?')}")
         rows.append(
             f'<li><a href="{t["url"]}" target="_blank" rel="noopener">'
             f'<strong>{t["hashtag"]}</strong></a> '
-            f'<span class="muted">rank #{t.get("rank", "?")}</span></li>'
+            f'<span class="muted">{label}</span></li>'
         )
     tiktok_html = "\n".join(rows) or "<li class='muted'>Refreshing — check back in a few hours.</li>"
 
@@ -259,7 +308,7 @@ def update_public_page(trends: dict) -> Path:
 
 <section>
   <div class="container">
-    <h2>TikTok — trending hashtags</h2>
+    <h2>TikTok — top shopping hashtags</h2>
     <ul class="trend-list">
       {tiktok_html}
     </ul>
