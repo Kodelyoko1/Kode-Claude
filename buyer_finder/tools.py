@@ -115,6 +115,12 @@ def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "")
     smtp_port = int(os.environ.get("SMTP_PORT", 587))
     if not all([smtp_host, smtp_user, smtp_pass]):
         return {"status": "smtp_not_configured"}
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).parent.parent))
+    from email_template import check_and_reserve_send, release_send
+    quota = check_and_reserve_send()
+    if not quota["ok"]:
+        return {"status": "quota_exceeded", "count": quota["count"], "cap": quota["cap"]}
     try:
         if body_html and LOGO_PATH.exists():
             # multipart/related so logo CID reference resolves
@@ -149,6 +155,7 @@ def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "")
             s.sendmail(smtp_user, to_email, msg.as_string())
         return {"status": "sent"}
     except Exception as e:
+        release_send()
         return {"status": "failed", "error": str(e)}
 
 
