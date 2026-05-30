@@ -50,7 +50,7 @@ def stabilize(source: Path, output: Path) -> dict:
         "-i", str(source),
         "-vf", f"vidstabdetect=shakiness=8:accuracy=15:result={transforms}",
         "-f", "null", "-",
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"stabilize pass1 failed: {r.stderr[-200:]}"}
     # Pass 2
@@ -60,7 +60,7 @@ def stabilize(source: Path, output: Path) -> dict:
         "-vf", f"vidstabtransform=input={transforms}:smoothing=30:zoom=2,unsharp=5:5:0.8:3:3:0.4",
         "-c:a", "copy",
         str(output),
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     try:
         transforms.unlink()
     except Exception:
@@ -79,10 +79,10 @@ def color_grade(source: Path, output: Path, preset: str = "cinematic") -> dict:
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(source),
         "-vf", grade,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "copy",
         str(output),
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"color grade failed: {r.stderr[-200:]}"}
     return {"output_path": str(output), "preset": preset}
@@ -115,7 +115,7 @@ def speed_ramp(source: Path, output: Path,
         "-i", str(source),
         "-filter_complex", filtergraph,
         "-map", "[outv]", "-map", "[outa]",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "aac", "-b:a", "192k",
         str(output),
     ], capture_output=True, text=True, timeout=600)
@@ -138,10 +138,10 @@ def vignette_grain(source: Path, output: Path,
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(source),
         "-vf", vf,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "copy",
         str(output),
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"vignette/grain failed: {r.stderr[-200:]}"}
     return {"output_path": str(output)}
@@ -167,7 +167,7 @@ def export_aspect(source: Path, output: Path, aspect: str = "9:16") -> dict:
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "21",
         "-c:a", "copy",
         str(output),
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"aspect export failed: {r.stderr[-200:]}"}
     return {"output_path": str(output), "aspect": aspect, "w": w, "h": h}
@@ -190,10 +190,10 @@ def smart_reframe(source: Path, output: Path,
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(source),
         "-vf", vf,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "copy",
         str(output),
-    ], capture_output=True, text=True, timeout=300)
+    ], capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"reframe failed: {r.stderr[-200:]}"}
     return {"output_path": str(output)}

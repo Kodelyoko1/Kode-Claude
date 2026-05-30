@@ -54,7 +54,7 @@ def master_audio(
         "-c:a", "aac", "-b:a", "192k",
         str(output_video),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"audio master failed: {r.stderr[-300:]}"}
     return {"output_path": str(output_video), "target_lufs": target_lufs}
@@ -81,7 +81,7 @@ def duck_under_voice(
         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
         str(output_video),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     if r.returncode != 0:
         return {"error": f"ducking failed: {r.stderr[-300:]}"}
     return {"output_path": str(output_video)}

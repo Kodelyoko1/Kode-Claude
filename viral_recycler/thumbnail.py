@@ -19,7 +19,7 @@ def extract_keyframes(video: Path, out_dir: Path, count: int = 5) -> list:
     r = subprocess.run([
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(video),
-        "-vf", f"select='gt(scene,0.3)',scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+        "-vf", f"select='gt(scene,0.3)',scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920",
         "-frames:v", str(count),
         "-vsync", "vfr",
         pattern,
@@ -30,7 +30,7 @@ def extract_keyframes(video: Path, out_dir: Path, count: int = 5) -> list:
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", str(video),
             "-ss", "5", "-frames:v", "1",
-            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,crop=1080:1920",
             str(out_dir / f"{video.stem}_thumb_001.jpg"),
         ], capture_output=True, text=True, timeout=60)
     return sorted(out_dir.glob(f"{video.stem}_thumb_*.jpg"))
