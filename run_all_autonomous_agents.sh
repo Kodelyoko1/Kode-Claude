@@ -4,7 +4,9 @@
 #   0 9 * * *  /home/tylumiere25/wholesale_agent/run_all_autonomous_agents.sh
 set -e
 cd /home/tylumiere25/wholesale_agent
-export $(grep -v '^#' .env 2>/dev/null | xargs) 2>/dev/null || true
+set -a
+[ -f .env ] && . .env 2>/dev/null
+set +a
 
 log() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"; }
 

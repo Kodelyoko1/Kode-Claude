@@ -49,10 +49,17 @@ Be direct. Give real numbers. Tell the user clearly if a deal works or not and e
 Flag deals where the numbers don't make sense — protecting capital is priority #1."""
 
 
-def run_tool(tool_name: str, tool_input: dict) -> str:
+def run_tool(tool_name: str, tool_input) -> str:
     fn = TOOL_FUNCTIONS.get(tool_name)
     if not fn:
         return json.dumps({"error": f"Unknown tool: {tool_name}"})
+    # Normalize Llama-format arg quirks: null for no-arg tools, [args] list-wrap.
+    if tool_input is None:
+        tool_input = {}
+    elif isinstance(tool_input, list) and len(tool_input) == 1 and isinstance(tool_input[0], dict):
+        tool_input = tool_input[0]
+    elif not isinstance(tool_input, dict):
+        return json.dumps({"error": f"tool args wrong shape: got {type(tool_input).__name__}, expected dict"})
     try:
         result = fn(**tool_input)
         return json.dumps(result, indent=2)
@@ -86,13 +93,15 @@ def agent_loop(user_message: str, history: list) -> list:
 
     rate_limit_retries = 0
     MAX_RATE_RETRIES = 3
+    tool_format_retries = 0
+    MAX_TOOL_FORMAT_RETRIES = 2
 
     while rounds < MAX_TOOL_ROUNDS:
         try:
             with Live(console=console, refresh_per_second=10) as live:
                 live.update("[bold cyan]Agent working...[/bold cyan]")
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     max_tokens=2048,
                     tools=groq_tools,
                     tool_choice="auto",
@@ -109,6 +118,17 @@ def agent_loop(user_message: str, history: list) -> list:
                 wait = 60
                 console.print(f"[yellow]Rate limit hit (attempt {rate_limit_retries}/{MAX_RATE_RETRIES}) — waiting {wait}s...[/yellow]")
                 time.sleep(wait)
+                continue
+            if "tool_use_failed" in err:
+                tool_format_retries += 1
+                if tool_format_retries > MAX_TOOL_FORMAT_RETRIES:
+                    console.print("[red]Model kept emitting malformed tool calls — skipping rest of run.[/red]")
+                    break
+                console.print(f"[yellow]Malformed tool call (attempt {tool_format_retries}/{MAX_TOOL_FORMAT_RETRIES}) — nudging model to use proper format...[/yellow]")
+                messages.append({
+                    "role": "user",
+                    "content": "Your previous tool call was rejected as malformed. Emit the tool call using the standard tool_calls JSON format — do NOT wrap it in <function=...> tags, do NOT wrap arguments in a list. Retry now.",
+                })
                 continue
             raise
 
@@ -133,9 +153,12 @@ def agent_loop(user_message: str, history: list) -> list:
 
         rounds += 1
         for tc in tool_calls:
-            tool_input = json.loads(tc.function.arguments)
             console.print(f"\n[bold yellow]>[/bold yellow] [cyan]{tc.function.name}[/cyan] [dim]{tc.function.arguments}[/dim]")
-            result = run_tool(tc.function.name, tool_input)
+            try:
+                tool_input = json.loads(tc.function.arguments) if tc.function.arguments else {}
+                result = run_tool(tc.function.name, tool_input)
+            except json.JSONDecodeError as e:
+                result = json.dumps({"error": f"tool args not valid JSON: {e}; raw={tc.function.arguments!r}"})
             preview = result if len(result) < 500 else result[:500] + "\n..."
             console.print(f"  [dim green]{preview}[/dim green]")
             stored = result if len(result) <= 400 else result[:400] + "\n... [truncated]"
