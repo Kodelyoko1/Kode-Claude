@@ -1,5 +1,5 @@
 #!/bin/bash
-# Master cron runner for all 11 autonomous revenue agents.
+# Master cron runner for all 13 autonomous revenue agents.
 # Add to crontab:
 #   0 9 * * *  /home/tylumiere25/wholesale_agent/run_all_autonomous_agents.sh
 set -e
@@ -17,6 +17,8 @@ python3 run_careerforge_auto.py    || log "careerforge failed"
 python3 run_reputation_guard_auto.py || log "reputation_guard failed"
 python3 run_shortsforge_auto.py    || log "shortsforge failed"
 python3 run_viral_recycler_auto.py --max-uploads 1 || log "viral_recycler failed"
+python3 run_dropship_scout_auto.py     || log "dropship_scout failed"
+python3 run_salespage_doctor_auto.py   || log "salespage_doctor failed"
 
 # Weekly agents — Mondays only
 if [ "$(date +%u)" = "1" ]; then

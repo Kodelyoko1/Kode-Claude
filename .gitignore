@@ -40,6 +40,12 @@ data/lm_clients.json
 data/lm_snapshots/
 data/lm_reports/
 data/ecosystem_dashboard.html
+data/ds_latest_trends.json
+data/ds_subscribers.json
+data/ds_digests/
+data/spd_prospects.json
+data/spd_clients.json
+data/spd_reports/
 
 # Heavy media that don't belong in git
 data/vr_downloads/
