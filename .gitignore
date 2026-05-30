@@ -32,6 +32,8 @@ data/bounces_seen_uids.json
 data/cash_blast_log.json
 data/enrichment_log.json
 data/enrichment.log
+data/vr_uploads_log.json
+data/pitch_log.json
 
 # Heavy media that don't belong in git
 data/vr_downloads/
