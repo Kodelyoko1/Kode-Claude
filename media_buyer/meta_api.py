@@ -47,7 +47,27 @@ _SESSION = _session()
 
 
 def _parse_usage_headers(resp: requests.Response) -> int:
-    """If any rate-limit bucket is above 95%, return seconds to sleep; else 0."""
+    """If any rate-limit bucket is above 95%, return seconds to sleep; else 0.
+
+    Meta's three usage headers have inconsistent shapes:
+    - x-business-use-case-usage: {"act_<id>": [{call_count, total_cputime, ...}, ...]}
+    - x-app-usage:               {"call_count": N, "total_cputime": N, "total_time": N}
+    - x-ad-account-usage:        {"acc_id_util_pct": N, "ads_api_access_tier": "..."}
+    Walk anything we can find, ignore anything that doesn't look like a numeric bucket.
+    """
+    def walk(node: Any):
+        """Yield (key, value) for every numeric leaf in a nested dict/list."""
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if isinstance(v, (int, float)):
+                    yield k, v
+                else:
+                    yield from walk(v)
+        elif isinstance(node, list):
+            for item in node:
+                yield from walk(item)
+
+    interesting_keys = {"call_count", "total_cputime", "total_time", "acc_id_util_pct"}
     for hdr in ("x-business-use-case-usage", "x-ad-account-usage", "x-app-usage"):
         raw = resp.headers.get(hdr)
         if not raw:
@@ -56,18 +76,10 @@ def _parse_usage_headers(resp: requests.Response) -> int:
             payload = json.loads(raw)
         except json.JSONDecodeError:
             continue
-        # Payload is either {bucket_id: [{call_count, total_cputime, ...}]} or a single dict.
-        buckets: Iterable[dict[str, Any]]
-        if isinstance(payload, dict):
-            inner = next(iter(payload.values()), payload)
-            buckets = inner if isinstance(inner, list) else [inner]
-        else:
-            buckets = []
-        for b in buckets:
-            for k in ("call_count", "total_cputime", "total_time"):
-                if isinstance(b.get(k), (int, float)) and b[k] >= 95:
-                    log.warning("Meta rate-limit bucket %s near max (%s=%s)", hdr, k, b[k])
-                    return RATE_LIMIT_PAUSE_SECS
+        for k, v in walk(payload):
+            if k in interesting_keys and v >= 95:
+                log.warning("Meta rate-limit bucket %s near max (%s=%s)", hdr, k, v)
+                return RATE_LIMIT_PAUSE_SECS
     return 0
 
 
@@ -83,28 +95,45 @@ def _request(method: str, path: str, *, params: dict | None = None,
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             resp = _SESSION.request(method, url, params=params, data=data, json=json_body, timeout=30)
-            cooldown = _parse_usage_headers(resp)
-
-            if resp.status_code in (429, 500, 502, 503, 504):
-                wait = max(delay, cooldown)
-                log.warning("Meta %s on %s — sleeping %.1fs (attempt %d/%d)",
-                            resp.status_code, path, wait, attempt, MAX_RETRIES)
-                time.sleep(wait)
-                delay = min(delay * 2, 60)
-                continue
-
-            if cooldown:
-                # Successful response but we're warned we're close — pause before next call.
-                time.sleep(cooldown)
-
-            resp.raise_for_status()
-            return resp.json() if resp.content else {}
-
         except requests.RequestException as e:
+            # Network/timeout — these are worth retrying.
             last_exc = e
-            log.warning("Meta request error on %s: %s (attempt %d/%d)", path, e, attempt, MAX_RETRIES)
+            log.warning("Meta network error on %s: %s (attempt %d/%d)", path, e, attempt, MAX_RETRIES)
             time.sleep(delay)
             delay = min(delay * 2, 60)
+            continue
+
+        cooldown = _parse_usage_headers(resp)
+
+        if resp.status_code in (429, 500, 502, 503, 504):
+            wait = max(delay, cooldown)
+            log.warning("Meta %s on %s — sleeping %.1fs (attempt %d/%d)",
+                        resp.status_code, path, wait, attempt, MAX_RETRIES)
+            time.sleep(wait)
+            delay = min(delay * 2, 60)
+            continue
+
+        if 400 <= resp.status_code < 500:
+            # 4xx is the caller's problem (bad params, missing scope, etc) — surface Meta's
+            # actual error message instead of swallowing it behind a generic HTTPError.
+            try:
+                err = resp.json().get("error", {})
+                msg = err.get("message", resp.text[:200])
+                err_type = err.get("type", "")
+                err_code = err.get("code", "")
+                err_sub = err.get("error_subcode", "")
+            except (ValueError, AttributeError):
+                msg, err_type, err_code, err_sub = resp.text[:200], "", "", ""
+            raise RuntimeError(
+                f"Meta API {method} {path} -> HTTP {resp.status_code} "
+                f"[{err_type} code={err_code} subcode={err_sub}]: {msg}"
+            )
+
+        if cooldown:
+            # Successful response but we're warned we're close — pause before next call.
+            time.sleep(cooldown)
+
+        return resp.json() if resp.content else {}
 
     raise RuntimeError(f"Meta API {method} {path} failed after {MAX_RETRIES} retries: {last_exc}")
 
@@ -113,7 +142,9 @@ def _request(method: str, path: str, *, params: dict | None = None,
 INSIGHT_FIELDS_BASE = [
     "campaign_id", "campaign_name", "adset_id", "adset_name", "ad_id", "ad_name",
     "impressions", "spend", "clicks", "frequency", "reach",
-    "actions", "action_values", "video_3_sec_watched_actions",
+    "actions", "action_values",
+    # 3-sec views (hook rate input) lives in actions[].video_view; the dedicated
+    # video_3_sec_watched_actions field was deprecated in v19+ and now 400s.
     "video_thruplay_watched_actions",
 ]
 

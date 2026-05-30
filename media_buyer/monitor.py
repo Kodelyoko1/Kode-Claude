@@ -87,7 +87,9 @@ def compute_metrics(row: dict, level: str) -> Metrics:
     spend = float(row.get("spend") or 0)
     frequency = float(row.get("frequency") or 0)
 
-    three_sec = _video_metric(row, "video_3_sec_watched_actions")
+    # 3-sec views come from actions[].video_view (Meta deprecated the dedicated
+    # video_3_sec_watched_actions field). Thruplays still have a dedicated array.
+    three_sec = _action_count(row, "video_view")
     thruplays = _video_metric(row, "video_thruplay_watched_actions")
     hook_rate = (three_sec / impressions) if impressions else 0.0
     hold_rate = (thruplays / impressions) if impressions else 0.0
