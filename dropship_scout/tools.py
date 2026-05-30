@@ -1,13 +1,13 @@
 """
-DropshipScout — Weekly digest of viral TikTok-shop products + Amazon Movers & Shakers.
+DropshipScout — Weekly digest of viral TikTok-shop products + Amazon Best Sellers.
 Revenue: $47/mo subscription. Free tier shows top 3; paid tier gets the full digest +
 historical trend graphs + supplier links.
 
 Sources (all public, no API keys required):
 - TikTok Creative Center — trending hashtags + products
   https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/pc/en
-- Amazon Movers & Shakers — real-time top-100 sales rank gainers per category
-  https://www.amazon.com/gp/movers-and-shakers
+- Amazon Best Sellers — top-selling product per category, refreshed hourly
+  https://www.amazon.com/Best-Sellers/zgbs
 """
 import re
 import sys
@@ -23,21 +23,26 @@ AGENT_KEY = "dropship_scout"
 DIGESTS_DIR = Path(__file__).parent.parent / "data" / "ds_digests"
 WEBSITE_OUT = Path(__file__).parent.parent / "website" / "dropship_scout_trends.html"
 
-# Categories Amazon Movers & Shakers exposes that map well to TikTok shop dropship niches.
-AMAZON_MOVERS_CATEGORIES = [
-    ("beauty",        "https://www.amazon.com/gp/movers-and-shakers/beauty"),
-    ("home-kitchen",  "https://www.amazon.com/gp/movers-and-shakers/home-garden"),
-    ("toys",          "https://www.amazon.com/gp/movers-and-shakers/toys-and-games"),
-    ("fashion",       "https://www.amazon.com/gp/movers-and-shakers/fashion"),
-    ("pet-supplies",  "https://www.amazon.com/gp/movers-and-shakers/pet-supplies"),
+# Categories Amazon Best Sellers exposes that map well to TikTok-shop dropship niches.
+# (The /gp/movers-and-shakers/ pages used to be SSR-readable but Amazon now loads them
+# client-side via JS, so the grid is empty over plain HTTP. Best Sellers is still SSR.)
+AMAZON_BESTSELLER_CATEGORIES = [
+    ("beauty",        "https://www.amazon.com/Best-Sellers-Beauty/zgbs/beauty"),
+    ("home-kitchen",  "https://www.amazon.com/Best-Sellers-Kitchen-Dining/zgbs/kitchen"),
+    ("toys",          "https://www.amazon.com/Best-Sellers-Toys-Games/zgbs/toys-and-games"),
+    ("fashion",       "https://www.amazon.com/Best-Sellers-Clothing-Shoes-Jewelry/zgbs/fashion"),
+    ("pet-supplies",  "https://www.amazon.com/Best-Sellers-Pet-Supplies/zgbs/pet-supplies"),
 ]
 
 TIKTOK_TRENDS_URL = "https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/pc/en"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 DropshipScout/1.0",
+    # Amazon serves a stripped page (or 503) to obvious bot UAs; use a current desktop Chrome.
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
 }
 
 
@@ -52,8 +57,14 @@ def _get(url: str, timeout: int = 15) -> str:
     return ""
 
 
-def scrape_amazon_movers(category: str, url: str, limit: int = 10) -> list:
-    """Pull top sales-rank gainers from a Movers & Shakers category page."""
+def scrape_amazon_bestsellers(category: str, url: str, limit: int = 10) -> list:
+    """Pull top sellers from an Amazon Best Sellers category page.
+
+    Each Best Sellers item lives in a `div[id^='gridItemRoot']` and exposes 2–3 `/dp/`
+    anchors (image, title, price). We pick the first anchor whose visible text looks like
+    a real product name (not blank, not a $price, length > 12). Rank is the item's
+    position in the list (Best Sellers is rank-ordered top-to-bottom).
+    """
     html = _get(url)
     if not html:
         return []
@@ -63,24 +74,25 @@ def scrape_amazon_movers(category: str, url: str, limit: int = 10) -> list:
         return []
     soup = BeautifulSoup(html, "html.parser")
     products = []
-    # Amazon uses a few card patterns; this targets the canonical M&S list.
-    for item in soup.select("div.zg-item-immersion, li.zg-item-immersion, div[id^='gridItemRoot']")[:limit]:
-        title_el = item.select_one("a div div, div.p13n-sc-truncate, span.zg-text-center-align div")
-        link_el = item.select_one("a.a-link-normal[href*='/dp/']") or item.select_one("a[href*='/dp/']")
-        rank_el = item.select_one("span.zg-rank, .zg-bdg-text")
-        if not title_el or not link_el:
+    for position, item in enumerate(soup.select("div[id^='gridItemRoot']")[:limit], start=1):
+        title, href = None, None
+        for a in item.select("a.a-link-normal[href*='/dp/']"):
+            txt = a.get_text(" ", strip=True)
+            if not txt or txt.startswith("$") or len(txt) < 12:
+                continue
+            title, href = txt, a.get("href", "")
+            break
+        if not (title and href):
             continue
-        href = link_el.get("href", "")
         if not href.startswith("http"):
             href = "https://www.amazon.com" + href
-        # Strip Amazon tracking suffix
         href = href.split("/ref=")[0]
         products.append({
-            "category":  category,
-            "title":     title_el.get_text(strip=True)[:160],
-            "rank":      rank_el.get_text(strip=True) if rank_el else "",
-            "url":       href,
-            "source":    "amazon_movers",
+            "category":   category,
+            "title":      title[:160],
+            "rank":       f"#{position}",
+            "url":        href,
+            "source":     "amazon_bestsellers",
             "scraped_at": datetime.now().isoformat(),
         })
     return products
@@ -124,16 +136,16 @@ def scrape_tiktok_trends(limit: int = 10) -> list:
 
 
 def gather_trending() -> dict:
-    """Full sweep: TikTok hashtags + Amazon Movers across all categories."""
+    """Full sweep: TikTok hashtags + Amazon Best Sellers across all categories."""
     tiktok = scrape_tiktok_trends(limit=15)
     amazon_by_cat = {}
-    for cat, url in AMAZON_MOVERS_CATEGORIES:
-        prods = scrape_amazon_movers(cat, url, limit=8)
+    for cat, url in AMAZON_BESTSELLER_CATEGORIES:
+        prods = scrape_amazon_bestsellers(cat, url, limit=8)
         amazon_by_cat[cat] = prods
     return {
-        "tiktok_hashtags":  tiktok,
-        "amazon_movers":    amazon_by_cat,
-        "captured_at":      datetime.now().isoformat(),
+        "tiktok_hashtags":      tiktok,
+        "amazon_bestsellers":   amazon_by_cat,
+        "captured_at":          datetime.now().isoformat(),
     }
 
 
@@ -155,8 +167,8 @@ def build_digest(trends: dict, is_preview: bool = False) -> Path:
     if is_preview and len(tiktok) > 5:
         lines.append(f"\n_Preview: {len(tiktok) - 5} more hashtags in the full digest._")
 
-    lines.append("\n## Amazon Movers & Shakers — top sales-rank gainers")
-    for cat, prods in trends.get("amazon_movers", {}).items():
+    lines.append("\n## Amazon Best Sellers — top sellers per category")
+    for cat, prods in trends.get("amazon_bestsellers", {}).items():
         show_prods = prods[:3] if is_preview else prods
         if not show_prods:
             continue
@@ -181,7 +193,7 @@ def update_public_page(trends: dict) -> Path:
     """Regenerate website/dropship_scout_trends.html — public lead magnet showing
     the top 3 trends in each section. Drives signups to the paid digest."""
     tiktok = trends.get("tiktok_hashtags", [])[:5]
-    amazon = trends.get("amazon_movers", {})
+    amazon = trends.get("amazon_bestsellers", {})
 
     rows = []
     for t in tiktok:
@@ -210,7 +222,7 @@ def update_public_page(trends: dict) -> Path:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Free weekly digest of viral TikTok-shop products + Amazon Movers & Shakers. New winning products to dropship every Monday.">
+<meta name="description" content="Free weekly digest of viral TikTok-shop products + Amazon Best Sellers. New winning products to dropship every Monday.">
 <title>DropshipScout — Free Weekly Trending-Product Digest</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" type="image/png" href="assets/logo.png">
@@ -238,7 +250,7 @@ def update_public_page(trends: dict) -> Path:
     <p class="eyebrow">Updated {updated}</p>
     <h1>What's <span class="accent">selling on TikTok</span> right now</h1>
     <p class="lede">
-      Live snapshot of trending TikTok-shop hashtags + Amazon Movers & Shakers — the same data feed
+      Live snapshot of trending TikTok-shop hashtags + Amazon Best Sellers — the same data feed
       paid subscribers get every Monday. Free preview below; the full digest unlocks every category,
       supplier sourcing links, and week-over-week delta tracking.
     </p>
@@ -252,7 +264,7 @@ def update_public_page(trends: dict) -> Path:
       {tiktok_html}
     </ul>
 
-    <h2 style="margin-top:48px;">Amazon Movers & Shakers</h2>
+    <h2 style="margin-top:48px;">Amazon Best Sellers</h2>
     {amazon_html}
 
     <div class="cta-box">
@@ -288,7 +300,7 @@ def deliver_subscribers(trends: dict) -> dict:
             f"Hi {s.get('name', 'there')},\n\n"
             f"Your weekly DropshipScout digest is attached. "
             f"{len(trends.get('tiktok_hashtags', []))} trending hashtags and "
-            f"{sum(len(v) for v in trends.get('amazon_movers', {}).values())} mover products this week.\n\n"
+            f"{sum(len(v) for v in trends.get('amazon_bestsellers', {}).values())} top-seller products this week.\n\n"
             f"— DropshipScout, Wholesale Omniverse LLC"
         )
         result = mailer.send(AGENT_KEY, s["email"],
@@ -323,7 +335,7 @@ def run_full_cycle() -> dict:
     )
     return {
         "tiktok_hashtags":   len(trends.get("tiktok_hashtags", [])),
-        "amazon_products":   sum(len(v) for v in trends.get("amazon_movers", {}).values()),
+        "amazon_products":   sum(len(v) for v in trends.get("amazon_bestsellers", {}).values()),
         "fulfillment_sent":  delivered["fulfillment_sent"],
         "public_page":       str(WEBSITE_OUT),
         **rev,
