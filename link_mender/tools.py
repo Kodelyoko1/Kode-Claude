@@ -6,6 +6,7 @@ import re
 import sys
 import urllib.request
 import urllib.error
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
@@ -82,11 +83,18 @@ def audit_site(site_slug: str, deep_check: bool = True) -> dict:
 
     broken = []
     if deep_check:
-        for l in unique[:200]:
-            status = check_link(l["url"])
-            if status in (404, 410, 0):
-                l["status"] = status
-                broken.append(l)
+        # Sequential HEADs against 200 links could take 27min worst-case
+        # (8s timeout × 200). 10 workers keeps a polite RPS while bringing
+        # typical runs under 30s.
+        candidates = unique[:200]
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            futures = {ex.submit(check_link, l["url"]): l for l in candidates}
+            for fut in as_completed(futures):
+                status = fut.result()
+                if status in (404, 410, 0):
+                    link = futures[fut]
+                    link["status"] = status
+                    broken.append(link)
     return {"site": site_slug, "total_links": len(unique), "broken_links": broken,
             "broken_count": len(broken)}
 
