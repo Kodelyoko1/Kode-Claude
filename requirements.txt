@@ -13,3 +13,8 @@ flask>=3.0.0
 
 # Social posting (Reddit)
 praw>=7.8.0
+
+# Media Buyer webhook server (FastAPI) — optional; only needed when running
+# run_media_buyer_server.py. Cron usage of run_media_buyer_auto.py works without these.
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
