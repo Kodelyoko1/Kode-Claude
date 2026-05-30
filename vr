@@ -41,6 +41,10 @@ def main():
                         help="Bypass Creative-Commons gate (auto-credits original)")
     parser.add_argument("--slug", default="",
                         help="Custom slug for the output file")
+    parser.add_argument("--tiktok", action="store_true",
+                        help="Also post to TikTok (default: YouTube only)")
+    parser.add_argument("--mirror", action="store_true",
+                        help="Mirror horizontally for anti-fingerprinting (text reads backward)")
     args = parser.parse_args()
 
     os.environ.setdefault("AGENT_PASSWORD", "owner")  # owner bypass
@@ -62,6 +66,8 @@ def main():
         "quality_tier": args.tier,
         "allow_copyrighted": args.allow_copyrighted,
         "slug": args.slug,
+        "post_to_tiktok": args.tiktok,
+        "mirror": args.mirror,
     }
 
     with Progress(SpinnerColumn(), TextColumn("[bold]{task.description}"),

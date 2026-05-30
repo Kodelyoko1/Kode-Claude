@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""
+vr-queue — manage the ViralRecycler URL queue.
+
+Usage:
+    ./vr-queue add "URL" [--niche motivational|comedy|wellness] [--tier basic|pro|studio]
+    ./vr-queue list                  # show pending + done
+    ./vr-queue clear-done            # drop completed entries
+    ./vr-queue clear-all             # wipe the queue
+"""
+import argparse
+import json
+import re
+import sys
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from autonomous import storage
+
+
+def _slug(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:60]
+
+
+def add(url: str, niche: str, tier: str, allow_copyrighted: bool, mirror: bool):
+    queue = storage.load("vr_sources.json", [])
+    if not isinstance(queue, list):
+        queue = []
+    if any(q.get("url") == url and not q.get("processed") for q in queue):
+        print(f"  ↺ Already queued: {url}")
+        return
+    queue.append({
+        "url":  url,
+        "niche": niche,
+        "quality_tier": tier,
+        "allow_copyrighted": allow_copyrighted,
+        "mirror": mirror,
+        "post_to_tiktok": False,
+        "slug": _slug(url.split("/")[-1] or url),
+        "status": "queued",
+        "submitted_at": datetime.now().isoformat(),
+    })
+    storage.save("vr_sources.json", queue)
+    pending = sum(1 for q in queue if not q.get("processed"))
+    print(f"  ✓ Queued: {url}")
+    print(f"    niche={niche}, tier={tier}, pending={pending}")
+
+
+def show_list():
+    queue = storage.load("vr_sources.json", [])
+    if not queue:
+        print("  (queue is empty — use: vr-queue add 'URL')")
+        return
+    pending = [q for q in queue if not q.get("processed")]
+    done = [q for q in queue if q.get("processed")]
+    print(f"\n  PENDING ({len(pending)}):")
+    for i, q in enumerate(pending, 1):
+        err = q.get("last_error", "")
+        line = f"    {i}. [{q.get('niche', '?'):<13}] [{q.get('quality_tier', '?'):<6}] {q['url']}"
+        if err:
+            line += f"  ⚠ {err[:50]}"
+        print(line)
+    print(f"\n  DONE ({len(done)}):")
+    for q in done[-10:]:
+        yt = q.get("youtube_url", "")
+        print(f"    ✓ {q['url'][:60]}")
+        if yt:
+            print(f"      → {yt}")
+
+
+def clear(scope: str):
+    queue = storage.load("vr_sources.json", [])
+    before = len(queue)
+    if scope == "done":
+        queue = [q for q in queue if not q.get("processed")]
+    elif scope == "all":
+        queue = []
+    storage.save("vr_sources.json", queue)
+    print(f"  ✓ Removed {before - len(queue)} entries. {len(queue)} remain.")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Manage the ViralRecycler queue")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_add = sub.add_parser("add", help="Add a URL to the queue")
+    p_add.add_argument("url")
+    p_add.add_argument("--niche", default="motivational",
+                        choices=["motivational", "comedy", "wellness"])
+    p_add.add_argument("--tier", default="pro", choices=["basic", "pro", "studio"])
+    p_add.add_argument("--allow-copyrighted", action="store_true", default=True)
+    p_add.add_argument("--strict-cc", action="store_true",
+                        help="Reject non-Creative-Commons sources (default off)")
+    p_add.add_argument("--mirror", action="store_true",
+                        help="Mirror horizontally (text reads backward)")
+
+    sub.add_parser("list", help="List queue contents")
+    sub.add_parser("clear-done", help="Drop completed entries")
+    sub.add_parser("clear-all", help="Wipe the queue")
+
+    args = parser.parse_args()
+
+    if args.cmd == "add":
+        allow = not args.strict_cc
+        add(args.url, args.niche, args.tier, allow, args.mirror)
+    elif args.cmd == "list" or args.cmd is None:
+        show_list()
+    elif args.cmd == "clear-done":
+        clear("done")
+    elif args.cmd == "clear-all":
+        clear("all")
+
+
+if __name__ == "__main__":
+    main()

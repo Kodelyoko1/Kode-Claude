@@ -27,6 +27,7 @@ def run_pipeline(
     color_preset: str = "",
     target_duration: float = 45.0,
     fallback_transcript: str = "",
+    mirror: bool = False,
 ) -> dict:
     """Full pipeline. Returns dict with output paths + metadata for upload."""
     WORK_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,6 +70,7 @@ def run_pipeline(
         caption_text=segment["text"],
         hook_text=hook,
         outro_text=f"Follow {cfg['channel_handle']}",
+        mirror=mirror,
     )
     if "error" in core:
         artifacts["errors"].append({"stage": "core", **core})

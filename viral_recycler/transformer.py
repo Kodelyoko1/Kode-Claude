@@ -64,7 +64,7 @@ def transform(
     caption_text: str = "",
     hook_text: str = "",
     outro_text: str = "Follow for more",
-    mirror: bool = True,
+    mirror: bool = False,      # default off — was causing backward text
     speed: float = 1.03,
 ) -> dict:
     """Run the full transform pipeline; return path to final MP4."""
@@ -79,7 +79,7 @@ def transform(
     # 1. Trim + force vertical 1080x1920 + optional mirror + speed
     stage1 = WORK_DIR / f"{output_slug}_stage1.mp4"
     vf = (
-        "scale=1080:1920:force_original_aspect_ratio=increase,"
+        "scale=1080:1920:force_original_aspect_ratio=increase:flags=lanczos,"
         "crop=1080:1920,"
         + ("hflip," if mirror else "")
         + "eq=brightness=0.02:saturation=1.05,"
@@ -94,12 +94,12 @@ def transform(
         "-t", str(trim_duration),
         "-vf", vf,
         "-af", af,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "aac", "-b:a", "128k",
         "-pix_fmt", "yuv420p",
         str(stage1),
     ]
-    result = subprocess.run(cmd1, capture_output=True, text=True, timeout=300)
+    result = subprocess.run(cmd1, capture_output=True, text=True, timeout=900)
     if result.returncode != 0:
         return {"error": f"stage1 ffmpeg failed: {result.stderr[-400:]}"}
 
@@ -120,11 +120,11 @@ def transform(
             "ffmpeg", "-y", "-loglevel", "error",
             "-i", str(stage1),
             "-vf", sub_vf,
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
             "-c:a", "copy",
             str(stage2),
         ]
-        result = subprocess.run(cmd2, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(cmd2, capture_output=True, text=True, timeout=900)
         if result.returncode != 0:
             # Caption failure is non-fatal — fall through with stage1
             stage2 = stage1
@@ -147,11 +147,11 @@ def transform(
         "ffmpeg", "-y", "-loglevel", "error",
         "-i", str(stage2),
         "-vf", drawtext,
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "copy",
         str(final),
     ]
-    result = subprocess.run(cmd3, capture_output=True, text=True, timeout=300)
+    result = subprocess.run(cmd3, capture_output=True, text=True, timeout=900)
     if result.returncode != 0:
         # If drawtext fails, ship stage2 as final
         shutil.copy(stage2, final)

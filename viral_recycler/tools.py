@@ -35,7 +35,7 @@ from viral_recycler.pro_pipeline import run_pipeline
 AGENT_KEY = "viral_recycler"
 
 UPLOADS_PER_RUN_DEFAULT = 1     # very conservative: 1 video/run by default
-DAILY_UPLOAD_CAP = 2            # safety: never more than 2/day to avoid spam-flag
+DAILY_UPLOAD_CAP = 5            # safety: never more than 2/day to avoid spam-flag
 
 
 def _today_uploads() -> int:
@@ -83,6 +83,7 @@ def process_one(source: dict) -> dict:
         niche=niche,
         quality_tier=quality_tier,
         fallback_transcript=fallback_transcript,
+        mirror=source.get("mirror", False),
     )
     if "errors" in pipeline and pipeline.get("errors") and not pipeline.get("final_path"):
         return {"stage": "pipeline", "error": pipeline["errors"]}
@@ -103,12 +104,15 @@ def process_one(source: dict) -> dict:
         privacy="public",
     )
 
-    # 5. Upload to TikTok
-    tt = tiktok.upload(
-        video_path=pipeline["final_path"],
-        caption=pipeline["hook"],
-        hashtags=pipeline["hashtags"],
-    )
+    # 5. TikTok — skipped by default. Set source["post_to_tiktok"] = True to enable.
+    if source.get("post_to_tiktok"):
+        tt = tiktok.upload(
+            video_path=pipeline["final_path"],
+            caption=pipeline["hook"],
+            hashtags=pipeline["hashtags"],
+        )
+    else:
+        tt = {"status": "skipped", "reason": "tiktok_disabled"}
 
     record = {
         "slug":           slug,
