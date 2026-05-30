@@ -42,8 +42,7 @@ services:
       - key: VR_PORT
         value: 10000                # Render's default
 
-    # Disk persistence — keeps trials, customers, uploads across deploys
-    disk:
-      name: viral-recycler-data
-      mountPath: /app/data
-      sizeGB: 1                     # free tier allows up to 1GB
+    # NOTE: Free tier does not support persistent disks.
+    # Data in /app/data is wiped on every redeploy.
+    # To enable persistence, upgrade to Starter ($7/mo) and uncomment the disk block,
+    # OR add a free Render PostgreSQL instance and migrate JSON storage to SQL.
