@@ -86,27 +86,38 @@ def scrape_amazon_movers(category: str, url: str, limit: int = 10) -> list:
     return products
 
 
+_HEX_COLOR_RE = re.compile(r'^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$|^[0-9a-fA-F]{8}$')
+
+
+def _is_real_hashtag(name: str) -> bool:
+    # Reject CSS hex color codes (e.g. fff, FE2C55) — they live in the HTML and used to
+    # leak through the fallback regex as fake hashtags.
+    if _HEX_COLOR_RE.match(name):
+        return False
+    # Must contain at least one letter — pure-numeric / pure-symbol strings aren't tags.
+    if not re.search(r'[A-Za-z]', name):
+        return False
+    return True
+
+
 def scrape_tiktok_trends(limit: int = 10) -> list:
-    """Pull trending hashtags from TikTok Creative Center. JSON is embedded in the page."""
+    """Pull trending hashtags from TikTok Creative Center. JSON is embedded in the page.
+
+    Returns [] when the structured JSON blob isn't present — callers/templates render a
+    "refreshing" placeholder. We intentionally do NOT fall back to grepping `#word` from
+    the raw HTML; the page is a JS-rendered SPA, so the only matches are CSS hex colors.
+    """
     html = _get(TIKTOK_TRENDS_URL)
     if not html:
         return []
-    # TikTok Creative Center embeds an initial-state JSON blob in a <script>.
-    # The structure changes occasionally; we look for the hashtag rank list.
     trends = []
     for m in re.finditer(r'"hashtag_name":"([^"]{2,40})".{0,500}?"rank":(\d+)', html):
         name, rank = m.group(1), int(m.group(2))
+        if not _is_real_hashtag(name):
+            continue
         trends.append({"hashtag": "#" + name, "rank": rank})
         if len(trends) >= limit:
             break
-    # Fallback regex if structure differs
-    if not trends:
-        for m in re.finditer(r'#([A-Za-z0-9_]{3,40})', html):
-            tag = m.group(0)
-            if tag not in [t["hashtag"] for t in trends]:
-                trends.append({"hashtag": tag, "rank": len(trends) + 1})
-            if len(trends) >= limit:
-                break
     return [{**t, "source": "tiktok_creative_center",
              "url": f"https://www.tiktok.com/tag/{t['hashtag'][1:]}",
              "scraped_at": datetime.now().isoformat()} for t in trends]
