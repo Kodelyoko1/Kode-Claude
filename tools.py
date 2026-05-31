@@ -369,6 +369,17 @@ def assign_contract(contract_id: str, buyer_id: str, final_assignment_fee: float
     _save(CONTRACTS_FILE, contracts)
     _save(BUYERS_FILE, buyers)
 
+    try:
+        from autonomous.notify import notify_deal_closed
+        notify_deal_closed(
+            contract=contract,
+            buyer_name=buyer["name"],
+            assignment_fee=final_assignment_fee,
+            lifetime_closed=buyers[buyer_id]["deals_closed"],
+        )
+    except Exception:
+        pass  # notification failure must never roll back the assignment
+
     return {
         "status": "assigned",
         "contract_id": contract_id,
@@ -553,7 +564,7 @@ SOCRATA_DATASETS = {
     "chicago": {
         "code_violations": (
             "https://data.cityofchicago.org/resource/22u3-xenr.json",
-            "respondent_name", "violation_address",
+            None, "address",
         ),
         "vacant": (
             "https://data.cityofchicago.org/resource/kc9i-wq85.json",
@@ -570,6 +581,48 @@ SOCRATA_DATASETS = {
         "tax_delinquent": (
             "https://data.norfolk.gov/resource/7qie-z5gv.json",
             "owner_name", "address",
+        ),
+    },
+    # NYC HPD violations — buildings with open housing-code violations
+    "new york": {
+        "code_violations": (
+            "https://data.cityofnewyork.us/resource/wvxf-dwi5.json",
+            None, ["housenumber", "streetname", "boro", "zip"],
+        ),
+        "foreclosure": (
+            "https://data.cityofnewyork.us/resource/59kj-x8nc.json",
+            "respondent", ["housenumber", "streetname", "zip"],
+        ),
+    },
+    # SF housing-code violations
+    "san francisco": {
+        "code_violations": (
+            "https://data.sfgov.org/resource/nbtm-fbw5.json",
+            None, ["street_number", "street_name", "street_suffix", "zipcode"],
+        ),
+    },
+    # Buffalo, NY code cases — address only
+    "buffalo": {
+        "code_violations": (
+            "https://data.buffalony.gov/resource/ivrf-k9vm.json",
+            None, ["address", "city", "state", "zip"],
+        ),
+    },
+}
+
+# Carto SQL endpoints — used for richer per-property data (e.g. Philly tax delinq
+# with full owner + balance + years owed). Schema:
+# (sql_url, table, owner_field, address_field_or_list, where_clause, extra_select)
+CARTO_DATASETS = {
+    "philadelphia": {
+        "tax_delinquent": (
+            "https://phl.carto.com/api/v2/sql",
+            "real_estate_tax_delinquencies",
+            "owner",
+            ["street_address", "zip_code"],
+            # Filter: only residential, currently actionable, owed for 2+ years
+            "building_category = 'residential' AND is_actionable = 'true' AND num_years_owed >= 2",
+            "principal_due, total_due, num_years_owed, mailing_address, mailing_city, mailing_state",
         ),
     },
 }
@@ -695,6 +748,21 @@ def _scrape_page(url: str) -> dict:
     return result
 
 
+def _compose_address(row: dict, field) -> str:
+    """address_field may be a string (single column) or a list (join multiple)."""
+    if isinstance(field, str):
+        v = row.get(field)
+        return str(v).strip() if v else ""
+    if isinstance(field, list):
+        parts = []
+        for f in field:
+            v = row.get(f)
+            if v:
+                parts.append(str(v).strip())
+        return " ".join(parts)
+    return ""
+
+
 def _try_socrata(city: str, state: str, record_type: str, max_records: int = 10) -> list:
     """Query verified working Socrata endpoints. Returns list of prospect dicts."""
     prospects = []
@@ -719,16 +787,67 @@ def _try_socrata(city: str, state: str, record_type: str, max_records: int = 10)
             return prospects
         for row in rows:
             name = (row.get(owner_field) if owner_field else None) or ""
-            address = (row.get(address_field) if address_field else None) or ""
+            address = _compose_address(row, address_field)
             if not address:
                 continue
             prospects.append({
                 "owner_name": str(name).strip(),
-                "address": str(address).strip(),
+                "address": address,
                 "email": None,
                 "phone": None,
                 "source": f"Open data portal ({city})",
                 "source_url": endpoint,
+            })
+    except Exception:
+        pass
+    return prospects
+
+
+def _try_carto(city: str, state: str, record_type: str, max_records: int = 10) -> list:
+    """Query Carto SQL endpoints (richer per-property data than Socrata). Returns prospects."""
+    prospects = []
+    city_key = city.lower()
+    datasets = CARTO_DATASETS.get(city_key, {})
+    entry = datasets.get(record_type)
+    if not entry:
+        return prospects
+    sql_url, table, owner_field, address_field, where_clause, extra_select = entry
+    addr_cols = address_field if isinstance(address_field, list) else [address_field]
+    select_cols = [owner_field] + addr_cols + ([extra_select] if extra_select else [])
+    select_sql = ", ".join(select_cols)
+    where_sql = f"WHERE {where_clause}" if where_clause else ""
+    q = f"SELECT {select_sql} FROM {table} {where_sql} LIMIT {max_records}"
+    try:
+        resp = requests.get(
+            sql_url,
+            params={"q": q},
+            headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0"},
+            timeout=15,
+            verify=False,
+        )
+        if resp.status_code != 200:
+            return prospects
+        rows = resp.json().get("rows", [])
+        for row in rows:
+            name = (row.get(owner_field) if owner_field else None) or ""
+            address = _compose_address(row, address_field)
+            if not address:
+                continue
+            notes_bits = []
+            if row.get("total_due"):
+                notes_bits.append(f"${float(row['total_due']):,.0f} owed")
+            if row.get("num_years_owed"):
+                notes_bits.append(f"{row['num_years_owed']} yrs delinquent")
+            mailing = row.get("mailing_address")
+            prospects.append({
+                "owner_name": str(name).strip(),
+                "address": address,
+                "email": None,
+                "phone": None,
+                "mailing_address": mailing,
+                "notes": "; ".join(notes_bits),
+                "source": f"Open data portal ({city})",
+                "source_url": sql_url,
             })
     except Exception:
         pass
@@ -1118,12 +1237,17 @@ def prospect_from_government_records(
     seen_names = set()
     gov_pages_visited = []
 
-    # ── Phase 1: Socrata open data (richest structured data) ─────────────────
-    socrata_prospects = _try_socrata(city, state, record_type, max_records=max_prospects)
-    for p in socrata_prospects:
+    # ── Phase 1: Socrata + Carto open data (richest structured data) ─────────
+    feed = _try_socrata(city, state, record_type, max_records=max_prospects)
+    feed += _try_carto(city, state, record_type, max_records=max_prospects)
+    for p in feed:
         name = p.get("owner_name", "")
-        if name and name not in seen_names and len(name) > 3:
-            seen_names.add(name)
+        addr = p.get("address", "")
+        # De-dupe: if no owner name, fall back to address (some sources give
+        # address-only rows, which still count as prospects)
+        dedupe_key = name if (name and len(name) > 3) else addr
+        if dedupe_key and dedupe_key not in seen_names:
+            seen_names.add(dedupe_key)
             prospects.append({**p, "record_type": record_type, "city": city, "state": state})
         if len(prospects) >= max_prospects:
             break

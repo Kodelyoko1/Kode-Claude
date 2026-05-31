@@ -16,6 +16,10 @@ For local testing (no public server), use ngrok:
 import json
 import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / ".env")
+
 from flask import Flask, request, jsonify
 from paywall.gate import _load, _save, _mark_paid, list_pending_payments
 from paywall.paypal import get_invoice_status

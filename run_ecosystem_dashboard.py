@@ -35,14 +35,26 @@ console = Console()
 DATA_DIR = Path(__file__).parent / "data"
 HTML_OUT = DATA_DIR / "ecosystem_dashboard.html"
 
-# Display order — autonomous agents only (the 11 we just built)
-AGENT_ORDER = [
+# Fallback ordering for agents that have no metrics yet — newer agents append.
+AGENT_BASE_ORDER = [
+    "propscout", "coldcaller", "buyer_finder", "followup", "outreach", "wholesale",
     "reputation_guard", "towncrier", "gutenberg_voice", "trendscout",
     "link_mender", "careerforge", "paperbrief", "nichelens",
     "storyforge", "pantrychef", "shortsforge", "viral_recycler",
+    "transcribe", "shownotes", "thumbforge", "carouselforge", "seowriter",
+    "speedaudit", "inboxzero", "courseforge", "localize", "notiontemplate",
+    "podcleaner", "proofbot", "modbot", "chatconfig", "bentoforge",
+    "templateforge", "plannerforge", "deckforge", "domainscout",
+    "dropship_scout", "salespage_doctor", "media_buyer",
 ]
 
 AGENT_EMOJI = {
+    "propscout":        "🏠",
+    "coldcaller":       "📞",
+    "buyer_finder":     "💰",
+    "followup":         "✉",
+    "outreach":         "📬",
+    "wholesale":        "🏘",
     "reputation_guard": "🛡",
     "towncrier":        "📣",
     "gutenberg_voice":  "🎙",
@@ -55,7 +67,40 @@ AGENT_EMOJI = {
     "pantrychef":       "🍳",
     "shortsforge":      "🎬",
     "viral_recycler":   "♻",
+    "transcribe":       "🎧",
+    "shownotes":        "📝",
+    "thumbforge":       "🖼",
+    "carouselforge":    "🎠",
+    "seowriter":        "📰",
+    "speedaudit":       "⚡",
+    "inboxzero":        "📥",
+    "courseforge":      "🎓",
+    "localize":         "🌐",
+    "notiontemplate":   "📋",
+    "podcleaner":       "🎚",
+    "proofbot":         "📑",
+    "modbot":           "🛂",
+    "chatconfig":       "💬",
+    "bentoforge":       "🍱",
+    "templateforge":    "🧩",
+    "plannerforge":     "📅",
+    "deckforge":        "🎴",
+    "domainscout":      "🌍",
+    "dropship_scout":   "🛒",
+    "salespage_doctor": "💉",
+    "media_buyer":      "📊",
 }
+
+
+def _discover_agents() -> list:
+    """Union of agents in AGENT_BASE_ORDER and any that have emitted metrics,
+    preserving base order for known ones and appending newcomers alphabetically."""
+    seen = metrics.get_all()
+    known = [k for k in AGENT_BASE_ORDER if k in seen]
+    extra = sorted(k for k in seen.keys() if k not in AGENT_BASE_ORDER)
+    # Also include base-order agents that haven't run yet so they show as idle
+    pending = [k for k in AGENT_BASE_ORDER if k not in seen]
+    return known + extra + pending
 
 
 def fmt_money(v: float) -> str:
@@ -68,7 +113,11 @@ def collect_state() -> dict:
     grand_mrr = 0
     grand_revenue = 0
     grand_subs = 0
-    for key in AGENT_ORDER:
+    grand_products = 0
+    grand_prospects = 0
+    agent_order = _discover_agents()
+    state["__order"] = agent_order
+    for key in agent_order:
         m = all_metrics.get(key, {})
         rev = billing.revenue_summary(key)
         subs = list_subscriptions(key)
@@ -96,11 +145,15 @@ def collect_state() -> dict:
         grand_mrr += mrr
         grand_revenue += total
         grand_subs += state[key]["active_subs"]
+        grand_products += state[key]["products_made"]
+        grand_prospects += state[key]["prospects_added"]
     state["__summary"] = {
         "total_mrr": grand_mrr,
         "total_revenue": grand_revenue,
         "total_active_subs": grand_subs,
-        "agent_count": len(AGENT_ORDER),
+        "total_products": grand_products,
+        "total_prospects": grand_prospects,
+        "agent_count": len(agent_order),
         "ts": datetime.now().isoformat(),
     }
     return state
@@ -121,7 +174,9 @@ def render_terminal(state: dict) -> Layout:
         f"[dim]{datetime.now():%A, %B %d, %Y · %H:%M:%S}[/dim]   "
         f"[bold green]MRR ${s['total_mrr']:,.0f}[/bold green]   "
         f"[bold cyan]Active Subs {s['total_active_subs']}[/bold cyan]   "
-        f"[bold magenta]Total Revenue ${s['total_revenue']:,.0f}[/bold magenta]"
+        f"[bold yellow]Prospects {s['total_prospects']}[/bold yellow]   "
+        f"[bold yellow]Products {s['total_products']}[/bold yellow]   "
+        f"[bold magenta]Revenue ${s['total_revenue']:,.0f}[/bold magenta]"
     )
     layout["header"].update(Panel(Align.center(header_text),
                                   border_style="yellow", box=box.DOUBLE))
@@ -135,12 +190,13 @@ def render_terminal(state: dict) -> Layout:
     t.add_column("MRR", justify="right", style="green", width=9)
     t.add_column("Revenue", justify="right", style="magenta", width=10)
     t.add_column("Prospects", justify="right", style="yellow", width=10)
+    t.add_column("Products", justify="right", style="yellow", width=9)
     t.add_column("Outreach", justify="right", style="yellow", width=9)
     t.add_column("Delivered", justify="right", style="white", width=10)
     t.add_column("Status", style="bold", width=10)
     t.add_column("Last Run", style="dim", width=16)
 
-    for key in AGENT_ORDER:
+    for key in state["__order"]:
         a = state[key]
         emoji = AGENT_EMOJI.get(key, "·")
         status_color = "[green]●[/green] active" if a["status"] == "active" else "[dim]○ idle[/dim]"
@@ -153,6 +209,7 @@ def render_terminal(state: dict) -> Layout:
             fmt_money(a["mrr"]),
             fmt_money(a["total_revenue"]),
             str(a["prospects_added"]),
+            str(a["products_made"]),
             str(a["outreach_sent"]),
             str(a["fulfillment_sent"]),
             status_color,
@@ -182,10 +239,13 @@ def render_terminal(state: dict) -> Layout:
 def render_html(state: dict) -> str:
     s = state["__summary"]
     rows = []
-    for key in AGENT_ORDER:
+    order = state["__order"]
+    max_mrr = max(1, max(state[k]["mrr"] for k in order))
+    max_rev = max(1, max(state[k]["total_revenue"] for k in order))
+    for key in order:
         a = state[key]
-        bar_width = min(100, (a["mrr"] / max(1, max(state[k]["mrr"] for k in AGENT_ORDER))) * 100)
-        revenue_bar = min(100, (a["total_revenue"] / max(1, max(state[k]["total_revenue"] for k in AGENT_ORDER))) * 100)
+        bar_width = min(100, (a["mrr"] / max_mrr) * 100)
+        revenue_bar = min(100, (a["total_revenue"] / max_rev) * 100)
         status_dot = "🟢" if a["status"] == "active" else "⚪"
         name_short = a["name"].split(" — ")[0]
         rows.append(f"""
@@ -206,6 +266,8 @@ def render_html(state: dict) -> str:
             <div class="bar-track"><div class="bar rev" style="width:{revenue_bar}%"></div></div></div>
           <div class="funnel">
             <div class="funnel-step"><div class="big">{a['prospects_added']}</div><div class="lab">prospects</div></div>
+            <div class="arrow">→</div>
+            <div class="funnel-step"><div class="big">{a['products_made']}</div><div class="lab">products</div></div>
             <div class="arrow">→</div>
             <div class="funnel-step"><div class="big">{a['outreach_sent']}</div><div class="lab">outreach</div></div>
             <div class="arrow">→</div>
@@ -239,7 +301,7 @@ def render_html(state: dict) -> str:
   h1 {{ margin:0; color:#fff; font-size:28px; letter-spacing:1px; }}
   h1 span {{ color:#f59e0b; }}
   .sub {{ color:#94a3b8; font-size:13px; margin-top:4px; }}
-  .topstats {{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  .topstats {{ display:grid; grid-template-columns:repeat(6,1fr); gap:16px;
                padding:24px 32px; }}
   .topstat {{ background:#1e293b; border-radius:8px; padding:20px;
               border-left:4px solid #f59e0b; }}
@@ -295,6 +357,8 @@ def render_html(state: dict) -> str:
   <div class="topstat"><div class="v">{fmt_money(s['total_mrr'])}</div><div class="l">Monthly Recurring</div></div>
   <div class="topstat"><div class="v">{fmt_money(s['total_revenue'])}</div><div class="l">Total Revenue</div></div>
   <div class="topstat"><div class="v">{s['total_active_subs']}</div><div class="l">Active Subscribers</div></div>
+  <div class="topstat"><div class="v">{s['total_prospects']}</div><div class="l">Prospects (lifetime)</div></div>
+  <div class="topstat"><div class="v">{s['total_products']}</div><div class="l">Products Produced</div></div>
   <div class="topstat"><div class="v">{s['agent_count']}</div><div class="l">Autonomous Agents</div></div>
 </section>
 <section class="grid">{''.join(rows)}</section>

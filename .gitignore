@@ -51,6 +51,17 @@ data/media_buyer/
 data/mb_cron_logs/
 data/ds_cron_logs/
 
+# Per-agent runtime data (auto-generated; never commit)
+# Lead lists, delivery logs, prospect drafts, queue state, owner inputs/outputs
+data/*_leads.json
+data/*_delivery_log.json
+data/*_inputs/
+data/*_outputs/
+data/*_drafts/
+data/*_queues/
+data/notify_log.json
+data/iz_log.json
+
 # Heavy media that don't belong in git
 data/vr_downloads/
 data/vr_work/
