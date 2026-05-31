@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """FastAPI server for Media Buyer webhooks (Meta leadgen, Shopify orders, CAPI)."""
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / ".env")
 
 import uvicorn
 
