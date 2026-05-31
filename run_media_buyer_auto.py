@@ -13,7 +13,7 @@ Flags:
 import argparse
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 
 from rich.console import Console
@@ -31,7 +31,10 @@ console = Console()
 
 def run_once(kind: str, *, skip_controller: bool, skip_generator: bool) -> dict:
     profile = profile_for(kind=kind)
-    summary: dict = {"profile": kind, "dry_run": DRY_RUN, "started_at": datetime.utcnow().isoformat() + "Z"}
+    summary: dict = {
+        "profile": kind, "dry_run": DRY_RUN,
+        "started_at": datetime.now(UTC).isoformat(),
+    }
 
     console.print(Panel.fit(
         f"[bold white]Media Buyer cycle — {kind}[/bold white]\n"
@@ -39,19 +42,19 @@ def run_once(kind: str, *, skip_controller: bool, skip_generator: bool) -> dict:
         title="Wholesale Omniverse — Media Buyer", border_style="blue",
     ))
 
-    if skip_controller:
-        sweep = monitor.daily_sweep(kind)
-        summary["sweep_counts"] = {k: len(v) for k, v in sweep.items()}
-    else:
-        result = controller.evaluate_and_apply(kind)
-        summary["controller"] = result
+    # One sweep, shared by controller + generator — Insights calls are the
+    # most expensive part of the cycle (rate-limited and slow at scale).
+    sweep = monitor.daily_sweep(kind)
+    summary["sweep_counts"] = {k: len(v) for k, v in sweep.items()}
 
-    if not skip_generator:
-        # Pull current ad insights + their creative copy to feed the iteration agent.
-        ads_sweep = monitor.daily_sweep(kind)["ads"]
-        copies = _load_copies_for(ads_sweep, profile.ad_account_id)
-        refresh = generator.refresh_batch_for(ads_sweep, copies, kind=kind, top_k=5)
-        summary["creative_refresh"] = refresh
+    if not skip_controller:
+        summary["controller"] = controller.evaluate_and_apply(kind, sweep=sweep)
+
+    if not skip_generator and sweep["ads"]:
+        copies = _load_copies_for(sweep["ads"], profile.ad_account_id)
+        summary["creative_refresh"] = generator.refresh_batch_for(
+            sweep["ads"], copies, kind=kind, top_k=5,
+        )
 
     _email_report(summary, profile)
     console.print(json.dumps(summary, indent=2, default=str))
@@ -89,7 +92,7 @@ def _email_report(summary: dict, profile) -> None:
     body = "Media Buyer daily report\n\n" + json.dumps(summary, indent=2, default=str)
     mailer.send(
         AGENT_KEY, profile.alert_email,
-        f"Media Buyer daily — {summary['profile']} — {datetime.utcnow():%Y-%m-%d}",
+        f"Media Buyer daily — {summary['profile']} — {datetime.now(UTC):%Y-%m-%d}",
         body, purpose="report",
     )
 

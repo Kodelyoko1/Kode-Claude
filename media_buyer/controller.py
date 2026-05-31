@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Iterable
 
 from . import meta_api, monitor
@@ -164,7 +164,7 @@ def execute(actions: Iterable[Action], *, adset_budgets_by_id: dict[str, int] | 
 def _audit(action: Action, result: dict) -> None:
     AUDIT_FILE.parent.mkdir(parents=True, exist_ok=True)
     rec = {
-        "ts": datetime.utcnow().isoformat() + "Z",
+        "ts": datetime.now(UTC).isoformat(),
         "dry_run": DRY_RUN,
         "action": asdict(action),
         "result": result,
@@ -174,10 +174,15 @@ def _audit(action: Action, result: dict) -> None:
 
 
 # ─────────────────────────── Top-level: one full evaluation pass ───────────────────────────
-def evaluate_and_apply(kind: ProfileKind) -> dict:
-    """Pull today's insights for one profile, evaluate all rules, apply actions."""
+def evaluate_and_apply(kind: ProfileKind, *, sweep: dict | None = None) -> dict:
+    """Pull today's insights for one profile, evaluate all rules, apply actions.
+
+    `sweep` lets a caller (e.g. the cron runner) provide a pre-fetched daily_sweep
+    result so we don't pull Insights twice when the runner also feeds the generator.
+    """
     profile = profile_for(kind=kind)
-    sweep = monitor.daily_sweep(kind)
+    if sweep is None:
+        sweep = monitor.daily_sweep(kind)
 
     # adsets carry the budget — index by id so the scale apply step can look it up
     adsets_meta = {a["id"]: a for a in meta_api.list_adsets_for_account(profile.ad_account_id)}

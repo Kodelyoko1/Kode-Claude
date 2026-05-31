@@ -68,7 +68,7 @@ def score_lead(lead: dict[str, Any]) -> dict[str, Any]:
 
     # Defensive parse — model usually returns clean JSON, but strip code fences if present.
     if raw.startswith("```"):
-        raw = raw.strip("`").lstrip("json").strip()
+        raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     try:
         return json.loads(raw)
     except json.JSONDecodeError:

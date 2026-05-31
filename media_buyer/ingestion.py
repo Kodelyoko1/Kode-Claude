@@ -20,10 +20,10 @@ import logging
 import os
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Header, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Header, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from . import meta_api, scoring, integrations
@@ -37,13 +37,17 @@ app = FastAPI(title="Media Buyer Webhooks", version="1.0")
 # ─────────────────────────── Health ───────────────────────────
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
-    return {"ok": True, "ts": datetime.utcnow().isoformat() + "Z"}
+    return {"ok": True, "ts": datetime.now(UTC).isoformat()}
 
 
 # ─────────────────────────── Meta Lead-Ads subscription challenge ───────────────────────────
 @app.get("/webhooks/meta/leadgen")
 def meta_subscription_challenge(
-    hub_mode: str = "", hub_challenge: str = "", hub_verify_token: str = "",
+    # Meta sends ?hub.mode=subscribe&hub.challenge=...&hub.verify_token=... — the dots
+    # in the param names don't map automatically, so alias them explicitly.
+    hub_mode:         str = Query("", alias="hub.mode"),
+    hub_challenge:    str = Query("", alias="hub.challenge"),
+    hub_verify_token: str = Query("", alias="hub.verify_token"),
 ):
     """Meta hits this once when you subscribe a webhook. Echo the challenge."""
     expected = os.getenv("META_WEBHOOK_VERIFY_TOKEN", "")
@@ -112,7 +116,7 @@ def _process_leadgen(leadgen_id: str, form_id: str | None, page_id: str | None) 
     final_lead = {
         "id": leadgen_id,
         "source": "meta_leadgen",
-        "received_at": datetime.utcnow().isoformat() + "Z",
+        "received_at": datetime.now(UTC).isoformat(),
         "ad_id": lead.get("ad_id"),
         "form_id": form_id,
         "page_id": page_id,
@@ -198,7 +202,7 @@ def _process_order(order: dict) -> None:
         "order_id": order_id,
         "total": total,
         "currency": currency,
-        "received_at": datetime.utcnow().isoformat() + "Z",
+        "received_at": datetime.now(UTC).isoformat(),
         "line_items": [{"product_id": li.get("product_id"),
                         "title": li.get("title"),
                         "qty": li.get("quantity")} for li in order.get("line_items", [])],
@@ -214,7 +218,7 @@ def _maybe_alert_winning_product(order: dict, profile) -> None:
     """If a single product crosses MB_WINNING_DAILY_THRESHOLD orders today, ping ops."""
     threshold = int(os.getenv("MB_WINNING_DAILY_THRESHOLD", "25"))
     from autonomous import storage
-    today = datetime.utcnow().date().isoformat()
+    today = datetime.now(UTC).date().isoformat()
     counts = storage.load(f"media_buyer/product_orders_{today}.json", {})
 
     new_winners = []

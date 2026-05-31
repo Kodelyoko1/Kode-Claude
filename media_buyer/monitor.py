@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any
 
 from . import meta_api
@@ -151,7 +151,7 @@ def daily_sweep(kind: ProfileKind, date_preset: str = "last_3d") -> dict[str, li
 def _persist_snapshot(kind: ProfileKind, sweep: dict[str, list[Metrics]]) -> None:
     SNAPSHOT_FILE.parent.mkdir(parents=True, exist_ok=True)
     rec = {
-        "captured_at": datetime.utcnow().isoformat() + "Z",
+        "captured_at": datetime.now(UTC).isoformat(),
         "profile_kind": kind,
         "campaigns": [asdict(m) for m in sweep["campaigns"]],
         "adsets":    [asdict(m) for m in sweep["adsets"]],
@@ -162,23 +162,34 @@ def _persist_snapshot(kind: ProfileKind, sweep: dict[str, list[Metrics]]) -> Non
 
 
 def history_for(object_id: str, *, days: int = 7) -> list[dict]:
-    """Pull the last `days` snapshots for one object id. Used for moving averages."""
+    """Pull one snapshot-per-day for the last `days` days for one object id.
+
+    Multiple sweeps per day collapse to the latest one for that day, so manual
+    re-runs don't double-count today in moving averages downstream.
+    """
     if not SNAPSHOT_FILE.exists():
         return []
     import json
-    out: list[dict] = []
-    cutoff_date = datetime.utcnow().date()
+    from datetime import timezone, timedelta
+    cutoff = datetime.now(timezone.utc).date() - timedelta(days=days - 1)
+    by_day: dict[str, dict] = {}  # date_str -> latest snapshot for that day
     with SNAPSHOT_FILE.open() as f:
         for line in f:
             try:
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            try:
+                d = datetime.fromisoformat(rec["captured_at"].rstrip("Z")).date()
+            except (ValueError, KeyError):
+                continue
+            if d < cutoff:
+                continue
             for level_key in ("campaigns", "adsets", "ads"):
                 for m in rec.get(level_key, []):
                     if m.get("object_id") == object_id:
-                        out.append({"captured_at": rec["captured_at"], **m})
-    return out[-days:]
+                        by_day[d.isoformat()] = {"captured_at": rec["captured_at"], **m}
+    return [by_day[k] for k in sorted(by_day)]
 
 
 def moving_avg(history: list[dict], field: str, n: int = 3) -> float | None:

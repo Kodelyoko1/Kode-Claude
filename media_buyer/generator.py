@@ -90,7 +90,7 @@ def _client():
 def _parse_json(raw: str) -> dict:
     raw = raw.strip()
     if raw.startswith("```"):
-        raw = raw.strip("`").lstrip("json").strip()
+        raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
     return json.loads(raw)
 
 
@@ -153,7 +153,9 @@ def refresh_batch_for(ads: list[Metrics], copies_by_ad_id: dict[str, dict], *,
         # ecom — high ROAS is best, sort ascending then reverse below
         return -(m.roas or 0.0)
 
-    sortable = [m for m in ads if (m.cpl is not None or m.roas is not None)]
+    # Only include ads that have the metric we're actually ranking on.
+    metric_attr = "cpl" if kind == "lead_gen" else "roas"
+    sortable = [m for m in ads if getattr(m, metric_attr) is not None]
     sortable.sort(key=primary_metric)
     top = sortable[:top_k]
     losers = sortable[-top_k:][::-1]
