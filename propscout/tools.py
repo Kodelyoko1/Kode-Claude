@@ -156,15 +156,20 @@ def acquire_cycle(max_per_cell: int = 5, auto_email: bool = False) -> dict:
     # Persist our own snapshot for the dashboard / future runs
     storage.save("ps_leads.json", all_prospects)
 
-    # Generate a personalized cold-email draft per prospect; auto-send
-    # only the ones with valid email when the caller opted in.
+    # Generate a personalized cold-email draft per prospect WITH an email;
+    # auto-send when the caller opted in. Drafts for prospects without an
+    # email were misleading — the digest reported "N drafts written" but
+    # none were actually deliverable. Now drafts_written matches the
+    # sendable inventory exactly.
     drafts_written = 0
     sent = 0
     for p in all_prospects:
+        if not p.get("email"):
+            continue
         subject, body = _cold_email(p)
         _save_draft(p, subject, body)
         drafts_written += 1
-        if auto_email and p.get("email"):
+        if auto_email:
             r = mailer.send(AGENT_KEY, p["email"], subject, body,
                             purpose="outreach")
             if r.get("status") == "sent":
