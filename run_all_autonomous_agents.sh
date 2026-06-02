@@ -13,6 +13,7 @@ log() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"; }
 log "── DAILY AGENTS ──"
 python3 run_propscout_auto.py      || log "propscout failed"
 python3 run_coldcaller_auto.py     || log "coldcaller failed"
+python3 run_hudscout_auto.py       || log "hudscout failed"
 python3 run_storyforge_auto.py     || log "storyforge failed"
 python3 run_pantrychef_auto.py     || log "pantrychef failed"
 python3 run_careerforge_auto.py    || log "careerforge failed"

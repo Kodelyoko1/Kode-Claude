@@ -45,7 +45,7 @@ AGENT_BASE_ORDER = [
     "speedaudit", "inboxzero", "courseforge", "localize", "notiontemplate",
     "podcleaner", "proofbot", "modbot", "chatconfig", "bentoforge",
     "templateforge", "plannerforge", "deckforge", "domainscout",
-    "dropship_scout", "salespage_doctor", "media_buyer",
+    "dropship_scout", "salespage_doctor", "media_buyer", "hudscout",
 ]
 
 AGENT_EMOJI = {
@@ -89,6 +89,7 @@ AGENT_EMOJI = {
     "dropship_scout":   "🛒",
     "salespage_doctor": "💉",
     "media_buyer":      "📊",
+    "hudscout":         "🏛",
 }
 
 

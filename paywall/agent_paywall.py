@@ -53,6 +53,7 @@ AGENT_NAMES = {
     "coldcaller":       "ColdCaller — Google Voice Click-to-Call Queue",
     "salespage_doctor": "SalesPageDoctor — Creator Sales-Page Audits",
     "media_buyer":      "MediaBuyer — Autonomous Meta-Ads Optimizer",
+    "hudscout":         "HUDScout — HUD-Owned Foreclosed Property Feed",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -96,6 +97,7 @@ DEFAULT_PRICES = {
     "coldcaller":       97,
     "salespage_doctor": 77,
     "media_buyer":      297,
+    "hudscout":         97,
 }
 
 
