@@ -54,6 +54,7 @@ AGENT_NAMES = {
     "salespage_doctor": "SalesPageDoctor — Creator Sales-Page Audits",
     "media_buyer":      "MediaBuyer — Autonomous Meta-Ads Optimizer",
     "hudscout":         "HUDScout — HUD-Owned Foreclosed Property Feed",
+    "dropship_scout":   "DropshipScout — TikTok-Shop + Amazon Trend Digest",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -98,6 +99,7 @@ DEFAULT_PRICES = {
     "salespage_doctor": 77,
     "media_buyer":      297,
     "hudscout":         97,
+    "dropship_scout":   47,
 }
 
 
