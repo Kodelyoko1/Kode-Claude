@@ -227,12 +227,16 @@ def get_followup_summary() -> dict:
     no_email = []
 
     for lead in active:
-        stage = lead.get("followup_stage", 0)
-        stage_counts[stage] = stage_counts.get(stage, 0) + 1
-
+        # Leads with no email address can never receive a follow-up; counting
+        # them as "Initial sent" in the pipeline view used to poison the
+        # dashboard (3325/3328 active leads were un-emailable). Track them
+        # separately via no_email and skip them from the stage breakdown.
         if not lead.get("seller_email"):
             no_email.append(lead["lead_id"])
             continue
+
+        stage = lead.get("followup_stage", 0)
+        stage_counts[stage] = stage_counts.get(stage, 0) + 1
 
         if stage >= MAX_STAGE:
             continue
