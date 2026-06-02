@@ -50,6 +50,13 @@ Finds *paying clients* for the Deal Analyzer (SAAS) and Outreach-as-a-Service (O
 **Run:** `python3 run_prospector_auto.py [--product saas|oas]`  
 **Data:** `data/prospects.json`, `data/pitch_log.json`
 
+### HUDScout (`hudscout/`) — $97/mo, $297 quarterly retainer, $497 white-label market pack
+HUD Home Store REO scraper for the wholesale pipeline. HUD-owned former-FHA homes are heavily discounted and have a public bid period where investors can win below ARV. Hits the same JSON endpoint (`POST /SearchResult?handler=GetFilteredResult`) the site's own JS uses; bootstraps a session at `/searchresult` to capture the antiforgery token + cookie, then sweeps each configured state. Normalized listings land in `data/hd_leads.json` (per-agent dedupe store keyed by HUD case number) AND `data/leads.json` as `LEAD-NNNN` records with `lead_source: HUDScout`, so the wholesale Deal Analyzer picks them up. Owner + paying subs get a daily markdown digest.  
+**Run:** `python3 run_hudscout_auto.py`  
+**Env:** `HD_STATES="ME,NH,VT,MA"` (postal codes or full names), `HD_SEARCH_TIMEOUT=20`, `HD_DIGEST_DOW=-1` (-1 = every day; 0 = Monday only)  
+**Data:** `data/hd_leads.json`, `data/hd_outputs/YYYY-MM-DD.md`, appends to `data/leads.json`  
+**Resilience:** if 0 listings across all states for several consecutive runs, HUD's JSON contract or antiforgery flow changed — patch `_open_session()` (token capture) and `_normalize_property()` (JSON field mapping) in `hudscout/tools.py`.
+
 ---
 
 ## Content & Publishing Agents
