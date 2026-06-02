@@ -55,6 +55,7 @@ AGENT_NAMES = {
     "media_buyer":      "MediaBuyer — Autonomous Meta-Ads Optimizer",
     "hudscout":         "HUDScout — HUD-Owned Foreclosed Property Feed",
     "dropship_scout":   "DropshipScout — TikTok-Shop + Amazon Trend Digest",
+    "batman":           "Batman — Self-Healing Agent Fleet Manager",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -100,6 +101,7 @@ DEFAULT_PRICES = {
     "media_buyer":      297,
     "hudscout":         97,
     "dropship_scout":   47,
+    "batman":           147,
 }
 
 

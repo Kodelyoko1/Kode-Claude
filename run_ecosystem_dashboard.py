@@ -46,6 +46,7 @@ AGENT_BASE_ORDER = [
     "podcleaner", "proofbot", "modbot", "chatconfig", "bentoforge",
     "templateforge", "plannerforge", "deckforge", "domainscout",
     "dropship_scout", "salespage_doctor", "media_buyer", "hudscout",
+    "batman",
 ]
 
 AGENT_EMOJI = {
@@ -90,6 +91,7 @@ AGENT_EMOJI = {
     "salespage_doctor": "💉",
     "media_buyer":      "📊",
     "hudscout":         "🏛",
+    "batman":           "🦇",
 }
 
 
