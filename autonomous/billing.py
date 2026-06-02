@@ -5,6 +5,7 @@ Reuses existing paywall infrastructure where possible.
 """
 import json
 import os
+import tempfile
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -16,15 +17,25 @@ INVOICES_FILE = DATA_DIR / "agent_invoices.json"
 
 def _load(path: Path, default):
     if path.exists():
-        with open(path) as f:
-            return json.load(f)
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except Exception:
+            return default
     return default
 
 
 def _save(path: Path, data):
     DATA_DIR.mkdir(exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 
 def paypal_link(amount: float, note: str = "") -> str:

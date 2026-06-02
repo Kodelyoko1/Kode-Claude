@@ -3,6 +3,8 @@ Central metrics registry for all autonomous agents.
 Every agent writes performance numbers here; the dashboard reads them.
 """
 import json
+import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -22,8 +24,16 @@ def _load() -> dict:
 
 def _save(d: dict):
     DATA_DIR.mkdir(exist_ok=True)
-    with open(METRICS_FILE, "w") as f:
-        json.dump(d, f, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=f".{METRICS_FILE.name}.", suffix=".tmp",
+                                dir=METRICS_FILE.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(d, f, indent=2)
+        os.replace(tmp, METRICS_FILE)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 
 def record(agent_key: str, **fields):

@@ -8,6 +8,7 @@ import os
 import sys
 import smtplib
 import datetime
+import tempfile
 from pathlib import Path
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -137,16 +138,27 @@ Tyreese Lumiere
 
 
 def _load(path, default):
-    if path.exists():
+    if not path.exists():
+        return default
+    try:
         with open(path) as f:
             return json.load(f)
-    return default
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"  warning: {path.name} unreadable ({e}); using default")
+        return default
 
 
 def _save(path, data):
     DATA_DIR.mkdir(exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 
 def _now():
