@@ -50,6 +50,12 @@ Finds *paying clients* for the Deal Analyzer (SAAS) and Outreach-as-a-Service (O
 **Run:** `python3 run_prospector_auto.py [--product saas|oas]`  
 **Data:** `data/prospects.json`, `data/pitch_log.json`
 
+### Batman (`batman/`) — $147/mo, $497 quarterly retainer, $997/yr enterprise
+Autonomous self-healing agent fleet manager. Every cycle: (1) scans the N most recent `data/runlog/*.log` files and extracts per-agent failure lines + Python tracebacks (attributing each to the agent panel above it); (2) verifies JSON integrity by try-loading every `data/*.json` (excludes files modified in the last 60s as a live-write guard); (3) detects stale agents from `data/agent_metrics.json` (weekly agents get 5× threshold); (4) when `BATMAN_LIVE=1`, quarantines corrupted files to `data/.batman_quarantine/<ts>-<name>` and restores known schemas (`agent_metrics.json` → `{}`, `leads.json` → `{}`, etc.); (5) writes a markdown digest to `data/bm_reports/YYYY-MM-DD.md` and emails the owner. Runs LAST in the daily cron so it can sweep the day's run log.  
+**Run:** `python3 run_batman_auto.py` (dry-run) or `BATMAN_LIVE=1 python3 run_batman_auto.py` (auto-repair)  
+**Env:** `BATMAN_LIVE` (default 0), `BM_LOG_SCAN_N` (default 5), `BM_STALE_HOURS` (default 48), `BM_LIVE_GUARD_SEC` (default 60), `BM_OWNER_EMAIL`, `BM_OWNER_DIGEST_ALWAYS` (default 1 — email even when all-clear)  
+**Data:** `data/bm_reports/`, `data/.batman_quarantine/`
+
 ### HUDScout (`hudscout/`) — $97/mo, $297 quarterly retainer, $497 white-label market pack
 HUD Home Store REO scraper for the wholesale pipeline. HUD-owned former-FHA homes are heavily discounted and have a public bid period where investors can win below ARV. Hits the same JSON endpoint (`POST /SearchResult?handler=GetFilteredResult`) the site's own JS uses; bootstraps a session at `/searchresult` to capture the antiforgery token + cookie, then sweeps each configured state. Normalized listings land in `data/hd_leads.json` (per-agent dedupe store keyed by HUD case number) AND `data/leads.json` as `LEAD-NNNN` records with `lead_source: HUDScout`, so the wholesale Deal Analyzer picks them up. Owner + paying subs get a daily markdown digest.  
 **Run:** `python3 run_hudscout_auto.py`  

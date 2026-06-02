@@ -39,6 +39,10 @@ python3 run_templateforge_auto.py      || log "templateforge failed"
 python3 run_plannerforge_auto.py       || log "plannerforge failed"
 python3 run_deckforge_auto.py          || log "deckforge failed"
 
+# Batman runs last so it can sweep the run logs from all the daily
+# agents above and flag failures / corrupted JSON / stale agents.
+python3 run_batman_auto.py             || log "batman failed"
+
 # Weekly agents — Mondays only
 if [ "$(date +%u)" = "1" ]; then
     log "── WEEKLY AGENTS (Monday) ──"

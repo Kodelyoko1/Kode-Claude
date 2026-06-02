@@ -47,6 +47,8 @@ data/ds_digests/
 data/spd_prospects.json
 data/spd_clients.json
 data/spd_reports/
+data/bm_reports/
+data/.batman_quarantine/
 data/media_buyer/
 data/mb_cron_logs/
 data/ds_cron_logs/
