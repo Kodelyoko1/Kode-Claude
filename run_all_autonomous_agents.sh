@@ -1,5 +1,5 @@
 #!/bin/bash
-# Master cron runner for all 13 autonomous revenue agents.
+# Master cron runner for the autonomous revenue agents (daily + Monday weekly).
 # Add to crontab:
 #   0 9 * * *  /home/tylumiere25/wholesale_agent/run_all_autonomous_agents.sh
 set -e
@@ -14,6 +14,7 @@ log "── DAILY AGENTS ──"
 python3 run_propscout_auto.py      || log "propscout failed"
 python3 run_coldcaller_auto.py     || log "coldcaller failed"
 python3 run_hudscout_auto.py       || log "hudscout failed"
+python3 run_followup_auto.py       || log "followup failed"
 python3 run_storyforge_auto.py     || log "storyforge failed"
 python3 run_pantrychef_auto.py     || log "pantrychef failed"
 python3 run_careerforge_auto.py    || log "careerforge failed"
