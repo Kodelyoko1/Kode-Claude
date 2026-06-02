@@ -2,6 +2,8 @@
 JSON storage helper with safe load/save and per-agent file convention.
 """
 import json
+import os
+import tempfile
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -24,10 +26,20 @@ def load(name: str, default=None):
 
 
 def save(name: str, data):
+    """Atomic JSON write: serialize to a tmp file in the same directory, then
+    os.replace() onto the target. If the process dies mid-write, the original
+    file is left untouched — readers never see a half-written blob."""
     p = path(name)
     p.parent.mkdir(exist_ok=True)
-    with open(p, "w") as f:
-        json.dump(data, f, indent=2, default=str)
+    fd, tmp_path = tempfile.mkstemp(prefix=f".{p.name}.", suffix=".tmp", dir=p.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2, default=str)
+        os.replace(tmp_path, p)
+    except Exception:
+        try: os.unlink(tmp_path)
+        except OSError: pass
+        raise
 
 
 def append(name: str, item):

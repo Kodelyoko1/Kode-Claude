@@ -3,7 +3,9 @@ Shared autonomous mailer wrapper around Gmail SMTP.
 Adds throttling, error capture, and per-agent send logs.
 """
 import json
+import os
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -64,8 +66,16 @@ def _is_role_address(email: str) -> bool:
 
 def _save(data):
     DATA_DIR.mkdir(exist_ok=True)
-    with open(SEND_LOG, "w") as f:
-        json.dump(data, f, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=f".{SEND_LOG.name}.", suffix=".tmp",
+                                dir=SEND_LOG.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, SEND_LOG)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 
 def _to_html(body: str) -> str:

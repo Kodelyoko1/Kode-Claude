@@ -41,6 +41,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
@@ -125,9 +126,18 @@ def _load(path: Path, default):
 
 
 def _save(path: Path, data) -> None:
+    """Atomic write: tmp file in same dir + os.replace. Prevents the
+    half-written-file class of bug that bit followup on 2026-06-02."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2)
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
 
 
 # ============================================================================
