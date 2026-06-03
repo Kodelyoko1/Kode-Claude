@@ -4,6 +4,8 @@ Social Agent — autonomous multi-platform poster + paid-ads dispatcher.
 
 Usage:
   python3 run_social_auto.py --status                 # show which platforms are live
+  python3 run_social_auto.py --diagnose               # preflight: creds + platform health + pool inventory
+  python3 run_social_auto.py --health-report          # per-platform failure-streak table from history
   python3 run_social_auto.py --dry-run                # show what would post on all platforms
   python3 run_social_auto.py                          # post to all live platforms
   python3 run_social_auto.py --platforms reddit,x     # only specified platforms
@@ -115,6 +117,10 @@ def cmd_history():
 def main():
     parser = argparse.ArgumentParser(description="Social Agent — autonomous multi-platform poster")
     parser.add_argument("--status",   action="store_true", help="Show which platforms have valid credentials")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Preflight: creds + per-platform health + content pool + cadence, then exit")
+    parser.add_argument("--health-report", action="store_true",
+                        help="Per-platform failure-streak table derived from dispatch history, then exit")
     parser.add_argument("--dry-run",  action="store_true", help="Show what would be posted without posting")
     parser.add_argument("--audience", default="", choices=["", "sellers", "buyers", "wholesalers"],
                         help="Filter post pool by audience")
@@ -125,6 +131,22 @@ def main():
 
     if args.status:
         cmd_status()
+        return
+    if args.diagnose:
+        from social_agent.diagnose import main as diag_main
+        sys.exit(diag_main())
+    if args.health_report:
+        from social_agent.health import report_lines, summary as health_summary
+        for line in report_lines():
+            console.print(line)
+        s = health_summary()
+        if s["platforms_with_attempts"]:
+            console.print()
+            console.print(
+                f"  [white]{s['healthy']}[/white] healthy / "
+                f"[yellow]{s['warning']}[/yellow] warning  "
+                f"(threshold ≥{s['alert_threshold']} consecutive failures)"
+            )
         return
     if args.history:
         cmd_history()
