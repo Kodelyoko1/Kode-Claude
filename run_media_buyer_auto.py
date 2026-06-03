@@ -21,7 +21,7 @@ from rich.panel import Panel
 
 sys.path.insert(0, str(Path(__file__).parent))
 from autonomous import mailer
-from media_buyer import controller, diagnose, generator, launcher, meta_api, monitor
+from media_buyer import controller, diagnose, generator, launcher, meta_api, monitor, webhook_setup
 from media_buyer.config import DRY_RUN, profile_for
 from paywall.agent_paywall import paywall_prompt
 from autonomous.self_healing import run_with_healing
@@ -115,6 +115,14 @@ def main():
                    help="Reuse an existing leadgen form id with --launch")
     p.add_argument("--activate", action="store_true",
                    help="With --launch, create objects ACTIVE instead of PAUSED (requires MB_LIVE=1)")
+    p.add_argument("--register-webhook", action="store_true",
+                   help="Subscribe app + page to leadgen webhooks (run after deploying the server)")
+    p.add_argument("--test-webhook", action="store_true",
+                   help="Probe the public server's challenge endpoint (no Meta mutations)")
+    p.add_argument("--webhook-status", action="store_true",
+                   help="List current app + page webhook subscriptions")
+    p.add_argument("--webhook-guide", action="store_true",
+                   help="Print the deploy guide for getting a public URL")
     args = p.parse_args()
 
     if args.diagnose:
@@ -151,6 +159,51 @@ def main():
             console.print("\n[yellow]DRY-RUN — no Meta objects were created. "
                           "Set MB_LIVE=1 and re-run to actually launch.[/yellow]")
         sys.exit(0)
+
+    if args.webhook_guide:
+        webhook_setup.print_deploy_guide()
+        sys.exit(0)
+
+    if args.webhook_status:
+        console.print(Panel.fit("[bold white]Webhook subscriptions[/bold white]",
+                                  title="Wholesale Omniverse — Media Buyer",
+                                  border_style="cyan"))
+        try:
+            console.print("[bold]App subscriptions[/bold]")
+            console.print(json.dumps(webhook_setup.list_app_subscriptions(),
+                                       indent=2, default=str))
+        except Exception as e:
+            console.print(f"  [red]error:[/red] {e}")
+        try:
+            console.print("\n[bold]Page subscriptions[/bold]")
+            console.print(json.dumps(
+                webhook_setup.list_page_subscriptions(profile_for(kind="lead_gen").page_id),
+                indent=2, default=str,
+            ))
+        except Exception as e:
+            console.print(f"  [red]error:[/red] {e}")
+        sys.exit(0)
+
+    if args.test_webhook:
+        result = webhook_setup.test_challenge_endpoint(
+            os.environ.get("MB_WEBHOOK_PUBLIC_URL", ""),
+            os.environ.get("META_WEBHOOK_VERIFY_TOKEN", ""),
+        )
+        console.print(json.dumps(result, indent=2, default=str))
+        sys.exit(0 if result["ok"] else 1)
+
+    if args.register_webhook:
+        console.print(Panel.fit(
+            "[bold white]Registering leadgen webhooks[/bold white]",
+            title="Wholesale Omniverse — Media Buyer", border_style="yellow",
+        ))
+        try:
+            result = webhook_setup.register_full()
+        except Exception as e:
+            console.print(f"[red]registration failed:[/red] {e}")
+            sys.exit(1)
+        console.print(json.dumps(result, indent=2, default=str))
+        sys.exit(0 if result.get("ok") else 1)
 
     if not paywall_prompt(AGENT_KEY):
         return
