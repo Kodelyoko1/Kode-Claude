@@ -145,6 +145,23 @@ def run_client_campaign(
     if not markets:
         return {"error": "No target markets configured for this client. Add markets first."}
 
+    # Monthly cap: skip cleanly so the cycle continues with other clients.
+    # campaigns_run_this_month is reset on the 1st of each month via
+    # outreach_service.renewals.monthly_reset().
+    cap = SERVICE_TIERS.get(c.get("tier", "").lower(), {}).get(
+        "campaigns_per_month", c.get("campaigns_per_month", 0)
+    )
+    used = int(c.get("campaigns_run_this_month", 0))
+    if cap and used >= cap:
+        return {
+            "status": "cap_reached",
+            "client": c["name"],
+            "client_id": client_id,
+            "campaigns_run_this_month": used,
+            "monthly_cap": cap,
+            "skipped": True,
+        }
+
     campaigns = _load(OAS_CAMPAIGNS_FILE, [])
     campaign_id = f"CAMP-{len(campaigns)+1:04d}"
 
