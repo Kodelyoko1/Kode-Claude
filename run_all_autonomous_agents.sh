@@ -38,6 +38,9 @@ python3 run_bentoforge_auto.py         || log "bentoforge failed"
 python3 run_templateforge_auto.py      || log "templateforge failed"
 python3 run_plannerforge_auto.py       || log "plannerforge failed"
 python3 run_deckforge_auto.py          || log "deckforge failed"
+python3 run_speedaudit_auto.py         || log "speedaudit failed"
+python3 run_courseforge_auto.py        || log "courseforge failed"
+python3 run_localize_auto.py           || log "localize failed"
 
 # Batman runs last so it can sweep the run logs from all the daily
 # agents above and flag failures / corrupted JSON / stale agents.
@@ -52,9 +55,6 @@ if [ "$(date +%u)" = "1" ]; then
     python3 run_nichelens_auto.py        || log "nichelens failed"
     python3 run_link_mender_auto.py      || log "link_mender failed"
     python3 run_gutenberg_voice_auto.py  || log "gutenberg_voice failed"
-    python3 run_speedaudit_auto.py       || log "speedaudit failed"
-    python3 run_courseforge_auto.py      || log "courseforge failed"
-    python3 run_localize_auto.py         || log "localize failed"
     python3 run_domainscout_auto.py      || log "domainscout failed"
 fi
 
