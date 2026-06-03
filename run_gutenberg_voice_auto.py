@@ -7,10 +7,12 @@ from rich.panel import Panel
 from rich.text import Text
 from gutenberg_voice.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("gutenberg_voice")
 def cycle():
     console.print(Panel(
         Text.from_markup(

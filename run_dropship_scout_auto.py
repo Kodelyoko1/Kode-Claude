@@ -8,10 +8,12 @@ from rich.panel import Panel
 from rich.text import Text
 from dropship_scout.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("dropship_scout")
 def cycle():
     console.print(Panel(
         Text.from_markup(

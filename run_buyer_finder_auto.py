@@ -14,10 +14,12 @@ from buyer_finder.tools import (
     get_buyers_summary, run_all_markets, recruit_buyers_full_cycle,
 )
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("buyer_finder")
 def run_cycle(cities: list = None, auto_email: bool = True):
     console.print(Panel(
         Text.from_markup(

@@ -24,6 +24,7 @@ from autonomous import mailer
 from media_buyer import controller, generator, meta_api, monitor
 from media_buyer.config import DRY_RUN, profile_for
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import run_with_healing
 
 AGENT_KEY = "media_buyer"
 console = Console()
@@ -106,7 +107,10 @@ def main():
 
     if not paywall_prompt(AGENT_KEY):
         return
-    run_once(args.kind, skip_controller=args.skip_controller, skip_generator=args.skip_generator)
+    run_with_healing(
+        AGENT_KEY,
+        lambda: run_once(args.kind, skip_controller=args.skip_controller, skip_generator=args.skip_generator),
+    )
 
 
 if __name__ == "__main__":

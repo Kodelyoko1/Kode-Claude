@@ -11,6 +11,7 @@ from rich.text import Text
 
 from hudscout.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import run_with_healing
 
 console = Console()
 
@@ -26,7 +27,7 @@ def main():
         title="[bold blue]Wholesale Omniverse — HUDScout[/bold blue]",
         border_style="blue",
     ))
-    result = run_full_cycle()
+    result = run_with_healing("hudscout", run_full_cycle)
     console.print(
         f"  States searched:    {result['states_searched']}\n"
         f"  Raw listings:       {result['raw_harvested']}\n"

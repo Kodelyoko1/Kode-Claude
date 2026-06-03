@@ -14,6 +14,10 @@ data/yt_token.json
 *.pem
 *_secret.json
 
+# Self-healing runtime state (per-host, never commit)
+data/.healing/
+data/.healing_quarantine/
+
 # Customer/billing data (per-user, runtime only — re-creates on the server)
 data/agent_subscriptions.json
 data/agent_invoices.json
