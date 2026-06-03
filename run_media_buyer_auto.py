@@ -21,7 +21,7 @@ from rich.panel import Panel
 
 sys.path.insert(0, str(Path(__file__).parent))
 from autonomous import mailer
-from media_buyer import controller, generator, meta_api, monitor
+from media_buyer import controller, diagnose, generator, launcher, meta_api, monitor
 from media_buyer.config import DRY_RUN, profile_for
 from paywall.agent_paywall import paywall_prompt
 from autonomous.self_healing import run_with_healing
@@ -103,7 +103,54 @@ def main():
     p.add_argument("--kind", choices=["lead_gen", "ecom"], default="lead_gen")
     p.add_argument("--skip-controller", action="store_true")
     p.add_argument("--skip-generator", action="store_true")
+    p.add_argument("--diagnose", action="store_true",
+                   help="Run read-only preflight checks and exit (no spend, no mutations)")
+    p.add_argument("--launch", action="store_true",
+                   help="Bootstrap a first paused lead-gen campaign (form + adset + creative + ad)")
+    p.add_argument("--budget", type=float, default=20.0,
+                   help="Daily budget USD for --launch (default 20)")
+    p.add_argument("--locations", default=None,
+                   help='Comma-separated US states for --launch targeting (default $MB_LAUNCH_LOCATIONS or Maine)')
+    p.add_argument("--form-id", default=None,
+                   help="Reuse an existing leadgen form id with --launch")
+    p.add_argument("--activate", action="store_true",
+                   help="With --launch, create objects ACTIVE instead of PAUSED (requires MB_LIVE=1)")
     args = p.parse_args()
+
+    if args.diagnose:
+        console.print(Panel.fit(
+            f"[bold white]Media Buyer preflight — {args.kind}[/bold white]",
+            title="Wholesale Omniverse — Media Buyer", border_style="cyan",
+        ))
+        report = diagnose.run_diagnostics(args.kind)
+        diagnose.print_report(report)
+        sys.exit(0 if report["summary"]["ready_to_launch"] else 1)
+
+    if args.launch:
+        if args.kind != "lead_gen":
+            console.print("[yellow]--launch currently only supports --kind lead_gen[/yellow]")
+            sys.exit(2)
+        # Hard gate: refuse --activate unless MB_LIVE is set
+        if args.activate and DRY_RUN:
+            console.print("[red]--activate requires MB_LIVE=1 to avoid creating an ACTIVE "
+                          "campaign that will silently fail to be created.[/red]")
+            sys.exit(2)
+        console.print(Panel.fit(
+            f"[bold white]Media Buyer launch — {args.kind} — "
+            f"{'ACTIVE' if args.activate else 'PAUSED'} — dry_run={DRY_RUN}[/bold white]",
+            title="Wholesale Omniverse — Media Buyer", border_style=("red" if args.activate else "yellow"),
+        ))
+        result = launcher.launch_lead_gen(
+            daily_budget_usd=args.budget,
+            locations=launcher._parse_locations(args.locations) if args.locations else None,
+            form_id=args.form_id,
+            paused=not args.activate,
+        )
+        console.print(json.dumps(result, indent=2, default=str))
+        if DRY_RUN:
+            console.print("\n[yellow]DRY-RUN — no Meta objects were created. "
+                          "Set MB_LIVE=1 and re-run to actually launch.[/yellow]")
+        sys.exit(0)
 
     if not paywall_prompt(AGENT_KEY):
         return
