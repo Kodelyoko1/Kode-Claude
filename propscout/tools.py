@@ -19,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import tools as core_tools  # prospect_from_government_records, _try_socrata, _try_carto
 from autonomous import storage, mailer, billing, metrics
+from propscout.health import record_cell
+from propscout.attribution import tag_new_prospects
 
 AGENT_KEY = "propscout"
 DRAFTS_DIR = Path(__file__).parent.parent / "data" / "ps_drafts"
@@ -128,6 +130,7 @@ def acquire_cycle(max_per_cell: int = 5, auto_email: bool = False) -> dict:
     visited_pages = []
 
     for city, state, record_type in PROSPECT_GRID:
+        err_text = ""
         try:
             result = core_tools.prospect_from_government_records(
                 city=city,
@@ -138,10 +141,12 @@ def acquire_cycle(max_per_cell: int = 5, auto_email: bool = False) -> dict:
                 auto_email=False,  # we send our own personalized version below
             )
         except Exception as e:
+            err_text = str(e)[:120]
             per_cell.append({
                 "city": city, "state": state, "record_type": record_type,
-                "found": 0, "error": str(e)[:120],
+                "found": 0, "error": err_text,
             })
+            record_cell(city, record_type, 0, error=err_text)
             continue
         found = result.get("prospects", [])
         per_cell.append({
@@ -152,6 +157,13 @@ def acquire_cycle(max_per_cell: int = 5, auto_email: bool = False) -> dict:
         })
         visited_pages.extend(result.get("government_pages_visited", []))
         all_prospects.extend(found)
+
+        # Health tracking — surfaces cells that have gone silent.
+        record_cell(city, record_type, len(found))
+
+        # Attribution — stamp lead_source=PropScout on the leads parent_tools
+        # just saved, so deal_analyzer can credit this agent.
+        tag_new_prospects(found, city, state, record_type)
 
     # Persist our own snapshot for the dashboard / future runs
     storage.save("ps_leads.json", all_prospects)
