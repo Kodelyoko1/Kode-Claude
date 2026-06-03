@@ -105,7 +105,58 @@ def main():
     parser = argparse.ArgumentParser(description="Buyer recruitment automation — no API key required")
     parser.add_argument("--interval", type=int, default=0, help="Repeat every N minutes")
     parser.add_argument("--no-email", action="store_true", help="Find buyers but don't email them")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Read-only preflight: SMTP + subscribe URL + buyer funnel + revenue ceiling")
+    parser.add_argument("--pitch", action="store_true",
+                        help="Send the trial-pitch email to every emailable buyer that hasn't been pitched")
+    parser.add_argument("--digest", action="store_true",
+                        help="Send the weekly motivated-seller digest to every eligible buyer (paid + trial)")
+    parser.add_argument("--digest-dry-run", action="store_true",
+                        help="Render digests to data/bf_digests/ without emailing (preview)")
+    parser.add_argument("--expire-trials", action="store_true",
+                        help="Find ended trials → flip to churned + send last-chance subscribe email")
+    parser.add_argument("--sub-summary", action="store_true",
+                        help="Print buyer funnel state (prospect/pitched/replied/trial/active/churned)")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Cap for --pitch (default BF_PITCH_DAILY_CAP=40)")
     args = parser.parse_args()
+
+    if args.diagnose:
+        from buyer_finder import diagnose
+        console.print("[bold]Buyer Finder preflight[/bold]\n")
+        report = diagnose.run_diagnostics()
+        diagnose.print_report(report)
+        return
+
+    if args.sub_summary:
+        from buyer_finder import subscription
+        import json as _json
+        console.print(_json.dumps(subscription.state_summary(), indent=2))
+        return
+
+    if args.pitch:
+        from buyer_finder import subscription
+        import json as _json
+        if not paywall_prompt("buyer_finder"):
+            return
+        console.print(_json.dumps(subscription.run_pitch_pass(args.limit), indent=2))
+        return
+
+    if args.expire_trials:
+        from buyer_finder import subscription
+        import json as _json
+        if not paywall_prompt("buyer_finder"):
+            return
+        console.print(_json.dumps(subscription.expire_trials(), indent=2))
+        return
+
+    if args.digest or args.digest_dry_run:
+        from buyer_finder import digest
+        import json as _json
+        if not paywall_prompt("buyer_finder"):
+            return
+        console.print(_json.dumps(digest.run_weekly_digest(dry_run=args.digest_dry_run), indent=2))
+        return
 
     if not paywall_prompt("buyer_finder"):
         return
