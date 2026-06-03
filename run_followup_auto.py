@@ -92,7 +92,51 @@ def run_cycle():
 def main():
     parser = argparse.ArgumentParser(description="Follow-up automation — no API key required")
     parser.add_argument("--interval", type=int, default=0, help="Repeat every N minutes (0 = once)")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Read-only preflight: SMTP + Twilio + lead reachability + distress queue")
+    parser.add_argument("--sms", action="store_true",
+                        help="Run the SMS sequence pass (drip every phone-reachable lead that's due)")
+    parser.add_argument("--escalate", action="store_true",
+                        help="Notify owner of new distress-tagged leads, mark them escalated")
+    parser.add_argument("--sms-summary", action="store_true",
+                        help="Print SMS queue summary without sending")
     args = parser.parse_args()
+
+    if args.diagnose:
+        from followup_agent import diagnose
+        console.print("[bold]Followup agent preflight[/bold]\n")
+        report = diagnose.run_diagnostics()
+        diagnose.print_report(report)
+        return
+
+    if args.sms_summary:
+        from followup_agent import sms
+        import json as _json
+        s = sms.get_sms_summary()
+        console.print(_json.dumps({k: v for k, v in s.items() if k != "due_for_sms"}, indent=2))
+        console.print(f"\nDue right now: {len(s['due_for_sms'])} (showing first 10)")
+        for d in s["due_for_sms"][:10]:
+            console.print(f"  {d['lead_id']}  stage {d['stage']}→{d['next_stage']}  "
+                            f"{d['phone']}  {d['address']}")
+        return
+
+    if args.sms:
+        from followup_agent import sms
+        import json as _json
+        if not paywall_prompt("followup"):
+            return
+        result = sms.run_all_due_sms()
+        console.print(_json.dumps(result, indent=2))
+        return
+
+    if args.escalate:
+        from followup_agent import escalation
+        import json as _json
+        if not paywall_prompt("followup"):
+            return
+        result = escalation.run_escalation()
+        console.print(_json.dumps(result, indent=2))
+        return
 
     if not paywall_prompt("followup"):
         return
