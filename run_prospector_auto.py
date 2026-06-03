@@ -12,6 +12,11 @@ Usage:
   python3 run_prospector_auto.py --markets "Detroit,MI;Atlanta,GA"
   python3 run_prospector_auto.py --no-email                      # scrape only, don't pitch
   python3 run_prospector_auto.py --pitch-only                    # pitch existing 'new' prospects
+  python3 run_prospector_auto.py --diagnose                      # preflight + funnel + revenue ceiling
+  python3 run_prospector_auto.py --followup                      # send 2nd-touch to silent pitched prospects
+  python3 run_prospector_auto.py --expire-stale                  # flip followed-up → stale after STALE_DAYS
+  python3 run_prospector_auto.py --digest                        # email owner the daily action digest
+  python3 run_prospector_auto.py --digest-dry-run                # write digest to disk, don't email
 """
 import os
 import sys
@@ -130,8 +135,61 @@ def main():
     parser.add_argument("--markets",   default="", help='Markets as "City,ST;City,ST"')
     parser.add_argument("--no-email",  action="store_true", help="Scrape only, don't send pitches")
     parser.add_argument("--pitch-only", action="store_true", help="Skip scraping, just pitch existing 'new' prospects")
+    parser.add_argument("--diagnose",  action="store_true", help="Preflight + funnel + revenue ceiling, then exit")
+    parser.add_argument("--followup",  action="store_true", help="Send 2nd-touch follow-ups, then exit")
+    parser.add_argument("--expire-stale", action="store_true",
+                        help="Mark followed-up prospects with no reply as stale, then exit")
+    parser.add_argument("--digest",    action="store_true", help="Email owner the daily action digest, then exit")
+    parser.add_argument("--digest-dry-run", action="store_true",
+                        help="Write digest to data/cp_digests/ without emailing, then exit")
     parser.add_argument("--interval",  type=int, default=0, help="Repeat every N minutes")
     args = parser.parse_args()
+
+    # One-shot subcommands — no scrape/pitch cycle, no --interval loop.
+    if args.diagnose:
+        from client_prospector.diagnose import main as diag_main
+        sys.exit(diag_main())
+    if args.followup:
+        from client_prospector.followup import send_followups
+        out = send_followups()
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold]Follow-up batch[/bold]\n\n"
+                f"  Attempted: {out['attempted']}\n"
+                f"  Sent:      [green]{out['sent']}[/green]\n"
+                f"  Failures:  {len(out.get('failures', []))}"
+            ),
+            border_style="green",
+        ))
+        for f in out.get("failures", [])[:5]:
+            console.print(f"  [dim]✗ {f['prospect_id']}: {f.get('error')}[/dim]")
+        return
+    if args.expire_stale:
+        from client_prospector.followup import expire_stale
+        out = expire_stale()
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold]Stale sweep[/bold]\n\n"
+                f"  Expired: [yellow]{out['expired']}[/yellow]"
+            ),
+            border_style="yellow",
+        ))
+        return
+    if args.digest or args.digest_dry_run:
+        from client_prospector.digest import send_owner_digest
+        out = send_owner_digest(dry_run=args.digest_dry_run)
+        status_color = "green" if out.get("status") in ("sent", "dry_run") else "red"
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold]Owner digest[/bold]\n\n"
+                f"  Status:           [{status_color}]{out.get('status')}[/{status_color}]\n"
+                f"  Awaiting onboard: {out.get('awaiting_onboard', 0)}\n"
+                f"  Preview:          {out.get('preview_path', '')}"
+                + (f"\n  Error: [red]{out['error']}[/red]" if out.get("error") else "")
+            ),
+            border_style=status_color,
+        ))
+        return
 
     if args.markets:
         markets = _parse_markets(args.markets)
