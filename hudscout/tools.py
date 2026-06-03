@@ -51,6 +51,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from hudscout.health import record_state
 
 # ============================================================================
 # CONFIG
@@ -250,16 +251,25 @@ def _normalize_property(p: dict) -> dict:
 
 def harvest_all_states() -> list:
     """Scrape every configured state, sharing one bootstrapped session so we
-    only pay for the antiforgery handshake once per cycle."""
+    only pay for the antiforgery handshake once per cycle.
+
+    Records per-state health after each query so diagnose.py can flag silent
+    degradation. If token bootstrap fails, every configured state gets a
+    record with the error text — owner sees the root cause in --health-report.
+    """
     try:
         session, token = _open_session()
     except Exception as e:
+        err = f"token_bootstrap: {type(e).__name__}: {str(e)[:120]}"
         print(f"  HUD session bootstrap failed: {e}")
+        for st in HUD_SEARCH_STATES:
+            record_state(st, 0, error=err)
         return []
     all_props = []
     for st in HUD_SEARCH_STATES:
         props = search_hud_properties(st, session=session, token=token)
         print(f"  [{st}] {len(props)} listings")
+        record_state(st, len(props))
         all_props.extend(props)
         time.sleep(1.5)        # be polite to HUD's servers
     return all_props
