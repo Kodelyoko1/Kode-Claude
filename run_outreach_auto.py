@@ -2,8 +2,16 @@
 """
 Outreach-as-a-Service automation — no API key required.
 Runs prospecting campaigns for all retainer clients directly, then emails each client their report.
+
+Usage:
+  python3 run_outreach_auto.py                       # default tax_delinquent cycle
+  python3 run_outreach_auto.py --diagnose            # preflight + roster + renewals + revenue
+  python3 run_outreach_auto.py --renewal-reminders   # chase clients with billing in next 3d
+  python3 run_outreach_auto.py --renewal-dry-run     # preview reminders without sending
+  python3 run_outreach_auto.py --monthly-reset       # zero campaigns_run_this_month (cron 1st)
+  python3 run_outreach_auto.py --start-for OAS-NNNN  # immediate single-client campaign
 """
-import json
+import sys
 import time
 import argparse
 from datetime import datetime
@@ -17,7 +25,6 @@ from outreach_service.tools import (
     run_client_campaign,
     get_service_revenue,
     send_campaign_report_email,
-    get_campaign_report,
 )
 from paywall.agent_paywall import paywall_prompt
 from autonomous.self_healing import run_with_healing
@@ -73,6 +80,13 @@ def run_outreach_cycle(record_type: str = "tax_delinquent", max_prospects: int =
 
         if "error" in result:
             console.print(f"  [red]Error: {result['error']}[/red]")
+            continue
+        if result.get("skipped"):
+            console.print(
+                f"  [yellow]Cap reached — {c['name']} used "
+                f"{result.get('campaigns_run_this_month')}/{result.get('monthly_cap')} "
+                f"this month. Skipping until next reset.[/yellow]"
+            )
             continue
 
         leads = result.get("total_leads_found", 0)
@@ -145,9 +159,79 @@ def main():
                         help="Max leads per market per client")
     parser.add_argument("--no-email", action="store_true",
                         help="Skip auto-emailing sellers (find leads only)")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Preflight: SMTP, roster, renewals, lead-source coverage, then exit")
+    parser.add_argument("--renewal-reminders", action="store_true",
+                        help="Send renewal-reminder emails to clients with billing in next 3d, then exit")
+    parser.add_argument("--renewal-dry-run", action="store_true",
+                        help="Preview renewal reminders without sending, then exit")
+    parser.add_argument("--monthly-reset", action="store_true",
+                        help="Zero campaigns_run_this_month for new month (cron 1st), then exit")
+    parser.add_argument("--start-for", metavar="CLIENT_ID",
+                        help="Run an immediate single-client campaign (e.g. just-onboarded), then exit")
     parser.add_argument("--interval", type=int, default=0,
                         help="Repeat every N minutes (0 = run once)")
     args = parser.parse_args()
+
+    # One-shot subcommands — owner workflows that don't go through the cycle.
+    if args.diagnose:
+        from outreach_service.diagnose import main as diag_main
+        sys.exit(diag_main())
+    if args.renewal_reminders or args.renewal_dry_run:
+        from outreach_service.renewals import send_renewal_reminders
+        out = send_renewal_reminders(dry_run=args.renewal_dry_run)
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold]Renewal reminders[/bold]\n\n"
+                f"  Attempted: {out.get('attempted', 0)}\n"
+                f"  Sent:      [green]{out.get('sent', 0)}[/green]\n"
+                f"  Failures:  {len(out.get('failures', []))}"
+                + (f"\n  Dry-run previews: {len(out.get('previews', []))}" if args.renewal_dry_run else "")
+            ),
+            border_style="green",
+        ))
+        for p in out.get("previews", [])[:5]:
+            console.print(f"  [dim]→ {p['client_id']}  {p['email']}  in {p['days_until']}d[/dim]")
+        return
+    if args.monthly_reset:
+        from outreach_service.renewals import monthly_reset
+        out = monthly_reset()
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold]Monthly reset[/bold]\n\n"
+                f"  Month:    {out['month']}\n"
+                f"  Reset:    [yellow]{out['reset_count']}[/yellow] client(s)"
+            ),
+            border_style="yellow",
+        ))
+        return
+    if args.start_for:
+        result = run_client_campaign(
+            client_id=args.start_for,
+            record_type=args.record_type,
+            max_prospects=args.max_prospects,
+            auto_email=not args.no_email,
+        )
+        if "error" in result:
+            console.print(f"[red]Error: {result['error']}[/red]")
+            sys.exit(1)
+        if result.get("skipped"):
+            console.print(f"[yellow]Cap reached: "
+                          f"{result.get('campaigns_run_this_month')}/{result.get('monthly_cap')}[/yellow]")
+            return
+        console.print(Panel(
+            Text.from_markup(
+                f"[bold green]Campaign Complete[/bold green]\n\n"
+                f"  Client:   {result['client']}\n"
+                f"  Markets:  {result['markets_hit']}\n"
+                f"  Leads:    {result['total_leads_found']}\n"
+                f"  Emails:   {result['total_emails_sent']}\n"
+                f"  Campaign: {result['campaign_id']}"
+            ),
+            border_style="green",
+        ))
+        send_campaign_report_email(args.start_for)
+        return
 
     if not paywall_prompt("outreach"):
         return
