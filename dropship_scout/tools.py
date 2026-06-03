@@ -18,6 +18,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from dropship_scout.health import record_source
 
 AGENT_KEY = "dropship_scout"
 DIGESTS_DIR = Path(__file__).parent.parent / "data" / "ds_digests"
@@ -162,8 +163,13 @@ EVERGREEN_TIKTOK_SHOP_HASHTAGS = [
 
 def get_tiktok_hashtags(limit: int = 10) -> list:
     """Return TikTok hashtags for display — live Creative Center data when available,
-    otherwise the curated evergreen list. Same item shape either way."""
+    otherwise the curated evergreen list. Same item shape either way.
+
+    Records the live-feed count to ds_source_health.json regardless of whether
+    we fall through to evergreen — that way diagnose.py can flag silent SPA
+    breakage even when the digest still looks healthy."""
     live = scrape_tiktok_trends(limit=limit)
+    record_source("tiktok_live", len(live))
     if live:
         return live
     now = datetime.now().isoformat()
@@ -180,12 +186,17 @@ def get_tiktok_hashtags(limit: int = 10) -> list:
 
 
 def gather_trending() -> dict:
-    """Full sweep: TikTok hashtags + Amazon Best Sellers across all categories."""
+    """Full sweep: TikTok hashtags + Amazon Best Sellers across all categories.
+
+    Records per-source counts for every Amazon category so diagnose.py can
+    surface a single silent category even when the aggregate looks healthy.
+    TikTok health is recorded inside get_tiktok_hashtags()."""
     tiktok = get_tiktok_hashtags(limit=15)
     amazon_by_cat = {}
     for cat, url in AMAZON_BESTSELLER_CATEGORIES:
         prods = scrape_amazon_bestsellers(cat, url, limit=8)
         amazon_by_cat[cat] = prods
+        record_source(f"amazon_{cat}", len(prods))
     return {
         "tiktok_hashtags":      tiktok,
         "amazon_bestsellers":   amazon_by_cat,
