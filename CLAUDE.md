@@ -276,10 +276,11 @@ PAYPAL_ME_USERNAME=wholesaleomniverse
 ## Shared Infrastructure (`autonomous/`)
 
 Most newer agents import from `autonomous/`:
-- `autonomous.storage` — flat-JSON load/save helper
+- `autonomous.storage` — flat-JSON load/save helper (atomic writes)
 - `autonomous.mailer` — Gmail-SMTP send helper
 - `autonomous.billing` — paywall/upgrade helpers
 - `autonomous.metrics` — append-only metrics for ecosystem dashboard
+- `autonomous.self_healing` — wraps every agent's cycle with classification + retry + partial JSON recovery. Each `run_*_auto.py` either uses the `@with_healing("agent_key")` decorator on its `cycle()`/`run_cycle()` function or wraps the call with `run_with_healing("agent_key", cycle_fn)`. The wrapper: (1) classifies any exception (JSONDecodeError → partial recover & retry, transient network → backoff retry, code bugs / KeyError → log and bail); (2) for truncated-JSON crashes, identifies the broken file from the traceback, quarantines it to `data/.healing_quarantine/<ts>-<agent>-<file>`, and writes back the longest valid prefix (rather than nuking to an empty default); (3) tracks per-agent state in `data/.healing/<agent_key>.json` (consecutive_failures, last_success, last_error); (4) emails the owner after `HEAL_ESCALATE_AFTER` (default 3) consecutive failures. Env: `HEAL_MAX_RETRIES` (default 2), `HEAL_BACKOFF_BASE` (default 3.0s), `HEAL_OWNER_EMAIL` (defaults to `SMTP_USER`).
 
 Ecosystem dashboard: `python3 run_ecosystem_dashboard.py`  
 Run-everything wrappers: `run_all_agents.sh`, `run_all_autonomous_agents.sh`, `run_morning_digest.sh`
@@ -381,3 +382,4 @@ Browser extension overlaying deal analysis (ARV, max offer, profit margin) on Zi
 - Follow-up emails use the `TEMPLATES` dict in `followup_agent/tools.py` — keep them conversational, not salesy
 - Media Buyer defaults to dry-run; set `MB_LIVE=1` only when the user explicitly asks to push actions to Meta
 - When adding a new agent, follow the existing shape: `<agent>/tools.py` exposing `run_full_cycle()`, plus a `run_<agent>_auto.py` entry point that calls `paywall.agent_paywall.paywall_prompt` first
+- Every new `run_*_auto.py` MUST wrap its cycle with `@with_healing("agent_key")` (decorator on the `cycle()` function) or `run_with_healing("agent_key", cycle_fn)` (wrap the call inline). This is what protects against the truncated-JSON / transient-network failures that previously took whole agents offline

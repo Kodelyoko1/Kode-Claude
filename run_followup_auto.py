@@ -15,10 +15,12 @@ from followup_agent.tools import (
     get_hot_leads, get_sequence_stats,
 )
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("followup")
 def run_cycle():
     console.print(Panel(
         Text.from_markup(

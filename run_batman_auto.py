@@ -12,6 +12,7 @@ from rich.text import Text
 
 from batman.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import run_with_healing
 
 console = Console()
 
@@ -27,7 +28,7 @@ def main():
         title="[bold red]Wholesale Omniverse — Batman[/bold red]",
         border_style="red",
     ))
-    result = run_full_cycle()
+    result = run_with_healing("batman", run_full_cycle)
     console.print(
         f"  Mode:                {result['mode']}\n"
         f"  Run logs scanned:    {result['logs_scanned']}\n"

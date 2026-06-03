@@ -55,6 +55,10 @@ def _parse_markets(arg: str) -> list:
     return out
 
 
+from autonomous.self_healing import with_healing
+
+
+@with_healing("prospector")
 def run_cycle(markets: list, product: str, auto_email: bool):
     info = PRODUCT_INFO[product]
     console.print(Panel(

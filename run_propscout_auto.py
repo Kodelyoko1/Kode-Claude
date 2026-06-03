@@ -10,10 +10,12 @@ from rich.text import Text
 
 from propscout.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("propscout")
 def cycle():
     console.print(Panel(
         Text.from_markup(

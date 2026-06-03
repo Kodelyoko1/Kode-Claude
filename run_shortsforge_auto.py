@@ -7,10 +7,12 @@ from rich.panel import Panel
 from rich.text import Text
 from shortsforge.tools import run_full_cycle, set_channel_config, get_channel_config
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import with_healing
 
 console = Console()
 
 
+@with_healing("shortsforge")
 def cycle():
     cfg = get_channel_config()
     console.print(Panel(

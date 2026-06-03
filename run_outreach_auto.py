@@ -20,6 +20,7 @@ from outreach_service.tools import (
     get_campaign_report,
 )
 from paywall.agent_paywall import paywall_prompt
+from autonomous.self_healing import run_with_healing
 
 console = Console()
 
@@ -154,10 +155,13 @@ def main():
     run_count = 0
     while True:
         run_count += 1
-        run_outreach_cycle(
-            record_type=args.record_type,
-            max_prospects=args.max_prospects,
-            auto_email=not args.no_email,
+        run_with_healing(
+            "outreach",
+            lambda: run_outreach_cycle(
+                record_type=args.record_type,
+                max_prospects=args.max_prospects,
+                auto_email=not args.no_email,
+            ),
         )
 
         if args.interval <= 0:
