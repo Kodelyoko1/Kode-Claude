@@ -18,6 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from reputation_guard import health
 
 AGENT_KEY = "reputation_guard"
 SNAPSHOT_DIR = Path(__file__).parent.parent / "data" / "rg_snapshots"
@@ -192,12 +193,18 @@ def fulfill_cycle() -> dict:
     for c in clients:
         if c.get("status") != "active":
             continue
-        snap = SNAPSHOT_DIR / f"{c['business_slug']}.html"
+        slug = c["business_slug"]
+        snap = SNAPSHOT_DIR / f"{slug}.html"
         if not snap.exists():
+            health.record_business(slug, reviews=0, negatives=0, drafts_sent=0,
+                                   skipped=True, skip_reason="missing_snapshot")
             continue
         reviews = parse_snapshot(snap)
         negs = [r for r in reviews if is_negative(r)]
         if not negs:
+            health.record_business(slug, reviews=len(reviews), negatives=0,
+                                   drafts_sent=0, skipped=True,
+                                   skip_reason="no_negatives_detected")
             continue
         drafts = [
             {
@@ -232,10 +239,13 @@ def fulfill_cycle() -> dict:
             body, purpose="fulfillment",
             attachments=[str(out_file)],
         )
-        if result.get("status") == "sent":
+        delivered = result.get("status") == "sent"
+        if delivered:
             sent += 1
         else:
             failed += 1
+        health.record_business(slug, reviews=len(reviews), negatives=len(negs),
+                               drafts_sent=1 if delivered else 0, skipped=False)
     return {"fulfillment_sent": sent, "fulfillment_failed": failed}
 
 
