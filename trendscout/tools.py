@@ -10,6 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from trendscout import health
 
 AGENT_KEY = "trendscout"
 INPUT_DIR = Path(__file__).parent.parent / "data" / "ts_inputs"
@@ -101,14 +102,21 @@ def score_niches(counter: Counter, top_n: int = 10) -> list:
     return scored[:top_n]
 
 
-def build_report(week: str) -> Path:
+def build_report(week: str) -> dict:
+    """Returns {"path": Path|None, "sources": N, "raw_signals": N,
+                "scored": N, "top": [...]} so fulfill_cycle can persist
+    yield metadata even when the report is skipped for low signal."""
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    sources = sum(1 for src in INPUT_DIR.glob("*")
+                  if src.is_file() and src.suffix.lower() in (".html", ".txt", ".md", ".csv"))
     signals = scan_signals()
     top = score_niches(signals)
+    raw = sum(signals.values())
     if len(top) < 3:
-        return None
+        return {"path": None, "sources": sources, "raw_signals": raw,
+                "scored": len(top), "top": top}
     lines = [f"# TrendScout — Week of {week}\n",
-             f"_5 high-signal niches identified from {sum(signals.values())} signals._\n"]
+             f"_5 high-signal niches identified from {raw} signals._\n"]
     for i, n in enumerate(top[:5], 1):
         lines.append(f"\n## {i}. {n['niche'].title()}")
         lines.append(f"- **Score:** {n['score']}")
@@ -118,7 +126,8 @@ def build_report(week: str) -> Path:
         lines.append(f"- **Target buyer:** people searching '{n['niche']}' on Etsy/Pinterest")
     report_path = REPORTS_DIR / f"{week}.md"
     report_path.write_text("\n".join(lines))
-    return report_path
+    return {"path": report_path, "sources": sources, "raw_signals": raw,
+            "scored": len(top), "top": top}
 
 
 def acquire_cycle() -> dict:
@@ -153,10 +162,15 @@ def acquire_cycle() -> dict:
 
 def fulfill_cycle() -> dict:
     week = datetime.now().strftime("%Y-W%W")
-    report = build_report(week)
-    if not report:
+    meta = build_report(week)
+    top_score = meta["top"][0]["score"] if meta["top"] else 0
+    top_niche = meta["top"][0]["niche"] if meta["top"] else ""
+    if not meta["path"]:
+        health.record_week(week, meta["sources"], meta["raw_signals"],
+                           meta["scored"], top_score, top_niche, sent=0,
+                           skipped=True, skip_reason="low_signal")
         return {"fulfillment_sent": 0, "reason": "low_signal"}
-    body_md = report.read_text()
+    body_md = meta["path"].read_text()
     subs = storage.load("ts_subscribers.json", [])
     sent = 0
     failed = 0
@@ -170,6 +184,8 @@ def fulfill_cycle() -> dict:
             sent += 1
         else:
             failed += 1
+    health.record_week(week, meta["sources"], meta["raw_signals"],
+                       meta["scored"], top_score, top_niche, sent=sent, skipped=False)
     return {"fulfillment_sent": sent, "fulfillment_failed": failed}
 
 
