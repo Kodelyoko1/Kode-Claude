@@ -19,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from transcribe import health
 
 AGENT_KEY = "transcribe"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "tr_inputs"
@@ -109,6 +110,16 @@ def transcribe_file(src: Path, model_size: str = "base") -> dict:
                 pass
 
 
+def _classify_transcribe_error(err: str) -> str:
+    """Map transcribe_file's free-text error to a stable outcome bucket."""
+    e = (err or "").lower()
+    if "faster-whisper not installed" in e:
+        return "whisper_missing"
+    if "ffmpeg" in e:
+        return "ffmpeg_failed"
+    return "whisper_failed"
+
+
 def process_input(src: Path) -> dict:
     """Transcribe one input file and write all three outputs."""
     slug = src.stem
@@ -122,6 +133,8 @@ def process_input(src: Path) -> dict:
 
     result = transcribe_file(src)
     if "error" in result:
+        health.record_file(slug, _classify_transcribe_error(result["error"]),
+                           detail=result["error"][:120])
         return {"slug": slug, **result}
 
     txt_path.write_text(result["text"])
@@ -133,6 +146,9 @@ def process_input(src: Path) -> dict:
         "duration_seconds": result["duration"],
         "produced_at": datetime.now().isoformat(),
     }, indent=2))
+    health.record_file(slug, "success",
+                       duration_seconds=result["duration"],
+                       language=result["language"])
     return {"slug": slug, "status": "produced", "duration": result["duration"]}
 
 
@@ -174,6 +190,8 @@ def fulfill_cycle() -> dict:
             continue
         email = sub.get("email")
         if not email:
+            health.record_delivery("(missing)", "no_email", slugs=0,
+                                   detail=f"sub={sub.get('name','?')}")
             continue
         already = set(log.get(email, []))
         new_slugs = []
@@ -198,6 +216,11 @@ def fulfill_cycle() -> dict:
         if r.get("status") == "sent":
             log[email] = list(already | set(new_slugs))
             sent += 1
+            health.record_delivery(email, "success", slugs=len(new_slugs))
+        else:
+            health.record_delivery(email, "mail_failed", slugs=len(new_slugs),
+                                   detail=f"mailer={r.get('status','?')}: "
+                                          f"{(r.get('reason') or r.get('error',''))[:80]}")
     storage.save("tr_delivery_log.json", log)
     return {"fulfillment_sent": sent}
 
