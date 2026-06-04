@@ -8,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from pantrychef import health
 
 AGENT_KEY = "pantrychef"
 USERS_DIR = Path(__file__).parent.parent / "data" / "pc_users"
@@ -170,8 +171,18 @@ def fulfill_cycle() -> dict:
     for s in subs:
         if s.get("status") != "active":
             continue
-        result = build_plan(s["user_id"])
+        user_id = s.get("user_id", "")
+        result = build_plan(user_id)
         if "error" in result:
+            err = result["error"]
+            detail = ""
+            if err == "pantry_too_small":
+                detail = f"items={result.get('items', 0)}"
+            health.record_plan(user_id, err, detail=detail)
+            continue
+        recipient = s.get("email", "")
+        if not recipient:
+            health.record_plan(user_id, "no_email")
             continue
         plan_dir = Path(result["plan_dir"])
         attachments = [str(p) for p in plan_dir.glob("*.md")]
@@ -183,11 +194,18 @@ def fulfill_cycle() -> dict:
             f"Reply if you want to swap any meals.\n\n"
             f"— PantryChef"
         )
-        r = mailer.send(AGENT_KEY, s["email"],
+        r = mailer.send(AGENT_KEY, recipient,
                         f"PantryChef — week of {datetime.now():%b %d}",
                         body, purpose="fulfillment", attachments=attachments)
         if r.get("status") == "sent":
             sent += 1
+            health.record_plan(user_id, "success",
+                               detail=f"recipes={result['recipes_count']} shopping={result['shopping_items']}")
+            health.record_yield(user_id, result["recipes_count"], result["shopping_items"])
+        else:
+            health.record_plan(user_id, "mail_failed",
+                               detail=f"mailer={r.get('status','?')}: "
+                                      f"{(r.get('reason') or r.get('error',''))[:80]}")
     return {"fulfillment_sent": sent}
 
 
