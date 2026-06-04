@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from careerforge import health
 
 AGENT_KEY = "careerforge"
 JOB_DIR = Path(__file__).parent.parent / "data" / "cf_jobs"
@@ -129,8 +130,12 @@ def fulfill_orders() -> dict:
     for o in orders:
         if o.get("status") != "paid" or o.get("delivered_at"):
             continue
-        profile_path = PROFILES_DIR / f"{o['user_id']}.json"
+        order_id = o.get("order_id", "") or o.get("id", "")
+        user_id  = o.get("user_id", "")
+        profile_path = PROFILES_DIR / f"{user_id}.json"
         if not profile_path.exists():
+            health.record_order(user_id, "no_profile", order_id=order_id,
+                                detail=str(profile_path))
             continue
         import json
         profile = json.loads(profile_path.read_text())
@@ -138,6 +143,8 @@ def fulfill_orders() -> dict:
         if not jd_text and o.get("jd_file"):
             jd_text = (JOB_DIR / o["jd_file"]).read_text(errors="ignore")
         if not jd_text:
+            health.record_order(user_id, "no_jd", order_id=order_id,
+                                detail=f"jd_file={o.get('jd_file','')}")
             continue
         kw = extract_keywords(jd_text)
         match = score_match(profile, kw)
@@ -168,7 +175,11 @@ def fulfill_orders() -> dict:
             f"Reply with any tweaks and I'll send v2.\n\n"
             f"— CareerForge"
         )
-        result = mailer.send(AGENT_KEY, o.get("email", profile.get("email", "")),
+        recipient = o.get("email", profile.get("email", ""))
+        if not recipient:
+            health.record_order(user_id, "no_email", order_id=order_id)
+            continue
+        result = mailer.send(AGENT_KEY, recipient,
                              f"Resume + cover letter — {o.get('company', 'application')}",
                              body, purpose="fulfillment",
                              attachments=[str(resume_file), str(cover_file), str(match_file)])
@@ -177,6 +188,13 @@ def fulfill_orders() -> dict:
             o["delivered_at"] = datetime.now().isoformat()
             o["match_score"] = match["score"]
             sent += 1
+            health.record_order(user_id, "success", order_id=order_id,
+                                detail=f"score={match['score']}")
+            health.record_score(user_id, match["score"])
+        else:
+            health.record_order(user_id, "mail_failed", order_id=order_id,
+                                detail=f"mailer={result.get('status','?')}: "
+                                       f"{(result.get('reason') or result.get('error',''))[:80]}")
     storage.save("cf_orders.json", orders)
     return {"fulfillment_sent": sent}
 
