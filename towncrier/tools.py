@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from towncrier import health
 
 AGENT_KEY = "towncrier"
 SNAPSHOT_DIR = Path(__file__).parent.parent / "data" / "tc_snapshots"
@@ -79,6 +80,8 @@ def collect_events(city: str) -> list:
 def build_digest(city: str) -> dict:
     events = collect_events(city)
     if len(events) < 5:
+        health.record_city(city, event_count=len(events), sent=0,
+                           skipped=True, skip_reason="insufficient_events")
         return {"sent": 0, "skipped": True, "reason": "insufficient_events", "count": len(events)}
 
     # Pull queued sponsors
@@ -131,6 +134,7 @@ def build_digest(city: str) -> dict:
                 s["sends_remaining"] = s.get("sends_remaining", 0) - 1
         storage.save("tc_sponsors.json", sponsors)
 
+    health.record_city(city, event_count=len(events), sent=sent, skipped=False)
     return {"sent": sent, "failed": failed, "events": len(events), "sponsors_used": 1 if queued else 0}
 
 
