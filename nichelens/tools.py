@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from nichelens import health
 
 AGENT_KEY = "nichelens"
 SNAP_DIR = Path(__file__).parent.parent / "data" / "nl_snapshots"
@@ -67,17 +68,19 @@ def inject_affiliates(text: str, niche: str) -> str:
     return text
 
 
-def build_newsletter(niche: str, paid_tier: bool = False) -> str:
+def build_newsletter(niche: str, paid_tier: bool = False) -> tuple[str, int]:
+    """Returns (body, items_extracted) — items_extracted lets fulfill_cycle
+    persist yield even when nobody is subscribed for that tier."""
     config = storage.load("nl_niche_configs.json", {})
     cfg = config.get(niche, {"keywords": [niche.replace("-", " ")]})
     items = []
     niche_dir = SNAP_DIR / niche
     if not niche_dir.exists():
-        return ""
+        return "", 0
     for snap in niche_dir.glob("*.html"):
         items.extend(parse_items(snap))
     if not items:
-        return ""
+        return "", 0
     for i in items:
         i["score"] = score_item(i, cfg["keywords"])
     items.sort(key=lambda x: -x["score"])
@@ -101,7 +104,7 @@ def build_newsletter(niche: str, paid_tier: bool = False) -> str:
     NEWSLETTER_DIR.mkdir(parents=True, exist_ok=True)
     suffix = "paid" if paid_tier else "free"
     (NEWSLETTER_DIR / f"{niche}_{datetime.now():%Y%m%d}_{suffix}.md").write_text(body)
-    return body
+    return body, len(items)
 
 
 def fulfill_cycle() -> dict:
@@ -109,18 +112,32 @@ def fulfill_cycle() -> dict:
     niches = {s["niche"] for s in subs if s.get("status", "active") == "active"}
     sent = 0
     for n in niches:
-        free_body = build_newsletter(n, paid_tier=False)
-        paid_body = build_newsletter(n, paid_tier=True)
+        free_body, free_items = build_newsletter(n, paid_tier=False)
+        paid_body, paid_items = build_newsletter(n, paid_tier=True)
+        items_extracted = max(free_items, paid_items)
         if not free_body and not paid_body:
+            health.record_niche(n, items=items_extracted,
+                                free_sent=0, paid_sent=0,
+                                skipped=True, skip_reason="no_inputs_or_items")
             continue
+        free_sent_n = 0
+        paid_sent_n = 0
         for s in subs:
             if s.get("niche") != n or s.get("status", "active") != "active":
                 continue
-            body = paid_body if s.get("tier") == "paid" else free_body
+            is_paid = s.get("tier") == "paid"
+            body = paid_body if is_paid else free_body
             subject = f"NicheLens — {n.replace('-', ' ').title()} — {datetime.now():%b %d}"
             result = mailer.send(AGENT_KEY, s["email"], subject, body, purpose="fulfillment")
             if result.get("status") == "sent":
                 sent += 1
+                if is_paid:
+                    paid_sent_n += 1
+                else:
+                    free_sent_n += 1
+        health.record_niche(n, items=items_extracted,
+                            free_sent=free_sent_n, paid_sent=paid_sent_n,
+                            skipped=False)
     return {"fulfillment_sent": sent}
 
 
