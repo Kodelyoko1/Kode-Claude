@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from paperbrief import health
 
 AGENT_KEY = "paperbrief"
 PDF_DIR = Path(__file__).parent.parent / "data" / "pb_pdfs"
@@ -62,9 +63,12 @@ def hedged_tldr(sections: dict) -> str:
 def build_brief(paper_id: str, vertical: str, target_industry: str = "") -> dict:
     pdf_path = PDF_DIR / f"{paper_id}.pdf"
     if not pdf_path.exists():
+        health.record_build(paper_id, "missing_pdf", detail=str(pdf_path))
         return {"error": "missing_pdf", "paper_id": paper_id}
     text = extract_pdf(pdf_path)
     if len(text) < 500:
+        health.record_build(paper_id, "extract_failed",
+                            detail=f"extracted {len(text)} chars (< 500)")
         return {"error": "extract_failed", "paper_id": paper_id}
     sections = sectionize(text)
     tldr = hedged_tldr(sections)
@@ -96,6 +100,7 @@ The methodology and results below may shift how practitioners approach this area
 ## Practical takeaway
 Consider whether the technique reported here is applicable to your current pipeline.
 """)
+    health.record_build(paper_id, "success", detail=f"vertical={vertical}")
     return {"paper_id": paper_id, "brief_path": str(brief_path), "vertical": vertical}
 
 
@@ -134,9 +139,17 @@ def fulfill_cycle() -> dict:
     verticals = {s["vertical"] for s in subs if s.get("status") == "active"}
     sent = 0
     for v in verticals:
+        # Count undelivered briefs for the vertical BEFORE weekly_digest marks
+        # them delivered — that's the metric we want to record.
+        queue = storage.load("pb_queue.json", [])
+        available = sum(1 for q in queue
+                        if q.get("vertical") == v and not q.get("delivered"))
         digest = weekly_digest(v)
         if not digest:
+            health.record_vertical(v, available_briefs=available, sent=0,
+                                   skipped=True, skip_reason="low_undelivered")
             continue
+        v_sent = 0
         for s in subs:
             if s.get("status") == "active" and s.get("vertical") == v:
                 result = mailer.send(AGENT_KEY, s["email"],
@@ -144,6 +157,8 @@ def fulfill_cycle() -> dict:
                                      digest, purpose="fulfillment")
                 if result.get("status") == "sent":
                     sent += 1
+                    v_sent += 1
+        health.record_vertical(v, available_briefs=available, sent=v_sent, skipped=False)
     return {"fulfillment_sent": sent}
 
 
