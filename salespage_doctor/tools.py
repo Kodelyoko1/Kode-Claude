@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from salespage_doctor import health
 
 AGENT_KEY = "salespage_doctor"
 REPORTS_DIR = Path(__file__).parent.parent / "data" / "spd_reports"
@@ -122,10 +123,12 @@ def audit_salespage(url: str) -> dict:
     """Heuristic audit. Returns a list of issues with severity + fix guidance."""
     html = _fetch(url)
     if not html:
+        health.record_audit(url, "fetch_failed", detail="empty response from _fetch")
         return {"error": "fetch_failed", "url": url}
     try:
         from bs4 import BeautifulSoup
     except ImportError:
+        health.record_audit(url, "bs4_missing")
         return {"error": "bs4_missing", "url": url}
     soup = BeautifulSoup(html, "html.parser")
 
@@ -204,6 +207,7 @@ def audit_salespage(url: str) -> dict:
     severity_weight = {"high": 30, "med": 15, "low": 5}
     score = max(0, 100 - sum(severity_weight.get(i["severity"], 0) for i in issues))
 
+    health.record_audit(url, "success", score=score, issue_count=len(issues))
     return {
         "url":         url,
         "score":       score,
@@ -270,6 +274,7 @@ def discover_prospects(query: str = "", max_new: int = 6) -> dict:
         })
         added.append(slug)
     storage.save("spd_prospects.json", existing)
+    health.record_query(query, results=len(results), discovered=len(added))
     return {"discovered": len(added), "query": query, "new_slugs": added}
 
 
