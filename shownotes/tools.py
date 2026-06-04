@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from shownotes import health
 
 AGENT_KEY = "shownotes"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "sn_inputs"
@@ -170,6 +171,13 @@ def build_show_notes(slug: str, transcript_text: str, srt_text: str = "") -> dic
     if srt_text:
         srt_entries = _parse_srt_timestamps(srt_text)
         chapters = _chapter_timestamps(srt_entries)
+        if srt_entries:
+            health.record_srt(slug, "parsed", entries=len(srt_entries))
+        else:
+            health.record_srt(slug, "malformed",
+                              detail=f"len={len(srt_text)} chars but 0 entries parsed")
+    else:
+        health.record_srt(slug, "no_srt")
 
     md = [f"# {slug}", ""]
     md.append("## TL;DR")
@@ -222,15 +230,24 @@ def build_queue() -> dict:
     INPUTS_DIR.mkdir(parents=True, exist_ok=True)
     produced = 0
     for slug, txt_path, srt_path in _source_candidates():
+        source = txt_path.parent.name  # "sn_inputs" or "tr_outputs"
         out_path = OUTPUTS_DIR / f"{slug}.md"
         if out_path.exists():
             continue
         text = txt_path.read_text(errors="ignore")
         if len(text) < 200:
+            health.record_episode(slug, "too_short", source=source,
+                                  detail=f"chars={len(text)}")
             continue
         srt_text = srt_path.read_text(errors="ignore") if srt_path else ""
-        build_show_notes(slug, text, srt_text)
-        produced += 1
+        try:
+            build_show_notes(slug, text, srt_text)
+            produced += 1
+            health.record_episode(slug, "success", source=source,
+                                  detail=f"chars={len(text)}")
+        except Exception as e:
+            health.record_episode(slug, "build_failed", source=source,
+                                  detail=f"{type(e).__name__}: {str(e)[:80]}")
     return {"shownotes_produced": produced}
 
 
@@ -243,6 +260,8 @@ def fulfill_cycle() -> dict:
             continue
         email = sub.get("email")
         if not email:
+            health.record_delivery("(missing)", "no_email", slugs=0,
+                                   detail=f"sub={sub.get('name','?')}")
             continue
         already = set(log.get(email, []))
         new_files = [p for p in OUTPUTS_DIR.glob("*.md") if p.stem not in already]
@@ -260,6 +279,11 @@ def fulfill_cycle() -> dict:
         if r.get("status") == "sent":
             log[email] = list(already | {p.stem for p in new_files})
             sent += 1
+            health.record_delivery(email, "success", slugs=len(new_files))
+        else:
+            health.record_delivery(email, "mail_failed", slugs=len(new_files),
+                                   detail=f"mailer={r.get('status','?')}: "
+                                          f"{(r.get('reason') or r.get('error',''))[:80]}")
     storage.save("sn_delivery_log.json", log)
     return {"fulfillment_sent": sent}
 
