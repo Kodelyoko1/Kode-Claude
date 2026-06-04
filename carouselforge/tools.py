@@ -34,6 +34,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from carouselforge import health
 
 AGENT_KEY = "carouselforge"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "cr_inputs"
@@ -283,14 +284,29 @@ def build_queue() -> dict:
             continue
         try:
             spec = json.loads(spec_path.read_text())
-        except Exception:
+        except Exception as e:
             failed += 1
+            health.record_carousel(slug, "spec_invalid", source="cr_inputs",
+                                   detail=f"{type(e).__name__}: {str(e)[:60]}")
             continue
-        r = build_carousel(spec, slug)
+        try:
+            r = build_carousel(spec, slug)
+        except Exception as e:
+            failed += 1
+            health.record_carousel(slug, "build_failed", source="cr_inputs",
+                                   platform=spec.get("platform", ""),
+                                   detail=f"{type(e).__name__}: {str(e)[:80]}")
+            continue
         if "error" in r:
             failed += 1
+            health.record_carousel(slug, "no_slides", source="cr_inputs",
+                                   platform=spec.get("platform", ""),
+                                   detail=r["error"])
         else:
             produced_carousels += 1
+            health.record_carousel(slug, "success", source="cr_inputs",
+                                   platform=spec.get("platform", "ig"),
+                                   slide_count=r.get("slide_count", 0))
 
     if SN_OUTPUTS_DIR.exists():
         for md in SN_OUTPUTS_DIR.glob("*.md"):
@@ -302,9 +318,22 @@ def build_queue() -> dict:
             spec = _spec_from_shownotes(md)
             if not spec:
                 continue
-            r = build_carousel(spec, slug)
+            try:
+                r = build_carousel(spec, slug)
+            except Exception as e:
+                health.record_carousel(slug, "build_failed", source="sn_outputs",
+                                       platform=spec.get("platform", ""),
+                                       detail=f"{type(e).__name__}: {str(e)[:80]}")
+                continue
             if "error" not in r:
                 produced_carousels += 1
+                health.record_carousel(slug, "success", source="sn_outputs",
+                                       platform=spec.get("platform", "ig"),
+                                       slide_count=r.get("slide_count", 0))
+            else:
+                health.record_carousel(slug, "no_slides", source="sn_outputs",
+                                       platform=spec.get("platform", ""),
+                                       detail=r["error"])
     return {"carousels_produced": produced_carousels, "failures": failed}
 
 
@@ -336,6 +365,11 @@ def fulfill_cycle() -> dict:
         if r.get("status") == "sent":
             log[email] = list(already | {d.name for d in new_dirs})
             sent += 1
+            health.record_delivery(email, "success", slugs=len(new_dirs))
+        else:
+            health.record_delivery(email, "mail_failed", slugs=len(new_dirs),
+                                   detail=f"mailer={r.get('status','?')}: "
+                                          f"{(r.get('reason') or r.get('error',''))[:80]}")
     storage.save("cr_delivery_log.json", log)
     return {"fulfillment_sent": sent}
 
