@@ -5,9 +5,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from invoicer.health import (probe_paypal_invoicing, invoice_outcome_summary,
+from invoicer.health import (probe_paypal_subscriptions, invoice_outcome_summary,
                              state_summary, stuck_failures)
 from invoicer.tools import find_due_invoices, LIVE, MAX_PER_CYCLE
+from invoicer.subscriptions_api import catalog_summary
 
 
 @dataclass
@@ -16,9 +17,9 @@ class Check:
 
 
 def check_paypal():
-    r = probe_paypal_invoicing()
+    r = probe_paypal_subscriptions()
     if r.get("ok"):
-        return Check("PayPal", "P0", "pass", r.get("detail", "ok"))
+        return Check("PayPal Subscriptions", "P0", "pass", r.get("detail", "ok"))
     stage = r.get("stage", "?")
     if stage == "oauth":
         return Check("PayPal OAuth", "P0", "fail",
@@ -27,11 +28,18 @@ def check_paypal():
     code = r.get("status_code", "?")
     err = r.get("error", "?")
     msg = r.get("message", "")
-    if code == 403:
-        return Check("PayPal Invoicing", "P0", "fail",
-                     f"HTTP 403 {err}: {msg[:80]}",
-                     "developer.paypal.com → live app → Features → check 'Invoicing'")
-    return Check("PayPal Invoicing", "P0", "fail", f"HTTP {code} {err}: {msg[:80]}")
+    return Check("PayPal Subscriptions", "P0", "fail",
+                 f"HTTP {code} {err}: {msg[:80]}",
+                 "Subscriptions scope may not be enabled on the live app")
+
+
+def check_catalog():
+    c = catalog_summary()
+    if c["products_cached"] == 0 and c["plans_cached"] == 0:
+        return Check("PayPal catalog", "info", "info",
+                     "(empty — first live cycle will create products + plans)")
+    return Check("PayPal catalog", "info", "info",
+                 f"cached: {c['products_cached']} products, {c['plans_cached']} plans")
 
 
 def check_live_mode():
@@ -91,7 +99,7 @@ def check_state():
 
 
 def run_diagnostics():
-    checks = [check_paypal(), check_live_mode(), check_due(),
+    checks = [check_paypal(), check_catalog(), check_live_mode(), check_due(),
               check_outcomes(), check_stuck(), check_state()]
     summary = {"P0_fail": sum(1 for c in checks if c.severity == "P0" and c.status == "fail"),
                "P1_warn": sum(1 for c in checks if c.severity == "P1" and c.status == "warn"),

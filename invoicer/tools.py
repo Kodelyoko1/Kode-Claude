@@ -37,6 +37,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import mailer, billing  # noqa
 from paywall import paypal as pp
+from invoicer import subscriptions_api as subs_api
 
 AGENT_KEY = "invoicer"
 DATA_DIR   = Path(__file__).parent.parent / "data"
@@ -251,47 +252,47 @@ def _draft_invoice_for(task: dict) -> dict:
 
 
 def _post_invoice(draft: dict) -> dict:
-    """POST to PayPal v2 invoicing, then send. Returns
-    {ok, invoice_id, hosted_url, error}."""
+    """Two paths now:
+      · Monthly recurring → PayPal Subscriptions API (works on this app).
+        Creates Product+Plan (cached) then Subscription, returns the
+        approval_url customer must visit.
+      · One-time → uses paypal.me link as fallback since the Invoicing
+        feature is not enabled on the app. Returns a paypal.me/<amount>
+        URL the owner emails manually.
+    Honours dry-run for both paths.
+    """
+    task = draft["task"]
+    cycle = task["cycle"]
     if not LIVE:
-        return {"ok": True, "dry_run": True, "invoice_id": "(dry)",
-                "hosted_url": f"(dry-run; would POST {draft['invoice_number']})"}
-    import requests
-    token = pp._get_token()
-    # 1. create draft
-    r = requests.post(
-        f"{pp._API_BASE if hasattr(pp, '_API_BASE') else 'https://api-m.paypal.com'}/v2/invoicing/invoices",
-        headers={"Authorization": f"Bearer {token}",
-                 "Content-Type": "application/json",
-                 "Prefer": "return=representation"},
-        json=draft["body"], timeout=20,
-    )
-    if r.status_code not in (200, 201):
-        return {"ok": False, "error": f"create HTTP {r.status_code}: {r.text[:200]}"}
-    invoice_id = r.json().get("id", "")
-    if not invoice_id:
-        return {"ok": False, "error": f"create: no id in response: {r.text[:200]}"}
-    # 2. send it
-    s = requests.post(
-        f"https://api-m.paypal.com/v2/invoicing/invoices/{invoice_id}/send",
-        headers={"Authorization": f"Bearer {token}",
-                 "Content-Type": "application/json"},
-        json={"send_to_recipient": True}, timeout=20,
-    )
-    if s.status_code not in (200, 202):
-        return {"ok": False, "invoice_id": invoice_id,
-                "error": f"send HTTP {s.status_code}: {s.text[:200]}"}
-    # 3. hosted url
-    g = requests.get(
-        f"https://api-m.paypal.com/v2/invoicing/invoices/{invoice_id}",
-        headers={"Authorization": f"Bearer {token}"}, timeout=15,
-    )
-    hosted = ""
-    if g.status_code == 200:
-        for link in g.json().get("links", []) or []:
-            if link.get("rel") == "payer-view":
-                hosted = link.get("href", ""); break
-    return {"ok": True, "invoice_id": invoice_id, "hosted_url": hosted}
+        if cycle == "monthly":
+            return {"ok": True, "dry_run": True, "kind": "subscription",
+                    "approval_url": f"(dry-run; would create Subscription for ${task['amount']}/mo)"}
+        return {"ok": True, "dry_run": True, "kind": "paypal_me",
+                "payment_url": f"https://paypal.me/OmniSales/{task['amount']:.2f}"}
+
+    # LIVE branch
+    if cycle == "monthly":
+        try:
+            product_id = subs_api.ensure_product(
+                task["agent"], task["plan"], task["label"])
+            plan_id = subs_api.ensure_plan(
+                product_id, task["agent"], task["plan"],
+                task["amount"], task["label"])
+            r = subs_api.create_subscription(
+                plan_id, task["email"], task["name"])
+            if not r.get("id"):
+                return {"ok": False, "error": f"subscription create: {r}"}
+            return {"ok": True, "kind": "subscription",
+                    "subscription_id": r["id"], "status": r["status"],
+                    "approval_url": r["approval_url"],
+                    "product_id": product_id, "plan_id": plan_id}
+        except Exception as e:
+            return {"ok": False, "kind": "subscription",
+                    "error": f"{type(e).__name__}: {str(e)[:200]}"}
+    # One-time: paypal.me fallback (Invoicing scope not on this app yet)
+    return {"ok": True, "kind": "paypal_me",
+            "payment_url": f"https://paypal.me/OmniSales/{task['amount']:.2f}",
+            "note": "Invoicing feature not enabled; falling back to paypal.me. Owner must email manually."}
 
 
 def _mark_invoiced(task: dict) -> None:
@@ -304,11 +305,47 @@ def _mark_invoiced(task: dict) -> None:
 
 # ─────────────────────────── Cycle ───────────────────────────
 
+def _email_customer(task: dict, result: dict, invoice_number: str) -> bool:
+    """Send the customer either:
+      · subscription approval URL (monthly) → they click → PayPal auto-bills, OR
+      · paypal.me link (one-time)
+    Returns True if mailer accepted, False otherwise."""
+    if not LIVE:
+        return False  # don't email during dry-run
+    kind = result.get("kind", "")
+    first = (task.get("name") or task["email"].split("@")[0]).split(" ", 1)[0]
+    if kind == "subscription":
+        body = (
+            f"Hi {first},\n\n"
+            f"Your {task['label']} subscription is ready to activate. PayPal will\n"
+            f"bill ${task['amount']:.2f}/mo on the date you approve below.\n\n"
+            f"Approve & start:\n"
+            f"  {result['approval_url']}\n\n"
+            f"Cancel anytime from your PayPal dashboard.\n\n"
+            f"— Tylumiere, Wholesale Omniverse"
+        )
+        subject = f"Activate your {task['label']} subscription — {invoice_number}"
+    elif kind == "paypal_me":
+        body = (
+            f"Hi {first},\n\n"
+            f"Your {task['label']} order is ready. Pay via PayPal:\n\n"
+            f"  {result['payment_url']}\n\n"
+            f"Reference {invoice_number} in the note. I'll deliver within 24h of payment confirmation.\n\n"
+            f"— Tylumiere, Wholesale Omniverse"
+        )
+        subject = f"Payment link for {task['label']} — {invoice_number}"
+    else:
+        return False
+    r = mailer.send(AGENT_KEY, task["email"], subject, body, purpose="outreach")
+    return r.get("status") == "sent"
+
+
 def run_cycle() -> dict:
     due = find_due_invoices()
     capped = due[:MAX_PER_CYCLE]
     sent = 0
     failed = 0
+    emailed = 0
     drafts: list[dict] = []
 
     for task in capped:
@@ -328,8 +365,15 @@ def run_cycle() -> dict:
             _mark_invoiced(task)
             drafts.append(entry)
             if not LIVE and DRY_VERBOSE:
+                kind = result.get("kind", "?")
                 print(f"  [DRY] {draft['invoice_number']}  {task['agent']:<18s}  "
-                      f"{task['plan']:<22s}  ${task['amount']:>7.2f}  → {task['email']}")
+                      f"{task['plan']:<22s}  ${task['amount']:>7.2f}  ({kind})  → {task['email']}")
+            else:
+                if _email_customer(task, result, draft["invoice_number"]):
+                    emailed += 1
+                    print(f"  [✓] {draft['invoice_number']}  {task['agent']:<18s}  "
+                          f"{task['plan']:<22s}  ${task['amount']:>7.2f}  "
+                          f"({result.get('kind','?')})  → {task['email']}")
         else:
             failed += 1
             print(f"  [FAIL] {draft['invoice_number']}  {task['agent']}  "
@@ -338,6 +382,7 @@ def run_cycle() -> dict:
         "due_found":      len(due),
         "due_capped":     len(capped),
         "sent":           sent,
+        "emailed":        emailed,
         "failed":         failed,
         "live":           LIVE,
         "drafts":         drafts,

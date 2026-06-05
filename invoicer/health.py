@@ -47,38 +47,17 @@ def state_summary():
 
 
 def probe_paypal_invoicing():
-    """Check PayPal OAuth + Invoicing feature in one shot."""
-    import requests
-    try:
-        from paywall.paypal import _get_token
-        token = _get_token()
-    except Exception as e:
-        return {"ok": False, "stage": "oauth",
-                "error": f"{type(e).__name__}: {str(e)[:160]}"}
-    r = requests.post(
-        f"{'https://api-m.paypal.com' if os.environ.get('PAYPAL_MODE','live')=='live' else 'https://api-m.sandbox.paypal.com'}/v2/invoicing/invoices",
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-        json={"detail": {"invoice_number": "PROBE-XXX", "currency_code": "USD"}},
-        timeout=12,
-    )
-    if r.status_code in (200, 201):
-        # we just created a real draft — clean it up to avoid clutter
-        try:
-            iid = r.json().get("id", "")
-            if iid:
-                requests.delete(
-                    f"https://api-m.paypal.com/v2/invoicing/invoices/{iid}",
-                    headers={"Authorization": f"Bearer {token}"}, timeout=10)
-        except Exception:
-            pass
-        return {"ok": True, "stage": "invoicing", "status_code": r.status_code,
-                "detail": "OAuth + Invoicing both work"}
-    body = {}
-    try: body = r.json()
-    except Exception: pass
-    return {"ok": False, "stage": "invoicing", "status_code": r.status_code,
-            "error": body.get("name", "") or r.text[:120],
-            "message": body.get("message", "")}
+    """Compatibility shim — old code paths still call this name.
+    Now wraps probe_paypal_subscriptions since we pivoted from Invoicing
+    to Subscriptions when the live app turned out to not have invoicing
+    scope."""
+    return probe_paypal_subscriptions()
+
+
+def probe_paypal_subscriptions():
+    """Check PayPal OAuth + Subscriptions API access in one shot."""
+    from invoicer.subscriptions_api import probe
+    return probe()
 
 
 def stuck_failures(min_attempts=3):
