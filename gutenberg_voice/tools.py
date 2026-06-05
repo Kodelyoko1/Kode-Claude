@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from gutenberg_voice import health
 
 AGENT_KEY = "gutenberg_voice"
 TEXTS_DIR = Path(__file__).parent.parent / "data" / "gv_texts"

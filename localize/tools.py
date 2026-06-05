@@ -35,6 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from localize import health
 
 AGENT_KEY = "localize"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "lz_inputs"

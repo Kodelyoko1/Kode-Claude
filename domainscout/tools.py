@@ -34,6 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from domainscout import health
 
 AGENT_KEY = "domainscout"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "dm_inputs"
