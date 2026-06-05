@@ -99,7 +99,100 @@ WHOLESALER_POSTS = [
     },
 ]
 
-ALL_POSTS = SELLER_POSTS + BUYER_POSTS + WHOLESALER_POSTS
+CREATOR_POSTS = [
+    {
+        "title": "Your sales page is leaking conversions. Find out in 90 seconds.",
+        "body": (
+            "Free scan of any Gumroad / Payhip / Sellfy / Ko-fi page: CTA clarity, "
+            "social proof, copy length, mobile viewport, trust signals, pricing visibility. "
+            "Score out of 100 + your top 3 fixes — emailed within 24h. Upgrade to the full "
+            "audit ($77 one-time) for every issue with specific copy + layout fixes."
+        ),
+        "audience": "creators",
+        "cta": "Drop your page link in a DM and I'll send the scan back.",
+        "hashtags": ["#Gumroad", "#Payhip", "#IndieMaker", "#Creator", "#SaaS"],
+    },
+    {
+        "title": "Why your $9 product page converts at 0.4%",
+        "body": (
+            "Most indie sales pages miss the same 3-4 things: no visible price above the fold, "
+            "0 testimonials, copy under 200 words, no mobile viewport tag. Each one shaves "
+            "5-15% off conversion. Free audit, 24h turnaround, you get the score + top 3 fixes."
+        ),
+        "audience": "creators",
+        "cta": "Drop your link — free audit, no signup.",
+        "hashtags": ["#Gumroad", "#IndieHackers", "#ConversionRate", "#SaaS", "#DTC"],
+    },
+]
+
+JOBSEEKER_POSTS = [
+    {
+        "title": "Your resume is being filtered by an ATS before a human sees it.",
+        "body": (
+            "Recruiters use applicant tracking systems that scan for exact-match keywords from "
+            "the job description. Generic resumes get auto-rejected. Send me a job description "
+            "+ your current resume and I'll send back a tailored version in 24h: rewritten profile, "
+            "reordered experience, ATS match report. $29 per job. $49/mo unlimited."
+        ),
+        "audience": "jobseekers",
+        "cta": "DM the job link + your current resume. First one free.",
+        "hashtags": ["#JobSearch", "#Resume", "#ATS", "#CareerAdvice", "#Hiring"],
+    },
+    {
+        "title": "Most resumes get auto-rejected before a human reads them.",
+        "body": (
+            "If you've sent 50+ applications and heard nothing back, the issue is almost certainly "
+            "your resume failing the ATS keyword scan, not your background. Paste a job link "
+            "and I'll show you exactly which required keywords your resume is missing — free."
+        ),
+        "audience": "jobseekers",
+        "cta": "DM the job link.",
+        "hashtags": ["#JobSearch", "#TechJobs", "#Hiring", "#Resume", "#CareerAdvice"],
+    },
+]
+
+PODCASTER_POSTS = [
+    {
+        "title": "Stop manually transcribing your podcasts.",
+        "body": (
+            "Drop me your raw episode audio and you'll get back a clean .txt + .srt within 24h. "
+            "$19/episode one-off, $79/mo for 10 hours of audio, $297 for a 30-episode bulk pack. "
+            "Subtitles drop straight into Premiere / CapCut / YouTube. First one free."
+        ),
+        "audience": "podcasters",
+        "cta": "Reply with an episode link — first transcript free.",
+        "hashtags": ["#Podcasting", "#Podcaster", "#PodcastEditing", "#ContentCreator"],
+    },
+    {
+        "title": "Get show notes for your podcast — TL;DR + chapters + SEO pack",
+        "body": (
+            "Send me a transcript (or raw audio + we'll transcribe it first) and you'll get back "
+            "structured show notes within 24h: 2-sentence TL;DR, 5 key takeaways, chapter timestamps, "
+            "resource links, SEO title + description. $29/ep, $99/mo for 4 episodes, $297/mo unlimited."
+        ),
+        "audience": "podcasters",
+        "cta": "Reply with an episode and I'll send a sample.",
+        "hashtags": ["#Podcasting", "#ShowNotes", "#PodcastSEO", "#ContentMarketing"],
+    },
+]
+
+LOCAL_BIZ_POSTS = [
+    {
+        "title": "Negative reviews are losing you customers right now.",
+        "body": (
+            "We draft thoughtful reply templates for every negative review on Google + Yelp — "
+            "your voice, accountable tone, never defensive. $79/mo per location: weekly batch of "
+            "drafts ready to copy-paste. One-time deep audit available for $497. Tested across "
+            "200+ small businesses."
+        ),
+        "audience": "local_biz",
+        "cta": "DM your business name + city for a free sample reply draft.",
+        "hashtags": ["#SmallBusiness", "#ReputationManagement", "#GoogleReviews", "#LocalSEO"],
+    },
+]
+
+ALL_POSTS = (SELLER_POSTS + BUYER_POSTS + WHOLESALER_POSTS +
+             CREATOR_POSTS + JOBSEEKER_POSTS + PODCASTER_POSTS + LOCAL_BIZ_POSTS)
 
 
 def pick_post(audience: str = "") -> dict:
