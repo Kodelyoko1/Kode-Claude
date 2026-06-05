@@ -5,8 +5,33 @@ Set PAYPAL_MODE=live for production (default: sandbox for testing).
 """
 import os
 import json
+from pathlib import Path
 import requests
 from datetime import datetime, timedelta
+
+
+def _autoload_env_once():
+    """Load .env from project root into os.environ if PAYPAL_CLIENT_ID
+    isn't already there. Idempotent. Avoids the 'export $(grep ...)'
+    ritual that bit users repeatedly."""
+    if os.environ.get("PAYPAL_CLIENT_ID"):
+        return
+    # Project root is two dirs up from this file (paywall/paypal.py)
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        k = k.strip()
+        v = v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+
+
+_autoload_env_once()
 
 PAYPAL_MODE = os.environ.get("PAYPAL_MODE", "sandbox")
 PAYPAL_BASE = (
