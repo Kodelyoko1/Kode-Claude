@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FBAds — Facebook ad pack generator + Meta-importable CSV + launcher.
+FBAds — Facebook ad pack generator + Meta-importable CSV + launcher + monitor.
 
 Usage:
   python3 run_fbads_auto.py --diagnose          # preflight
@@ -11,8 +11,11 @@ Usage:
   python3 run_fbads_auto.py --launch --live     # actually create on Meta (PAUSED)
   python3 run_fbads_auto.py --launch --max 3    # cap how many to push
   python3 run_fbads_auto.py --higgsfield        # emit Higgsfield video prompts
+  python3 run_fbads_auto.py --monitor           # pull Meta Insights + compute attribution
+  python3 run_fbads_auto.py --report            # print perf report (winners/losers/unknowns)
+  python3 run_fbads_auto.py --email-report      # send report to SMTP_USER
 """
-import argparse, sys
+import argparse, os, sys
 from datetime import datetime
 from pathlib import Path
 
@@ -45,6 +48,12 @@ def main():
                    help="With --launch: cap how many ads to push")
     p.add_argument("--higgsfield", action="store_true",
                    help="Emit Higgsfield video prompts for the latest pack")
+    p.add_argument("--monitor", action="store_true",
+                   help="Pull Meta Insights + compute attribution (no email)")
+    p.add_argument("--report", action="store_true",
+                   help="Render performance report (refreshes data first)")
+    p.add_argument("--email-report", action="store_true",
+                   help="Send the report to SMTP_USER")
     a = p.parse_args()
 
     if a.diagnose:
@@ -81,6 +90,31 @@ def main():
             sys.exit(1)
         path = emit_prompts(pack)
         console.print(f"[green]Higgsfield prompts written:[/green] {path}")
+        return
+
+    if a.monitor:
+        from fbads.monitor import pull_insights, compute_attribution
+        r1 = pull_insights()
+        if not r1.get("ok"):
+            console.print(f"[red]Insights fetch failed:[/red] {r1.get('error','?')}")
+            sys.exit(1)
+        console.print(f"  [green]Insights fetched:[/green] {r1['fetched']} ads")
+        r2 = compute_attribution()
+        if not r2.get("ok"):
+            console.print(f"[yellow]Attribution skipped:[/yellow] {r2.get('error','?')}")
+            return
+        t = r2.get("totals", {})
+        console.print(f"  [white]Spend:[/white] ${t.get('total_spend',0):.2f}  "
+                      f"[white]Revenue:[/white] ${t.get('total_revenue',0):.2f}  "
+                      f"[white]Blended ROAS:[/white] {t.get('blended_roas','—')}")
+        return
+
+    if a.report or a.email_report:
+        from fbads.report import render_text
+        body = render_text(refresh=True, email=a.email_report)
+        console.print(body)
+        if a.email_report:
+            console.print(f"\n  [green]Emailed to[/green] {os.environ.get('SMTP_USER','?')}")
         return
 
     if a.launch:
