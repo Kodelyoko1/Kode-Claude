@@ -276,6 +276,78 @@ def cmd_run(dry_run: bool, forced_type: str, forced_city: str):
         time.sleep(2)
 
 
+def _cmd_diagnose():
+    """Pinterest preflight: API creds + board config + recent pin freshness."""
+    import json, sys, requests
+    from datetime import datetime
+    print("Pinterest preflight\n")
+    icon = {"pass": "✓", "fail": "✗", "warn": "!", "info": "·"}
+    checks = []
+    token = os.environ.get("PINTEREST_ACCESS_TOKEN", "")
+    board = os.environ.get("PINTEREST_BOARD_ID", "")
+    if not token or not board:
+        checks.append(("P0", "fail", "Credentials",
+                       f"PINTEREST_ACCESS_TOKEN={'set' if token else 'unset'}  "
+                       f"PINTEREST_BOARD_ID={'set' if board else 'unset'}",
+                       "Both env vars required — see setup_pinterest.py"))
+    else:
+        try:
+            r = requests.get(f"https://api.pinterest.com/v5/boards/{board}",
+                             headers={"Authorization": f"Bearer {token}"}, timeout=10)
+            if r.status_code == 200:
+                name = r.json().get("name", "?")
+                checks.append(("P0", "pass", "API auth",
+                               f"board '{name}' accessible", ""))
+            else:
+                checks.append(("P0", "fail", "API auth",
+                               f"HTTP {r.status_code}: {r.text[:100]}",
+                               "Token may be expired or board_id wrong"))
+        except Exception as e:
+            checks.append(("P0", "fail", "API connection",
+                           f"{type(e).__name__}: {str(e)[:80]}", ""))
+    # Landing URLs (commonly point at non-existent domain)
+    for var, url in [("PINTEREST_LANDING_SELLER", LANDING_SELLER),
+                     ("PINTEREST_LANDING_BUYER", LANDING_BUYER),
+                     ("PINTEREST_LANDING_WHOLESALE", LANDING_DEALER)]:
+        if "wholesaleomniverse.com" in url:
+            try:
+                r = requests.head(url, timeout=8, allow_redirects=True)
+                if r.status_code >= 400:
+                    checks.append(("P1", "warn", f"Landing {var.split('_')[-1].lower()}",
+                                   f"{url} → HTTP {r.status_code}",
+                                   "Pins are linking to a non-resolving URL"))
+            except Exception as e:
+                checks.append(("P1", "warn", f"Landing {var.split('_')[-1].lower()}",
+                               f"{url} → {type(e).__name__}",
+                               "Pins are linking to a non-resolving URL"))
+    # Recent post history
+    try:
+        log = json.loads(PIN_LOG.read_text())
+        last = log[-1] if log else {}
+        age = None
+        if last.get("ts"):
+            try:
+                age = (datetime.now() - datetime.fromisoformat(last["ts"].split("+")[0])).days
+            except (ValueError, AttributeError):
+                pass
+        detail = f"{len(log)} post(s) in log"
+        if age is not None: detail += f" · last post {age}d ago"
+        sev, status = ("info", "info") if age is None or age <= 7 else ("P1", "warn")
+        checks.append((sev, status, "Post history", detail,
+                       "Daily cadence slipping" if sev == "P1" else ""))
+    except (OSError, json.JSONDecodeError, NameError):
+        checks.append(("info", "info", "Post history", "no posts logged yet", ""))
+    for sev, status, name, detail, hint in checks:
+        print(f"  [{icon[status]}] [{sev:>4s}] {name:20s} {detail}")
+        if hint and status in ("fail", "warn"):
+            print(f"        ↳ {hint}")
+    p0_fail = sum(1 for s, st, *_ in checks if s == "P0" and st == "fail")
+    p1_warn = sum(1 for s, st, *_ in checks if s == "P1" and st == "warn")
+    passed  = sum(1 for *_, st, _, _, _ in [(c[0], c[1], c[2], c[3], c[4]) for c in checks] if st == "pass")
+    print(f"\n  Result: P0={p0_fail} · P1={p1_warn}")
+    sys.exit(0 if p0_fail == 0 else 1)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pinterest Auto-Poster")
     parser.add_argument("--dry-run", action="store_true", help="Preview without posting")
@@ -283,8 +355,12 @@ def main():
                         help="Force a single pin of this type instead of the daily set")
     parser.add_argument("--city", default="", help="Force a specific market for seller pins")
     parser.add_argument("--status", action="store_true", help="Show credentials + pin history")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Preflight: API creds + board access + landing URL reachability + post cadence")
     args = parser.parse_args()
 
+    if args.diagnose:
+        _cmd_diagnose(); return
     if args.status:
         cmd_status(); return
     cmd_run(args.dry_run, args.type, args.city)

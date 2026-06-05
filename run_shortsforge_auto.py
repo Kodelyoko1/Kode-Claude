@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""ShortsForge autonomous loop — turn transcripts into YouTube Shorts briefs."""
-import time, argparse
+"""ShortsForge — YouTube Shorts content architect. Revenue: AdSense, Substack premium, affiliates."""
+import argparse, sys, time
 from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-from shortsforge.tools import run_full_cycle, set_channel_config, get_channel_config
+from shortsforge.tools import run_full_cycle
 from paywall.agent_paywall import paywall_prompt
 from autonomous.self_healing import with_healing
 
@@ -14,45 +14,41 @@ console = Console()
 
 @with_healing("shortsforge")
 def cycle():
-    cfg = get_channel_config()
-    console.print(Panel(
-        Text.from_markup(
-            f"[bold white]ShortsForge Cycle[/bold white]\n"
-            f"[dim]{datetime.now():%Y-%m-%d %H:%M:%S}[/dim]\n"
-            f"[dim]Channel: {cfg['channel_name']}[/dim]"),
-        title="[bold blue]Wholesale Omniverse — ShortsForge[/bold blue]",
-        border_style="blue"))
+    console.print(Panel(Text.from_markup(
+        f"[bold white]ShortsForge Cycle[/bold white]\n[dim]{datetime.now():%Y-%m-%d %H:%M:%S}[/dim]"),
+        title="[bold blue]Wholesale Omniverse — ShortsForge[/bold blue]", border_style="blue"))
     r = run_full_cycle()
-    console.print(f"  [cyan]Briefs produced:[/cyan]   {r.get('briefs_made', 0)}")
-    console.print(f"  [cyan]Outreach sent:[/cyan]     {r.get('outreach_sent', 0)}")
-    console.print(f"  [green]Newsletters sent:[/green]  {r.get('newsletters_sent', 0)}")
-    console.print(f"  [white]MRR:[/white]              ${r.get('mrr', 0):.0f}")
+    console.print(f"  [white]MRR:[/white] ${r.get('mrr', 0):.0f}")
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--interval", type=int, default=0)
-    parser.add_argument("--set-channel", type=str, help="Set the channel name")
-    parser.add_argument("--set-handle",  type=str, help="Set the channel handle (e.g. @yourchannel)")
-    parser.add_argument("--set-substack", type=str, help="Set the Substack URL")
-    args = parser.parse_args()
-
-    if any([args.set_channel, args.set_handle, args.set_substack]):
-        updates = {}
-        if args.set_channel:  updates["channel_name"] = args.set_channel
-        if args.set_handle:   updates["channel_handle"] = args.set_handle
-        if args.set_substack: updates["substack_url"] = args.set_substack
-        result = set_channel_config(**updates)
-        console.print(f"[green]✓ Channel config updated:[/green] {result}")
+    p = argparse.ArgumentParser()
+    p.add_argument("--interval", type=int, default=0)
+    p.add_argument("--diagnose", action="store_true")
+    p.add_argument("--probe-inputs", action="store_true")
+    p.add_argument("--briefs", type=int, default=0)
+    a = p.parse_args()
+    if a.diagnose:
+        from shortsforge.diagnose import main as d
+        sys.exit(d())
+    if a.probe_inputs:
+        from shortsforge.health import probe_inputs
+        r = probe_inputs()
+        print(f"transcripts={r['transcripts']}  briefs={r['briefs']}  newsletters={r['newsletters']}")
+        print(f"transcripts_newest_age={r.get('transcripts_newest_age')}d")
+        sys.exit(0 if r.get("ok") else 1)
+    if a.briefs:
+        from shortsforge.health import recent_briefs, brief_outcome_summary
+        for r in recent_briefs(a.briefs):
+            print(f"  {r['ts'][:19]}  {r['outcome']:<18s}  niche={r.get('niche','?'):<14s}  {r['slug']}")
+        s = brief_outcome_summary()
+        print(f"\n  {s}")
         return
-
-    if not paywall_prompt("shortsforge"):
-        return
+    if not paywall_prompt("shortsforge"): return
     while True:
         cycle()
-        if args.interval <= 0:
-            break
-        time.sleep(args.interval * 60)
+        if a.interval <= 0: break
+        time.sleep(a.interval * 60)
 
 
 if __name__ == "__main__":

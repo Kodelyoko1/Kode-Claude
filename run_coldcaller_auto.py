@@ -34,10 +34,16 @@ def cycle():
 
 
 def main():
+    import sys
     parser = argparse.ArgumentParser()
     parser.add_argument("--interval", type=int, default=0,
                         help="Loop every N minutes (0 = one-shot)")
+    parser.add_argument("--diagnose", action="store_true",
+                        help="Preflight: SMTP, lead inventory w/ phones, DNC, call log")
     args = parser.parse_args()
+    if args.diagnose:
+        from coldcaller.diagnose import main as diag
+        sys.exit(diag())
     if not paywall_prompt("coldcaller"):
         return
     while True:
