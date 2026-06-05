@@ -31,6 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from bentoforge import health
 
 AGENT_KEY = "bentoforge"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "bf_inputs"
@@ -180,11 +181,24 @@ def build_queue() -> dict:
             continue
         try:
             spec = json.loads(spec_path.read_text())
-        except Exception:
+        except Exception as e:
+            failed += 1
+            health.record_page(slug, "spec_invalid",
+                               detail=f"{type(e).__name__}: {str(e)[:60]}")
+            continue
+        if not spec.get("links"):
+            health.record_page(slug, "no_links", theme=spec.get("theme", ""))
             failed += 1
             continue
-        build_page(spec, slug)
-        produced += 1
+        try:
+            r = build_page(spec, slug)
+            produced += 1
+            health.record_page(slug, "success", theme=spec.get("theme", "dark"),
+                               link_count=r.get("link_count", 0))
+        except Exception as e:
+            failed += 1
+            health.record_page(slug, "build_failed", theme=spec.get("theme", ""),
+                               detail=f"{type(e).__name__}: {str(e)[:80]}")
     return {"pages_produced": produced, "failures": failed}
 
 
@@ -213,6 +227,12 @@ def fulfill_cycle() -> dict:
         r = mailer.send(AGENT_KEY, email,
                         f"BentoForge pages ready — {len(new)} new",
                         body, purpose="fulfillment")
+        if r.get("status") != "sent":
+            health.record_delivery(email, "mail_failed", slugs=len(new),
+                                   detail=f"mailer={r.get('status','?')}: "
+                                          f"{(r.get('reason') or r.get('error',''))[:80]}")
+        else:
+            health.record_delivery(email, "success", slugs=len(new))
         if r.get("status") == "sent":
             log[email] = list(already | {d.name for d in new})
             sent += 1
