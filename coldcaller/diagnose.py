@@ -47,7 +47,8 @@ def check_leads_with_phone():
             continue
         for lead in data:
             total += 1
-            phone = lead.get("phone") or lead.get("phone_number") or ""
+            phone = (lead.get("phone") or lead.get("phone_number")
+                     or lead.get("seller_phone") or lead.get("owner_phone") or "")
             if phone:
                 phoned += 1
     if total == 0:
