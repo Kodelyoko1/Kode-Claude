@@ -223,17 +223,28 @@ def build_queue() -> dict:
     INPUTS_DIR.mkdir(parents=True, exist_ok=True)
     produced = 0
     failed = 0
+    from chatconfig import health
     for spec_path in sorted(INPUTS_DIR.glob("*.json")):
         slug = spec_path.stem
         if (OUTPUTS_DIR / slug / "setup_guide.md").exists():
             continue
         try:
             spec = json.loads(spec_path.read_text())
-        except Exception:
+        except Exception as e:
+            failed += 1
+            health.record_bot(slug, "spec_invalid", detail=f"{type(e).__name__}: {str(e)[:60]}")
+            continue
+        if not spec.get("faqs"):
+            health.record_bot(slug, "no_faqs", detail="missing 'faqs' key or empty")
             failed += 1
             continue
-        build_chatbot(spec, slug)
-        produced += 1
+        try:
+            build_chatbot(spec, slug)
+            produced += 1
+            health.record_bot(slug, "success", faq_count=len(spec.get("faqs", [])))
+        except Exception as e:
+            failed += 1
+            health.record_bot(slug, "build_failed", detail=f"{type(e).__name__}: {str(e)[:80]}")
     return {"bots_produced": produced, "failures": failed}
 
 
@@ -267,6 +278,12 @@ def fulfill_cycle() -> dict:
         if r.get("status") == "sent":
             log[email] = list(already | {d.name for d in new})
             sent += 1
+            from chatconfig import health
+            health.record_delivery(email, "success", slugs=len(new))
+        else:
+            from chatconfig import health
+            health.record_delivery(email, "mail_failed", slugs=len(new),
+                                   detail=f"mailer={r.get('status','?')}")
     storage.save("cc_delivery_log.json", log)
     return {"fulfillment_sent": sent}
 
