@@ -23,6 +23,29 @@ import argparse
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
+
+
+def _autoload_env():
+    """If PAYPAL_CLIENT_ID isn't already in env, load .env from project root.
+    Avoids the 'export $(grep -v ...) every time' ritual."""
+    if os.environ.get("PAYPAL_CLIENT_ID"):
+        return
+    env_path = Path(__file__).parent / ".env"
+    if not env_path.exists():
+        return
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        k = k.strip()
+        v = v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+
+
+_autoload_env()
 
 from rich.console import Console
 from rich.panel import Panel
