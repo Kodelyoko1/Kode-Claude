@@ -33,6 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from autonomous import storage, mailer, billing, metrics
+from proofbot import health
 
 AGENT_KEY = "proofbot"
 INPUTS_DIR = Path(__file__).parent.parent / "data" / "pf_inputs"
