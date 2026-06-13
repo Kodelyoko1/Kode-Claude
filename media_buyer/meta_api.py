@@ -122,11 +122,19 @@ def _request(method: str, path: str, *, params: dict | None = None,
                 err_type = err.get("type", "")
                 err_code = err.get("code", "")
                 err_sub = err.get("error_subcode", "")
+                # error_user_title/_msg are the actually-useful fields Meta hides
+                # under a generic "Invalid parameter". Pull them through.
+                user_title = err.get("error_user_title", "")
+                user_msg = err.get("error_user_msg", "")
             except (ValueError, AttributeError):
                 msg, err_type, err_code, err_sub = resp.text[:200], "", "", ""
+                user_title = user_msg = ""
+            detail = msg
+            if user_title:
+                detail = f"{user_title} — {user_msg}" if user_msg else user_title
             raise RuntimeError(
                 f"Meta API {method} {path} -> HTTP {resp.status_code} "
-                f"[{err_type} code={err_code} subcode={err_sub}]: {msg}"
+                f"[{err_type} code={err_code} subcode={err_sub}]: {detail}"
             )
 
         if cooldown:
@@ -274,6 +282,10 @@ def create_campaign_generic(ad_account_id: str, *, name: str, objective: str,
     objective: a Meta OUTCOME_* identifier — for fbads:
       MESSAGES → OUTCOME_ENGAGEMENT
       TRAFFIC  → OUTCOME_TRAFFIC
+
+    is_adset_budget_sharing_enabled is False because fbads sets per-adset
+    daily_budget (CBO disabled). Meta rejects the call entirely if this is
+    omitted under campaigns that don't carry a campaign-level budget.
     """
     body: dict[str, Any] = {
         "name": name,
@@ -281,6 +293,7 @@ def create_campaign_generic(ad_account_id: str, *, name: str, objective: str,
         "status": status,
         "buying_type": buying_type,
         "special_ad_categories": json.dumps(special_ad_categories or []),
+        "is_adset_budget_sharing_enabled": False,
     }
     if DRY_RUN:
         return {"dry_run": True, "ad_account_id": ad_account_id,

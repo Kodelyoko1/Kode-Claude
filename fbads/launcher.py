@@ -82,6 +82,11 @@ def _ad_targeting(ad: dict) -> dict:
         "age_min":       max(13, min(65, age_min)),
         "age_max":       max(age_min, min(65, age_max)),
         "targeting_relaxation_types": {"lookalike": 0, "custom_audience": 0},
+        # Meta now requires this flag explicitly. 0 = strict targeting (our
+        # age controls hold); 1 = AI-expanded but conflicts with age_min > 25
+        # which we set for wholesale audiences (sellers 35+, buyers 30+, etc).
+        # Owner can flip to 1 in Ads Manager per adset post-launch if desired.
+        "targeting_automation": {"advantage_audience": 0},
     }
 
 
@@ -126,8 +131,17 @@ def launch_pack(pack: dict, dry: bool = False, max_ads: int = 0) -> dict:
             out["launched"] += 1
         return out
 
-    # Live path. Cache image uploads per path — Meta de-dupes server-side too,
-    # but we may as well save HTTP calls when several ads share data/logo.png.
+    # Live path. media_buyer.config.DRY_RUN is read once at import time from
+    # MB_LIVE — and meta_api did `from .config import DRY_RUN`, which binds the
+    # value into its own module namespace. fbads's `--live` is an explicit
+    # owner authorization, so patch BOTH module-level bindings to False before
+    # firing. Without this, every create_* below returns its DRY_RUN sentinel
+    # and the launcher reports "campaign create returned no id" mysteriously.
+    os.environ["MB_LIVE"] = "1"
+    import media_buyer.config as _mb_cfg
+    import media_buyer.meta_api as _mb_meta
+    _mb_cfg.DRY_RUN = False
+    _mb_meta.DRY_RUN = False
     from media_buyer.meta_api import (create_campaign_generic, create_adset_generic,
                                       create_link_creative, create_ad_generic,
                                       upload_image_from_path)
