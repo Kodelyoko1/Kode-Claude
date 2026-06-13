@@ -93,16 +93,43 @@ def _have_creds() -> tuple[bool, list[str]]:
 
 # ─────────────────────────── Event sources ───────────────────────────
 
+# Log prefix (filename) → Python module that owns PLANS. The 2-3 letter prefix
+# we read off the log filename doesn't always match the module dir name
+# (e.g. spd → salespage_doctor). Extend here when adding new monetized agents.
+PREFIX_TO_MODULE = {
+    "bm":  "batman",
+    "ds":  "dropship_scout",
+    "hd":  "hudscout",
+    "iz":  "inboxzero",
+    "lm":  "link_mender",
+    "spd": "salespage_doctor",
+    "sa":  "speedaudit",
+}
+
+# Meta CAPI rejects events older than ~7 days (silently). Anything past this
+# is a no-op send; we skip and report instead of burning the ledger entry.
+CAPI_MAX_AGE_DAYS = 7
+
+
 def _agent_to_value(agent: str, plan_key: str) -> float:
-    """Look up the plan's price for the Purchase event 'value' field.
+    """Look up the plan's price for the event 'value' field.
     Returns 0.0 if not found (still fires the event)."""
     try:
         import importlib
-        mod_name = f"{agent}.subscribers"
-        try:
-            mod = importlib.import_module(mod_name)
-        except ImportError:
-            mod = importlib.import_module(f"{agent}.clients")
+        mod_name_candidates = []
+        mapped = PREFIX_TO_MODULE.get(agent)
+        if mapped:
+            mod_name_candidates += [f"{mapped}.subscribers", f"{mapped}.clients"]
+        mod_name_candidates += [f"{agent}.subscribers", f"{agent}.clients"]
+        mod = None
+        for cand in mod_name_candidates:
+            try:
+                mod = importlib.import_module(cand)
+                break
+            except ImportError:
+                continue
+        if mod is None:
+            return 0.0
         plans = getattr(mod, "PLANS", {})
         info = plans.get(plan_key, {})
         # Prefer one_time for one-time plans, price_mo for recurring
@@ -113,6 +140,19 @@ def _agent_to_value(agent: str, plan_key: str) -> float:
     except Exception:
         pass
     return 0.0
+
+
+def _event_age_days(ts: str) -> float:
+    """How old is this event timestamp, in days? Returns 0.0 if unparseable."""
+    if not ts:
+        return 0.0
+    try:
+        clean = ts.replace("Z", "+00:00").split("+")[0]
+        dt = datetime.fromisoformat(clean)
+        delta = datetime.now() - dt
+        return delta.total_seconds() / 86400.0
+    except (ValueError, AttributeError):
+        return 0.0
 
 
 def _walk_lead_events() -> list[dict]:
@@ -188,14 +228,23 @@ def push_pending(dry: bool = False) -> dict:
 
     sent = 0
     skipped = 0
+    skipped_too_old = 0
     errors: list[dict] = []
 
     def _fire(event_name: str, ev: dict, value: float = 0.0, currency: str = "USD"):
-        nonlocal sent, skipped
+        nonlocal sent, skipped, skipped_too_old
         key = _event_key(event_name, ev["agent"], ev["email"], ev["ts"])
         if key in sent_set:
             return
         if not ev.get("email"):
+            return
+        age_days = _event_age_days(ev["ts"])
+        if age_days > CAPI_MAX_AGE_DAYS:
+            skipped_too_old += 1
+            errors.append({"event": event_name, "agent": ev["agent"],
+                           "email": ev["email"][:30],
+                           "reason": f"too_old ({age_days:.1f}d > {CAPI_MAX_AGE_DAYS}d) — "
+                                     "Meta CAPI rejects events past 7-day window"})
             return
         user_data = {"em": ev["email"]}
         custom_data = {
@@ -240,6 +289,7 @@ def push_pending(dry: bool = False) -> dict:
 
     _save(SENT_LEDGER, sent_ledger)
     return {"sent": sent, "skipped": skipped,
+            "skipped_too_old": skipped_too_old,
             "errors": errors, "ledger_size": len(sent_ledger)}
 
 

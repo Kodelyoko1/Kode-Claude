@@ -127,9 +127,11 @@ def main():
         )
         r = push_pending(dry=a.conversions_dry)
         tag = "[yellow]DRY[/yellow] " if a.conversions_dry else ""
+        too_old = r.get("skipped_too_old", 0)
         console.print(f"  {tag}[green]Sent:[/green] {r['sent']}  "
                       f"[yellow]Skipped:[/yellow] {r['skipped']}  "
-                      f"[dim]ledger={r.get('ledger_size','?')}[/dim]")
+                      + (f"[red]TooOld:[/red] {too_old}  " if too_old else "")
+                      + f"[dim]ledger={r.get('ledger_size','?')}[/dim]")
         for e in r.get("errors", [])[:5]:
             console.print(f"    [red]{e.get('event','?')}[/red] "
                           f"{e.get('agent','')} {e.get('email','')} — "
