@@ -112,6 +112,8 @@ def main():
         console.print(f"  [white]Spend:[/white] ${t.get('total_spend',0):.2f}  "
                       f"[white]Revenue:[/white] ${t.get('total_revenue',0):.2f}  "
                       f"[white]Blended ROAS:[/white] {t.get('blended_roas','—')}")
+        if r2.get("note"):
+            console.print(f"  [dim]{r2['note']}[/dim]")
         return
 
     if a.push_conversions:

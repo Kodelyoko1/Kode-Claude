@@ -27,9 +27,17 @@ def render_text(refresh: bool = True, email: bool = False) -> str:
         f"╚══════════════════════════════════════════════════════════════════════════╝",
         "",
     ]
-    if not snap.get("ads"):
+    if not snap:
         lines.append("  No Meta Insights snapshot yet.")
         lines.append("  Run: python3 run_fbads_auto.py --monitor")
+        body = "\n".join(lines)
+        if email:
+            _email_owner(body)
+        return body
+    if not snap.get("ads"):
+        lines.append("  No live ads in the last 7 days — nothing for Meta to report on.")
+        lines.append(f"  Last Insights pull: {snap.get('ts','?')}")
+        lines.append("  Run: python3 run_fbads_auto.py --launch --live  (push the latest pack)")
         body = "\n".join(lines)
         if email:
             _email_owner(body)

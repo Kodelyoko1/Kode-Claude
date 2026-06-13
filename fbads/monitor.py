@@ -168,8 +168,22 @@ def compute_attribution() -> dict:
     in the date_preset window. This is APPROXIMATE — without UTM/Pixel
     we can't prove causation, only co-occurrence."""
     snap = latest_insights()
-    if not snap.get("ads"):
+    # Three states to distinguish:
+    #   1. No snapshot file at all  → caller must run pull_insights first
+    #   2. Snapshot exists, 0 ads   → Meta returned nothing for the window;
+    #                                  emit a valid empty attribution so the
+    #                                  cron/report doesn't bail mysteriously.
+    #   3. Snapshot has ads         → do the work.
+    if not snap:
         return {"ok": False, "error": "no Meta insights snapshot — run pull_insights first"}
+    if not snap.get("ads"):
+        empty = {"ts": _now(), "window_days": 7, "by_ad": {},
+                 "totals": {"ads": 0, "total_spend": 0.0,
+                            "total_revenue": 0.0, "blended_roas": None},
+                 "note": "Meta returned 0 ads for the window — no live ads "
+                         "in the date_preset range, or ad account is empty."}
+        _save(ATTRIB_PATH, empty)
+        return {"ok": True, **empty}
     aud_map = _ad_audience_to_agent_keys()
     # Window: assume last_7d for simplicity
     window_start = (datetime.now() - timedelta(days=7)).isoformat()
