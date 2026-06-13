@@ -19,11 +19,61 @@ Dry-run path:
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
+import tempfile
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+DATA_DIR        = Path(__file__).parent.parent / "data"
+LAUNCH_LEDGER   = DATA_DIR / "fbads_launched.json"
+
+
+# ─────────────────────────── Dedup ledger ───────────────────────────
+#
+# Cron may run --launch multiple times per day (and across days as packs
+# are rebuilt). The ledger records every successful (pack_date, ad_name)
+# launch with the Meta IDs so re-launches skip ads we already pushed.
+# Shape: {"<pack_date>": [{"ad_name": ..., "campaign_id": ..., "ad_id": ..., "ts": ...}, ...]}
+
+
+def _load_ledger() -> dict:
+    if not LAUNCH_LEDGER.exists():
+        return {}
+    try:
+        data = json.loads(LAUNCH_LEDGER.read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _save_ledger(data: dict) -> None:
+    LAUNCH_LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=f".{LAUNCH_LEDGER.name}.",
+                               suffix=".tmp", dir=LAUNCH_LEDGER.parent)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, LAUNCH_LEDGER)
+    except Exception:
+        try: os.unlink(tmp)
+        except OSError: pass
+        raise
+
+
+def _already_launched_set(pack_date: str) -> set[str]:
+    """Set of ad_names already in the ledger for a given pack date."""
+    entries = _load_ledger().get(pack_date, [])
+    return {e["ad_name"] for e in entries if isinstance(e, dict) and e.get("ad_name")}
+
+
+def _record_launch(pack_date: str, entry: dict) -> None:
+    ledger = _load_ledger()
+    ledger.setdefault(pack_date, []).append({**entry, "ts": datetime.now().isoformat()})
+    _save_ledger(ledger)
 
 
 # ─────────────────────────── Objective mapping ───────────────────────────
@@ -90,20 +140,37 @@ def _ad_targeting(ad: dict) -> dict:
     }
 
 
-def launch_pack(pack: dict, dry: bool = False, max_ads: int = 0) -> dict:
+def launch_pack(pack: dict, dry: bool = False, max_ads: int = 0,
+                use_ledger: bool = True) -> dict:
     """Push every ad in the pack as paused campaign + adset + creative + ad.
 
-    Returns {"launched": N, "skipped": N, "errors": [...], "campaigns": [...]}.
+    use_ledger=True (default) skips ad_names already recorded in
+    data/fbads_launched.json for this pack_date — the cron-safe path.
+    Pass False to force-relaunch (e.g. after a manual cleanup in Meta).
+
+    Returns {"launched": N, "skipped": N, "skipped_dedup": N,
+             "errors": [...], "campaigns": [...]}.
     On dry, returns what WOULD post (objective tuple + budget + destination).
     """
     ready, missing = _have_creds()
     if not ready and not dry:
         return {"launched": 0, "skipped": len(pack.get("ads", [])),
+                "skipped_dedup": 0,
                 "errors": [{"reason": f"missing env: {','.join(missing)}"}],
                 "campaigns": []}
 
-    out: dict = {"launched": 0, "skipped": 0, "errors": [], "campaigns": []}
+    pack_date = pack.get("date") or datetime.now().strftime("%Y-%m-%d")
+    already = _already_launched_set(pack_date) if use_ledger else set()
+
+    out: dict = {"launched": 0, "skipped": 0, "skipped_dedup": 0,
+                 "errors": [], "campaigns": []}
     ads = pack.get("ads", [])
+    # Apply dedup first, THEN max — so we don't waste the max budget on ads
+    # that are already in the ledger.
+    if use_ledger and already:
+        before = len(ads)
+        ads = [a for a in ads if a["ad_name"] not in already]
+        out["skipped_dedup"] = before - len(ads)
     if max_ads > 0:
         ads = ads[:max_ads]
 
@@ -221,7 +288,7 @@ def launch_pack(pack: dict, dry: bool = False, max_ads: int = 0) -> dict:
             )
             ad_id = ad.get("id", "")
 
-            out["campaigns"].append({
+            launched_entry = {
                 "ad_name":     ad_name,
                 "audience":    a["audience"],
                 "objective":   a["campaign_objective"],
@@ -230,7 +297,10 @@ def launch_pack(pack: dict, dry: bool = False, max_ads: int = 0) -> dict:
                 "creative_id": creative_id,
                 "ad_id":       ad_id,
                 "status":      "PAUSED — review then unpause in Ads Manager",
-            })
+            }
+            out["campaigns"].append(launched_entry)
+            if use_ledger:
+                _record_launch(pack_date, launched_entry)
             out["launched"] += 1
 
         except Exception as e:

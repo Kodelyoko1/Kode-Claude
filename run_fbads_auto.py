@@ -46,7 +46,9 @@ def main():
     p.add_argument("--live", action="store_true",
                    help="With --launch: actually create on Meta (default is dry-run)")
     p.add_argument("--max", type=int, default=0,
-                   help="With --launch: cap how many ads to push")
+                   help="With --launch: cap how many ads to push (applied AFTER dedup)")
+    p.add_argument("--no-dedup", action="store_true",
+                   help="With --launch: force-relaunch ads already in the ledger")
     p.add_argument("--higgsfield", action="store_true",
                    help="Emit Higgsfield video prompts for the latest pack")
     p.add_argument("--higgsfield-status", action="store_true",
@@ -181,9 +183,11 @@ def main():
             console.print(Panel(Text.from_markup(
                 "[yellow]DRY-RUN[/yellow] — pass --live to actually create on Meta"),
                 border_style="yellow"))
-        result = launch_pack(pack, dry=dry, max_ads=a.max)
-        console.print(f"  Launched:  {result['launched']}")
-        console.print(f"  Skipped:   {result['skipped']}")
+        result = launch_pack(pack, dry=dry, max_ads=a.max, use_ledger=not a.no_dedup)
+        console.print(f"  Launched:    {result['launched']}")
+        console.print(f"  Skipped:     {result['skipped']}")
+        if result.get("skipped_dedup"):
+            console.print(f"  [dim]Dedup skip:  {result['skipped_dedup']} (already in ledger)[/dim]")
         if result["errors"]:
             console.print(f"  [red]Errors ({len(result['errors'])}):[/red]")
             for e in result["errors"][:5]:
