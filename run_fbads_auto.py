@@ -14,6 +14,7 @@ Usage:
   python3 run_fbads_auto.py --monitor           # pull Meta Insights + compute attribution
   python3 run_fbads_auto.py --report            # print perf report (winners/losers/unknowns)
   python3 run_fbads_auto.py --email-report      # send report to SMTP_USER
+  python3 run_fbads_auto.py --push-conversions  # fire CAPI Lead+Purchase to Meta
 """
 import argparse, os, sys
 from datetime import datetime
@@ -54,6 +55,10 @@ def main():
                    help="Render performance report (refreshes data first)")
     p.add_argument("--email-report", action="store_true",
                    help="Send the report to SMTP_USER")
+    p.add_argument("--push-conversions", action="store_true",
+                   help="Fire CAPI Lead+Purchase events for unsent activations + invoices")
+    p.add_argument("--conversions-dry", action="store_true",
+                   help="With --push-conversions: classify but don't actually POST")
     a = p.parse_args()
 
     if a.diagnose:
@@ -107,6 +112,28 @@ def main():
         console.print(f"  [white]Spend:[/white] ${t.get('total_spend',0):.2f}  "
                       f"[white]Revenue:[/white] ${t.get('total_revenue',0):.2f}  "
                       f"[white]Blended ROAS:[/white] {t.get('blended_roas','—')}")
+        return
+
+    if a.push_conversions:
+        from fbads.conversions import push_pending, probe
+        pre = probe()
+        if not pre["ok"]:
+            console.print(f"[red]CAPI not ready:[/red] missing {','.join(pre['missing_creds'])}")
+            sys.exit(1)
+        console.print(
+            f"  [white]Pending:[/white] leads={pre['pending_leads']}  "
+            f"purchases={pre['pending_purchases']}  "
+            f"[dim](already_sent={pre['already_sent']})[/dim]"
+        )
+        r = push_pending(dry=a.conversions_dry)
+        tag = "[yellow]DRY[/yellow] " if a.conversions_dry else ""
+        console.print(f"  {tag}[green]Sent:[/green] {r['sent']}  "
+                      f"[yellow]Skipped:[/yellow] {r['skipped']}  "
+                      f"[dim]ledger={r.get('ledger_size','?')}[/dim]")
+        for e in r.get("errors", [])[:5]:
+            console.print(f"    [red]{e.get('event','?')}[/red] "
+                          f"{e.get('agent','')} {e.get('email','')} — "
+                          f"{e.get('reason','')[:140]}")
         return
 
     if a.report or a.email_report:
