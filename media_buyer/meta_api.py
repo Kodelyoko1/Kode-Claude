@@ -255,6 +255,142 @@ def create_ad_creative(ad_account_id: str, page_id: str, *,
                     data={"object_story_spec": json.dumps(object_story_spec)})
 
 
+# ─────────────────────────── Generic create_* (objective-agnostic) ───────────────────────────
+#
+# media_buyer/launcher.py has lead-gen-specific create_campaign/adset/ad helpers
+# wired hard to OUTCOME_LEADS + HOUSING special-ad-category + LEAD_GENERATION
+# optimization. fbads needs MESSAGES (Messenger CTA) and TRAFFIC (link clicks)
+# objectives — different optimization goals, destination types, and CTAs. These
+# generic helpers take the relevant fields as args so the same code path serves
+# both fbads objectives and any future ones.
+
+
+def create_campaign_generic(ad_account_id: str, *, name: str, objective: str,
+                            status: str = "PAUSED",
+                            special_ad_categories: list[str] | None = None,
+                            buying_type: str = "AUCTION") -> dict:
+    """Create a campaign with any objective. Returns {"id": "..."} or DRY shape.
+
+    objective: a Meta OUTCOME_* identifier — for fbads:
+      MESSAGES → OUTCOME_ENGAGEMENT
+      TRAFFIC  → OUTCOME_TRAFFIC
+    """
+    body: dict[str, Any] = {
+        "name": name,
+        "objective": objective,
+        "status": status,
+        "buying_type": buying_type,
+        "special_ad_categories": json.dumps(special_ad_categories or []),
+    }
+    if DRY_RUN:
+        return {"dry_run": True, "ad_account_id": ad_account_id,
+                "would_create_campaign": body}
+    return _request("POST", f"/{ad_account_id}/campaigns", data=body)
+
+
+def create_adset_generic(ad_account_id: str, *, name: str, campaign_id: str,
+                         daily_budget_cents: int,
+                         optimization_goal: str,
+                         billing_event: str = "IMPRESSIONS",
+                         destination_type: str | None = None,
+                         targeting: dict | None = None,
+                         promoted_object: dict | None = None,
+                         status: str = "PAUSED",
+                         bid_strategy: str = "LOWEST_COST_WITHOUT_CAP") -> dict:
+    """Create an adset under any campaign. Caller supplies targeting + goal.
+
+    For fbads:
+      MESSAGES: optimization_goal=CONVERSATIONS,  destination_type=MESSENGER,
+                promoted_object={"page_id": "...", "custom_event_type":
+                "MESSAGING_CONVERSATION_STARTED_7D"} (optional)
+      TRAFFIC:  optimization_goal=LINK_CLICKS,    destination_type=WEBSITE,
+                promoted_object not needed
+    """
+    body: dict[str, Any] = {
+        "name": name,
+        "campaign_id": campaign_id,
+        "daily_budget": daily_budget_cents,
+        "billing_event": billing_event,
+        "optimization_goal": optimization_goal,
+        "status": status,
+        "bid_strategy": bid_strategy,
+        "targeting": json.dumps(targeting or {"geo_locations": {"countries": ["US"]}}),
+    }
+    if destination_type:
+        body["destination_type"] = destination_type
+    if promoted_object:
+        body["promoted_object"] = json.dumps(promoted_object)
+    if DRY_RUN:
+        return {"dry_run": True, "ad_account_id": ad_account_id,
+                "would_create_adset": body}
+    return _request("POST", f"/{ad_account_id}/adsets", data=body)
+
+
+def create_link_creative(ad_account_id: str, page_id: str, *,
+                         message: str, headline: str, link_url: str,
+                         image_hash: str, description: str = "",
+                         call_to_action: str = "LEARN_MORE") -> dict:
+    """Generic link-data creative. CTA type drives behavior:
+      LEARN_MORE / SHOP_NOW / SIGN_UP / DOWNLOAD  → website-bound TRAFFIC ads
+      MESSAGE_PAGE                                → opens Messenger thread
+    """
+    link_data: dict[str, Any] = {
+        "message": message,
+        "name": headline,
+        "link": link_url,
+        "image_hash": image_hash,
+        "call_to_action": {"type": call_to_action, "value": {"link": link_url}},
+    }
+    if description:
+        link_data["description"] = description
+    object_story_spec = {"page_id": page_id, "link_data": link_data}
+    if DRY_RUN:
+        return {"dry_run": True, "ad_account_id": ad_account_id,
+                "would_create_creative": object_story_spec}
+    return _request("POST", f"/{ad_account_id}/adcreatives",
+                    data={"object_story_spec": json.dumps(object_story_spec)})
+
+
+def create_ad_generic(ad_account_id: str, *, name: str, adset_id: str,
+                      creative_id: str, status: str = "PAUSED") -> dict:
+    """Create an ad pairing an adset with a creative."""
+    body = {
+        "name": name,
+        "adset_id": adset_id,
+        "creative": json.dumps({"creative_id": creative_id}),
+        "status": status,
+    }
+    if DRY_RUN:
+        return {"dry_run": True, "ad_account_id": ad_account_id,
+                "would_create_ad": body}
+    return _request("POST", f"/{ad_account_id}/ads", data=body)
+
+
+def upload_image_from_path(ad_account_id: str, image_path: str) -> dict:
+    """Upload a local image file as an ad asset. Returns {"image_hash": "..."}
+    or DRY shape. Meta de-dupes identical bytes → cheap to call repeatedly."""
+    if DRY_RUN:
+        return {"dry_run": True, "image_path": image_path,
+                "image_hash": "DRY_RUN_HASH"}
+    with open(image_path, "rb") as fh:
+        files = {"file": (os.path.basename(image_path), fh.read(),
+                          "image/jpeg" if image_path.lower().endswith((".jpg", ".jpeg"))
+                          else "image/png")}
+    token = token_store.get_active_token()
+    r = _SESSION.post(
+        f"{BASE}/{ad_account_id}/adimages",
+        params={"access_token": token},
+        files=files, timeout=60,
+    )
+    r.raise_for_status()
+    payload = r.json()
+    images = payload.get("images", {})
+    first = next(iter(images.values()), None)
+    if not first or not first.get("hash"):
+        raise RuntimeError(f"adimages upload returned no hash: {payload}")
+    return {"image_hash": first["hash"], "url": first.get("url", "")}
+
+
 # ─────────────────────────── CAPI: server-side conversion send ───────────────────────────
 def send_capi_event(pixel_id: str, event_name: str, event_time: int,
                     user_data: dict, custom_data: dict, *,

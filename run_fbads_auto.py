@@ -189,10 +189,17 @@ def main():
             for e in result["errors"][:5]:
                 console.print(f"    [red]{e.get('reason','')[:140]}[/red]")
         if dry and result["campaigns"]:
-            console.print("\n  [dim]Would have created:[/dim]")
+            console.print("\n  [dim]Would have created (PAUSED):[/dim]")
             for c in result["campaigns"][:8]:
-                console.print(f"    {c['ad_name']:<48s}  obj={c['objective']:<10s}  "
-                              f"${c['daily_budget']}/day  → {c['destination']}")
+                console.print(
+                    f"    {c['ad_name']:<48s}  "
+                    f"obj={c.get('meta_obj','?'):<20s}  "
+                    f"opt={c.get('opt_goal','?'):<14s}  "
+                    f"cta={c.get('cta','?'):<13s}  "
+                    f"${c['daily_budget']}/day  →  {c['destination']}"
+                )
+            if len(result["campaigns"]) > 8:
+                console.print(f"    [dim]... +{len(result['campaigns']) - 8} more[/dim]")
         return
 
     # Default: show diagnose
