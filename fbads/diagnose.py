@@ -51,6 +51,27 @@ def check_latest_pack():
                  f"${pack['potential_daily_spend']:.0f}/day potential")
 
 
+def check_capi():
+    """Server-side Conversions API readiness."""
+    from fbads.conversions import probe
+    p = probe()
+    pixel_set = bool(os.environ.get("MB_LEADGEN_PIXEL_ID", "").strip())
+    token_set = bool(os.environ.get("META_ACCESS_TOKEN", "").strip())
+    if not pixel_set:
+        return Check("CAPI (Pixel)", "P1", "warn",
+                     "MB_LEADGEN_PIXEL_ID not set — server-side attribution disabled",
+                     "Get your Pixel ID at business.facebook.com → Events Manager → "
+                     "Data Sources → your Pixel → Settings. Set MB_LEADGEN_PIXEL_ID=<id> in .env.")
+    if not token_set:
+        return Check("CAPI (Pixel)", "P1", "warn",
+                     "META_ACCESS_TOKEN not set — CAPI can't authenticate",
+                     "Same token as ad-launching uses; see FBADS_SETUP.md")
+    detail = (f"ready · leads={p['lead_events']} purchases={p['purchase_events']}  "
+              f"pending: leads={p['pending_leads']} purchases={p['pending_purchases']}  "
+              f"already_sent={p['already_sent']}")
+    return Check("CAPI (Pixel)", "info", "info", detail)
+
+
 def check_higgsfield():
     key = os.environ.get("HIGGSFIELD_API_KEY", "")
     if not key:
@@ -75,7 +96,8 @@ def check_image_assets():
 
 def run_diagnostics():
     checks = [check_meta_creds(), check_content_breadth(),
-              check_latest_pack(), check_higgsfield(), check_image_assets()]
+              check_latest_pack(), check_capi(),
+              check_higgsfield(), check_image_assets()]
     summary = {"P0_fail": sum(1 for c in checks if c.severity == "P0" and c.status == "fail"),
                "P1_warn": sum(1 for c in checks if c.severity == "P1" and c.status == "warn"),
                "passed":  sum(1 for c in checks if c.status == "pass"),
