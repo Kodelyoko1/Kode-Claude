@@ -68,6 +68,23 @@ data/*_queues/
 data/notify_log.json
 data/iz_log.json
 
+# Wave-2 runtime: subscribers, subscription logs, health probes, per-agent activity
+data/*_subscribers.json
+data/*_subscription_log.json
+data/*_subscriber_log.json
+data/*_client_log.json
+data/*_analysis_log.json
+data/*_health.json
+data/*_digests/
+data/escalation_log.json
+
+# fbads runtime: generated ad packs + server-side CAPI dedup ledger
+data/fb_packs/
+data/fbads_capi_sent.json
+
+# Invoicer runtime: PayPal product/plan catalog cache (rebuilt from API)
+data/invoicer_paypal_catalog.json
+
 # Heavy media that don't belong in git
 data/vr_downloads/
 data/vr_work/
