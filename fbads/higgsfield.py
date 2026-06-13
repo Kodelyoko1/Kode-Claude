@@ -178,3 +178,110 @@ def api_push(pack: dict, dry: bool = True) -> dict:
                      "wired — once Higgsfield publishes a stable POST endpoint, "
                      "fill in this function (POST per-prompt, poll for video URL, "
                      "download MP4 to data/fb_packs/<ad_name>.mp4)."}
+
+
+# ─────────────────────────── MCP-driven render sidecar ───────────────────────────
+#
+# Higgsfield ships a Claude MCP server (generate_video, job_status, balance, …).
+# Python crons can't call MCP directly — that runs in Claude's runtime. So the
+# pattern is:
+#
+#   1. Python (`emit_prompts` above) writes the prompt JSON for a pack.
+#   2. A Claude Code session reads that JSON via `read_video_manifest()`,
+#      calls `mcp__claude_ai_Higgsfield__generate_video` per ad, polls
+#      `mcp__claude_ai_Higgsfield__job_status`, and writes the finished
+#      video back via `record_video()`.
+#   3. Python (`video_for_ad`, `latest_videos`) reads the sidecar to wire
+#      the rendered MP4 URL into the ad creative when launching.
+#
+# Sidecar shape (data/fb_packs/<date>_higgsfield_videos.json):
+#   {
+#     "pack_date": "2026-06-05",
+#     "model":     "marketing_studio_video",
+#     "renders":   {
+#       "<ad_name>": {"job_id": "<uuid>", "video_url": "https://…",
+#                     "credits_spent": 25, "ts": "2026-06-13T…"}
+#     }
+#   }
+
+
+def _sidecar_path(pack_date: str) -> Path:
+    return PACK_DIR / f"{pack_date}_higgsfield_videos.json"
+
+
+def read_video_manifest(pack_date: str | None = None) -> list[dict]:
+    """Load the per-ad prompt list a Claude session feeds to MCP generate_video."""
+    if pack_date is None:
+        candidates = sorted(PACK_DIR.glob("*_higgsfield.json"), reverse=True)
+        if not candidates:
+            return []
+        path = candidates[0]
+    else:
+        path = PACK_DIR / f"{pack_date}_higgsfield.json"
+    if not path.exists():
+        return []
+    return json.loads(path.read_text())
+
+
+def latest_videos(pack_date: str | None = None) -> dict:
+    """Read the sidecar of rendered videos for a pack."""
+    if pack_date is None:
+        candidates = sorted(PACK_DIR.glob("*_higgsfield_videos.json"), reverse=True)
+        if not candidates:
+            return {}
+        return json.loads(candidates[0].read_text())
+    path = _sidecar_path(pack_date)
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text())
+
+
+def record_video(pack_date: str, ad_name: str, *, job_id: str, video_url: str,
+                 model: str = "marketing_studio_video",
+                 credits_spent: int | None = None) -> Path:
+    """Append/update one rendered video into the sidecar.
+
+    Called from inside a Claude Code MCP session after job_status reports
+    `status=completed` and a `video_url` is available.
+    """
+    path = _sidecar_path(pack_date)
+    if path.exists():
+        sidecar = json.loads(path.read_text())
+    else:
+        sidecar = {"pack_date": pack_date, "model": model, "renders": {}}
+    sidecar.setdefault("renders", {})[ad_name] = {
+        "job_id": job_id, "video_url": video_url,
+        "credits_spent": credits_spent,
+        "ts": datetime.now().isoformat(),
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(sidecar, indent=2))
+    return path
+
+
+def video_for_ad(ad_name: str, pack_date: str | None = None) -> str | None:
+    """Resolve the rendered video URL for a given ad, or None if not rendered yet.
+    The launcher uses this to substitute video creative for image_hint."""
+    sidecar = latest_videos(pack_date)
+    return sidecar.get("renders", {}).get(ad_name, {}).get("video_url")
+
+
+def render_status(pack_date: str | None = None) -> dict:
+    """Summarize how much of a pack has been rendered via MCP.
+    Drives --higgsfield-status in the runner."""
+    manifest = read_video_manifest(pack_date)
+    sidecar  = latest_videos(pack_date)
+    rendered = sidecar.get("renders", {})
+    todo = [m for m in manifest if m["ad_name"] not in rendered]
+    return {
+        "pack_date":     sidecar.get("pack_date") or (manifest[0]["ad_name"][:10] if manifest else None),
+        "total_ads":     len(manifest),
+        "rendered":      len(rendered),
+        "remaining":     len(todo),
+        "next_ad_name":  todo[0]["ad_name"] if todo else None,
+        "next_prompt":   todo[0]["prompt"]  if todo else None,
+        "next_duration": todo[0].get("duration_s", 5) if todo else None,
+        "next_aspect":   todo[0].get("aspect", "9:16") if todo else None,
+        "credits_spent_total": sum(
+            (r.get("credits_spent") or 0) for r in rendered.values()),
+    }

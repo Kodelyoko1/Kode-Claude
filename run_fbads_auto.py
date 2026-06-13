@@ -49,6 +49,8 @@ def main():
                    help="With --launch: cap how many ads to push")
     p.add_argument("--higgsfield", action="store_true",
                    help="Emit Higgsfield video prompts for the latest pack")
+    p.add_argument("--higgsfield-status", action="store_true",
+                   help="Show MCP render progress (rendered vs remaining) for the latest pack")
     p.add_argument("--monitor", action="store_true",
                    help="Pull Meta Insights + compute attribution (no email)")
     p.add_argument("--report", action="store_true",
@@ -95,6 +97,27 @@ def main():
             sys.exit(1)
         path = emit_prompts(pack)
         console.print(f"[green]Higgsfield prompts written:[/green] {path}")
+        return
+
+    if a.higgsfield_status:
+        from fbads.higgsfield import render_status
+        s = render_status()
+        if not s["total_ads"]:
+            console.print("[yellow]No prompts emitted yet.[/yellow] "
+                          "Run [white]--higgsfield[/white] after building a pack.")
+            return
+        console.print(Panel(Text.from_markup(
+            f"[bold]Higgsfield MCP render status[/bold]\n\n"
+            f"  Pack date:       {s.get('pack_date','?')}\n"
+            f"  Rendered:        {s['rendered']} / {s['total_ads']}\n"
+            f"  Remaining:       {s['remaining']}\n"
+            f"  Credits spent:   {s['credits_spent_total']}\n\n"
+            + (f"  [dim]Next ad to render: {s['next_ad_name']}[/dim]\n"
+               f"  [dim]Prompt: {(s['next_prompt'] or '')[:120]}…[/dim]\n"
+               f"  [dim]Duration {s['next_duration']}s · aspect {s['next_aspect']}[/dim]"
+               if s["next_ad_name"] else
+               "  [green]All ads rendered.[/green]")
+        ), border_style="cyan"))
         return
 
     if a.monitor:
