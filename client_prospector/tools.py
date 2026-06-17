@@ -54,13 +54,13 @@ PRODUCT_INFO = {
         "name":   "Wholesale Deal Analyzer",
         "price":  "$197/month",
         "hook":   "AI-powered deal analysis — pulls comps, estimates ARV, calculates your max offer, and drafts LOIs in 30 seconds.",
-        "cta":    "Reply 'YES' for a free 7-day trial and I'll set up your account today.",
+        "cta":    "Reply 'YES' for a free 7-day trial and I'll set up your account today.\n\nOr see all our tools at: https://kodelyoko1.github.io/Kode-Claude/pricing.html",
     },
     "oas": {
         "name":   "Outreach-as-a-Service",
         "price":  "starting at $300/month",
         "hook":   "We run your motivated-seller outreach for you — scrape distressed leads from gov records, send weekly campaigns, and deliver hot-lead reports to your inbox.",
-        "cta":    "Reply 'YES' and I'll send you a sample lead report from your market — no obligation.",
+        "cta":    "Reply 'YES' and I'll send you a sample lead report from your market — no obligation.\n\nFull details: https://kodelyoko1.github.io/Kode-Claude/pricing.html",
     },
 }
 
