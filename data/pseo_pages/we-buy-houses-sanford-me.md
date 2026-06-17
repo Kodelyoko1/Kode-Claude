@@ -4,7 +4,7 @@
 
 ---
 
-Are you going through probate? Wholesale Omniverse buys houses in Sanford, ME — any condition, any situation.
+Are you dealing with tax liens? Wholesale Omniverse buys houses in Sanford, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

@@ -4,7 +4,7 @@
 
 ---
 
-Are you property needs major repairs? Wholesale Omniverse buys houses in South Portland, ME — any condition, any situation.
+Are you underwater on your mortgage? Wholesale Omniverse buys houses in South Portland, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

@@ -4,7 +4,7 @@
 
 ---
 
-Are you tired of dealing with tenants? Wholesale Omniverse buys houses in Biddeford, ME — any condition, any situation.
+Are you going through probate? Wholesale Omniverse buys houses in Biddeford, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

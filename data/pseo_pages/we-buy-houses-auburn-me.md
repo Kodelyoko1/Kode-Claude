@@ -4,7 +4,7 @@
 
 ---
 
-Are you facing foreclosure? Wholesale Omniverse buys houses in Auburn, ME — any condition, any situation.
+Are you tired of dealing with tenants? Wholesale Omniverse buys houses in Auburn, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works
