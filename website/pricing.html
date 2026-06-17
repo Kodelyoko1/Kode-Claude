@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simple, transparent pricing for every Wholesale Omniverse agent. Pay once or subscribe — no contracts.">
+  <title>Pricing — Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .pricing-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .pricing-hero h1{color:#fff;margin-bottom:12px}
+    .pricing-hero p{color:#94a3b8;font-size:18px;max-width:560px;margin:0 auto 32px}
+    .badge{display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);
+           border:1px solid rgba(245,158,11,.3);border-radius:20px;
+           padding:4px 14px;font-size:12px;font-weight:700;letter-spacing:1px;
+           text-transform:uppercase;margin-bottom:20px}
+    .pricing-section{padding:64px 24px}
+    .pricing-section:nth-child(even){background:var(--slate-1)}
+    .section-title{text-align:center;margin-bottom:48px}
+    .section-title h2{font-size:clamp(24px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-title p{color:var(--slate-6);font-size:16px;max-width:480px;margin:0 auto}
+    .cards{display:grid;gap:24px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+           max-width:1100px;margin:0 auto}
+    .card{background:#fff;border:1px solid var(--slate-3);border-radius:14px;
+          padding:28px;display:flex;flex-direction:column;
+          transition:box-shadow .15s ease,border-color .15s ease}
+    .card:hover{box-shadow:0 8px 28px rgba(15,23,42,.09);border-color:var(--amber)}
+    .card-icon{font-size:32px;margin-bottom:12px}
+    .card h3{font-size:18px;color:var(--navy);margin-bottom:6px}
+    .card p{font-size:14px;color:var(--slate-6);flex:1;margin-bottom:20px}
+    .price-row{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
+    .price-main{font-size:28px;font-weight:800;color:var(--navy)}
+    .price-label{font-size:13px;color:var(--slate-5)}
+    .price-alt{font-size:12px;color:var(--slate-5);margin-bottom:18px}
+    .buy-btn{display:block;text-align:center;background:var(--amber);color:var(--navy);
+             font-weight:700;font-size:14px;padding:12px 20px;border-radius:8px;
+             text-decoration:none;transition:background .15s ease,transform .05s ease}
+    .buy-btn:hover{background:var(--amber-2);text-decoration:none;transform:translateY(-1px)}
+    .buy-btn-outline{background:transparent;border:2px solid var(--amber);color:var(--amber);
+                     display:block;text-align:center;font-weight:700;font-size:14px;
+                     padding:10px 20px;border-radius:8px;text-decoration:none;margin-top:8px;
+                     transition:background .15s ease}
+    .buy-btn-outline:hover{background:rgba(245,158,11,.08);text-decoration:none}
+    .popular{position:relative}
+    .popular::before{content:"Most Popular";position:absolute;top:-12px;left:50%;
+                     transform:translateX(-50%);background:var(--amber);color:var(--navy);
+                     font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+                     padding:3px 12px;border-radius:20px;white-space:nowrap}
+    .how-it-works{background:var(--navy);color:#fff;padding:64px 24px;text-align:center}
+    .how-it-works h2{color:#fff;margin-bottom:40px}
+    .steps{display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+           max-width:800px;margin:0 auto}
+    .step-num{width:40px;height:40px;background:var(--amber);color:var(--navy);
+              border-radius:50%;display:flex;align-items:center;justify-content:center;
+              font-weight:800;font-size:16px;margin:0 auto 12px}
+    .step p{color:#94a3b8;font-size:14px;margin:0}
+    .step h4{color:#fff;margin-bottom:6px}
+    .faq{padding:64px 24px;max-width:720px;margin:0 auto}
+    .faq h2{text-align:center;color:var(--navy);margin-bottom:40px}
+    details{border-bottom:1px solid var(--slate-3);padding:16px 0}
+    details summary{font-weight:700;color:var(--navy);cursor:pointer;list-style:none;
+                    display:flex;justify-content:space-between;align-items:center}
+    details summary::after{content:"＋";color:var(--amber);font-size:18px}
+    details[open] summary::after{content:"－"}
+    details p{margin-top:12px;color:var(--slate-6);font-size:15px;padding-left:0}
+    .cta-banner{background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;
+                text-align:center}
+    .cta-banner h2{color:var(--navy);margin-bottom:8px}
+    .cta-banner p{color:rgba(15,23,42,.75);margin-bottom:24px}
+    nav.topbar{background:var(--navy);padding:14px 24px;display:flex;
+               align-items:center;justify-content:space-between}
+    nav.topbar a{color:#94a3b8;font-size:14px;font-weight:600;text-decoration:none}
+    nav.topbar a:hover{color:#fff;text-decoration:none}
+    nav.topbar .logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:800;font-size:16px}
+    nav.topbar .logo img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+    .nav-links{display:flex;gap:24px}
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="/">
+    <img src="assets/logo.png" alt="Wholesale Omniverse">
+    Wholesale Omniverse
+  </a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="mailto:WholesaleOmniverse@gmail.com">Contact</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="pricing-hero">
+  <div class="badge">Simple Pricing</div>
+  <h1>Pay. Activate. Profit.</h1>
+  <p>Every agent runs autonomously once activated. No contracts, no hidden fees. Cancel any subscription anytime.</p>
+  <p style="font-size:14px;color:#64748b">After paying, email <a href="mailto:WholesaleOmniverse@gmail.com" style="color:var(--amber)">WholesaleOmniverse@gmail.com</a> with your PayPal receipt to activate your service within 2 hours.</p>
+</section>
+
+<!-- ── Quick Wins ─────────────────────────────────────────────── -->
+<section class="pricing-section">
+  <div class="section-title">
+    <h2>Quick Wins — Start Today</h2>
+    <p>One-time purchases and low-cost subscriptions that pay for themselves fast.</p>
+  </div>
+  <div class="cards">
+
+    <div class="card popular">
+      <div class="card-icon">🛒</div>
+      <h3>DropshipScout</h3>
+      <p>Weekly digest of viral TikTok Shop + Amazon Best Seller products with trend data, margin estimates, and supplier links. Never run out of products to test.</p>
+      <div class="price-row"><span class="price-main">$47</span><span class="price-label">/month</span></div>
+      <div class="price-alt">Free preview: top 3 products · Full digest: 20+ products</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/47" target="_blank" rel="noopener">Subscribe — $47/mo →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h3>SpeedAudit</h3>
+      <p>Your website scored, ranked 0–100 across 10 performance signals. You get a prioritized fix list showing exactly what's killing your conversions — and by how much.</p>
+      <div class="price-row"><span class="price-main">$77</span><span class="price-label">one-time</span></div>
+      <div class="price-alt">Monthly monitoring: $37/mo · Quarterly retainer: $297</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/77" target="_blank" rel="noopener">Get Audit — $77 →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/37" target="_blank" rel="noopener">Monitor Monthly — $37/mo</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💊</div>
+      <h3>SalesPageDoctor</h3>
+      <p>Paste your Gumroad, Payhip, or Sellfy product URL and get a diagnosis: missing trust signals, weak CTAs, social proof gaps, mobile issues. Includes an annotated fix report.</p>
+      <div class="price-row"><span class="price-main">$77</span><span class="price-label">one-time</span></div>
+      <div class="price-alt">Monthly monitoring: $37/mo · Launch package: $147</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/77" target="_blank" rel="noopener">Get Diagnosis — $77 →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/147" target="_blank" rel="noopener">Launch Package — $147</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📄</div>
+      <h3>CareerForge</h3>
+      <p>Paste a job description. Get back a tailored resume that mirrors the exact keywords ATS systems scan for — without sounding robotic. Includes a cover letter.</p>
+      <div class="price-row"><span class="price-main">$29</span><span class="price-label">/tailoring</span></div>
+      <div class="price-alt">Unlimited monthly: $49/mo · Career package: $147</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener">Tailor Resume — $29 →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">Unlimited — $49/mo</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Content Agents ─────────────────────────────────────────── -->
+<section class="pricing-section">
+  <div class="section-title">
+    <h2>Content & Publishing</h2>
+    <p>Turn your raw content into polished, publishable assets — automatically.</p>
+  </div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-icon">🎙️</div>
+      <h3>ShowNotes</h3>
+      <p>Send your podcast transcript or audio file. Get back a structured show notes document: TL;DR, key takeaways, chapter timestamps, resource links, and an SEO title + description.</p>
+      <div class="price-row"><span class="price-main">$29</span><span class="price-label">/episode</span></div>
+      <div class="price-alt">4 episodes/mo: $99 · Unlimited: $297/mo</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener">Order Episode — $29 →</a>
+    </div>
+
+    <div class="card popular">
+      <div class="card-icon">✍️</div>
+      <h3>SEOWriter</h3>
+      <p>Give us a keyword. Get back a fully structured SEO article: H1, intro, 4–6 H2 sections, FAQ, conclusion, and meta tags — ready to publish or hand to a copywriter for polish.</p>
+      <div class="price-row"><span class="price-main">$39</span><span class="price-label">/article</span></div>
+      <div class="price-alt">5 articles/mo: $149 · Unlimited: $499/mo</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/39" target="_blank" rel="noopener">Order Article — $39 →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/149" target="_blank" rel="noopener">5/Month — $149/mo</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🖼️</div>
+      <h3>ThumbForge</h3>
+      <p>CTR-optimized YouTube thumbnails generated from your title, niche, and accent color. Includes 1280×720 standard + 1080×1920 Shorts variant per order.</p>
+      <div class="price-row"><span class="price-main">$9</span><span class="price-label">/thumbnail</span></div>
+      <div class="price-alt">10/mo: $49 · 30-pack: $199</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/9" target="_blank" rel="noopener">Order Thumbnail — $9 →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">10/Month — $49/mo</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🎞️</div>
+      <h3>CarouselForge</h3>
+      <p>LinkedIn, Instagram, or Pinterest carousel slides designed from your content. Cover + body slides + CTA. Dark, light, or branded themes. Multiple platforms supported.</p>
+      <div class="price-row"><span class="price-main">$29</span><span class="price-label">/carousel</span></div>
+      <div class="price-alt">4/mo: $99 · Unlimited: $297/mo</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener">Order Carousel — $29 →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Real Estate ─────────────────────────────────────────────── -->
+<section class="pricing-section">
+  <div class="section-title">
+    <h2>Real Estate Engines</h2>
+    <p>Automated prospecting, follow-up, and deal analysis for wholesalers and investors.</p>
+  </div>
+  <div class="cards">
+
+    <div class="card popular">
+      <div class="card-icon">🏠</div>
+      <h3>Outreach-as-a-Service</h3>
+      <p>We run your prospecting campaigns for you. Government records + REIA scraping finds motivated sellers in your target markets. You get a weekly report of hot leads to call.</p>
+      <div class="price-row"><span class="price-main">$300</span><span class="price-label">/month</span></div>
+      <div class="price-alt">1 market · Standard $500 (2 markets) · Premium $800 (4 markets)</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/300" target="_blank" rel="noopener">Start Basic — $300/mo →</a>
+      <a class="buy-btn-outline" href="https://paypal.me/wholesaleomniverse/500" target="_blank" rel="noopener">Standard — $500/mo</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h3>Cash Buyer Finder</h3>
+      <p>We build your buyers list. Our agent scrapes REIA associations and business directories to find active real estate investors in your market and email them your deal criteria.</p>
+      <div class="price-row"><span class="price-main">$97</span><span class="price-label">/month</span></div>
+      <div class="price-alt">20–30 new buyer contacts per run · runs weekly</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener">Build My List — $97/mo →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h3>Seller Follow-Up Sequence</h3>
+      <p>6-touch automated email sequence for motivated sellers: day 3, 7, 14, 21, 30, 60. We track which leads respond and flag hot contacts for your immediate follow-up call.</p>
+      <div class="price-row"><span class="price-main">$147</span><span class="price-label">/month</span></div>
+      <div class="price-alt">Unlimited leads · 6-touch sequence · hot-lead alerts</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/147" target="_blank" rel="noopener">Activate Sequence — $147/mo →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>Deal Analyzer</h3>
+      <p>AI-powered wholesale deal analysis. Pulls comps, estimates ARV, calculates your max allowable offer, and generates a ready-to-send LOI — in under 60 seconds per property.</p>
+      <div class="price-row"><span class="price-main">$197</span><span class="price-label">/month</span></div>
+      <div class="price-alt">Unlimited analyses · LOI generation · email integration</div>
+      <a class="buy-btn" href="https://paypal.me/wholesaleomniverse/197" target="_blank" rel="noopener">Analyze Deals — $197/mo →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── How It Works ───────────────────────────────────────────── -->
+<section class="how-it-works">
+  <div class="container">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Pick Your Agent</h4>
+        <p>Choose any service above. One-time or monthly — no contracts.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Pay via PayPal</h4>
+        <p>Click "Buy Now." Pay through PayPal.me — instant and secure.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Email Your Receipt</h4>
+        <p>Forward your PayPal receipt to <strong style="color:var(--amber)">WholesaleOmniverse@gmail.com</strong> with your request details.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h4>Activated in 2 Hours</h4>
+        <p>We set up your agent and send you your access credentials or first deliverable.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────────────── -->
+<div class="faq">
+  <h2>Common Questions</h2>
+
+  <details>
+    <summary>How fast will I get results?</summary>
+    <p>For one-time services (SpeedAudit, SalesPageDoctor, CareerForge), you'll receive your report within 2–4 hours of activation. For subscription agents, your first run happens within 24 hours and then on their scheduled cycle (daily, weekly).</p>
+  </details>
+
+  <details>
+    <summary>Do I need to install anything?</summary>
+    <p>No. All agents run on our servers. You receive results by email or as downloadable files. Nothing to install, no technical setup required on your end.</p>
+  </details>
+
+  <details>
+    <summary>Can I cancel a subscription?</summary>
+    <p>Yes, anytime. Email WholesaleOmniverse@gmail.com and your subscription is cancelled effective immediately. No cancellation fees.</p>
+  </details>
+
+  <details>
+    <summary>What if I'm not satisfied?</summary>
+    <p>For one-time services, if the deliverable doesn't match what was described, we'll redo it for free or issue a full refund. For monthly subscriptions, we'll refund the current month if you cancel within the first 7 days.</p>
+  </details>
+
+  <details>
+    <summary>Can I bundle multiple agents?</summary>
+    <p>Yes. Email us and we'll put together a custom bundle price. Most multi-agent setups qualify for a 15–20% discount.</p>
+  </details>
+
+  <details>
+    <summary>I'm a real estate wholesaler. Which should I start with?</summary>
+    <p>Start with Outreach-as-a-Service ($300/mo) — it fills your pipeline with motivated seller leads. Add Cash Buyer Finder ($97/mo) to build the buyer side. Together they cover your entire deal pipeline for $397/mo.</p>
+  </details>
+
+</div>
+
+<!-- ── CTA Banner ────────────────────────────────────────────── -->
+<section class="cta-banner">
+  <h2>Ready to activate your first agent?</h2>
+  <p>Pick any service above and pay via PayPal. We'll have you running within 2 hours.</p>
+  <a class="btn btn-primary" href="mailto:WholesaleOmniverse@gmail.com" style="margin-right:12px">Ask a Question</a>
+  <a class="btn" style="background:#0f172a;color:#fff" href="tel:207-385-4041">Call 207-385-4041</a>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer style="background:var(--navy);color:#94a3b8;padding:32px 24px;text-align:center;font-size:14px">
+  <p style="color:#94a3b8">© 2025 Wholesale Omniverse LLC · <a href="/">Home</a> · <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a> · <a href="tel:207-385-4041">207-385-4041</a></p>
+</footer>
+
+</body>
+</html>
