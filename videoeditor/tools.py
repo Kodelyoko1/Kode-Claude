@@ -17,6 +17,7 @@ Output: data/ve_outputs/{slug}/{slug}_master.mp4
 
 import json
 import math
+import os
 import shutil
 import struct
 import subprocess
@@ -289,14 +290,26 @@ def process_video(src: Path) -> dict:
     return meta
 
 
-def run_full_cycle(input_path: str | None = None) -> dict:
+def run_full_cycle(
+    input_path: str | None = None,
+    auto_post: bool | None = None,
+    post_master: bool | None = None,
+) -> dict:
     """
     Scan data/ve_inputs/ for pending videos (or process a single explicit path)
     and run the full pipeline on each one.
+
+    auto_post    — post to YouTube after processing. Defaults to YT_AUTO_POST env var.
+    post_master  — also post the full master video. Defaults to YT_POST_MASTER env var.
     """
     ensure_dirs()
-
     check_ffmpeg()
+
+    # Resolve YouTube posting flags from env if not explicitly passed
+    if auto_post is None:
+        auto_post = os.getenv("YT_AUTO_POST", "0") == "1"
+    if post_master is None:
+        post_master = os.getenv("YT_POST_MASTER", "0") == "1"
 
     if input_path:
         pending = [Path(input_path)]
@@ -318,6 +331,12 @@ def run_full_cycle(input_path: str | None = None) -> dict:
             meta = process_video(src)
             dest = VE_PROCESSED / src.name
             shutil.move(str(src), str(dest))
+
+            if auto_post:
+                from videoeditor.youtube_poster import post_to_youtube
+                yt_result = post_to_youtube(meta, post_master=post_master)
+                meta["youtube"] = yt_result
+
             results.append(meta)
             processed += 1
         except Exception as exc:
