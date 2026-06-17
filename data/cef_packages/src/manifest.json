@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Wholesale Deal Analyzer",
+  "version": "1.0.0",
+  "description": "Overlay ARV, MAO, and profit margin on Zillow & Redfin listings.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.zillow.com/*",
+    "https://www.redfin.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zillow.com/*",
+        "https://www.redfin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Deal Analyzer"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

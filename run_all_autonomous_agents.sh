@@ -3,7 +3,7 @@
 # Add to crontab:
 #   0 9 * * *  /home/tylumiere25/wholesale_agent/run_all_autonomous_agents.sh
 set -e
-cd /home/tylumiere25/wholesale_agent
+cd "$(dirname "$0")"
 set -a
 [ -f .env ] && . .env 2>/dev/null
 set +a
@@ -15,6 +15,7 @@ python3 run_propscout_auto.py      || log "propscout failed"
 python3 run_coldcaller_auto.py     || log "coldcaller failed"
 python3 run_hudscout_auto.py       || log "hudscout failed"
 python3 run_followup_auto.py       || log "followup failed"
+python3 run_lead_sieve_auto.py     || log "lead_sieve failed"
 python3 run_storyforge_auto.py     || log "storyforge failed"
 python3 run_pantrychef_auto.py     || log "pantrychef failed"
 python3 run_careerforge_auto.py    || log "careerforge failed"
@@ -56,6 +57,8 @@ if [ "$(date +%u)" = "1" ]; then
     python3 run_link_mender_auto.py      || log "link_mender failed"
     python3 run_gutenberg_voice_auto.py  || log "gutenberg_voice failed"
     python3 run_domainscout_auto.py      || log "domainscout failed"
+    python3 run_pseo_factory_auto.py     || log "pseo_factory failed"
+    python3 run_chrome_ext_forge_auto.py || log "chrome_ext_forge failed"
 fi
 
 log "── REFRESH DASHBOARD ──"
