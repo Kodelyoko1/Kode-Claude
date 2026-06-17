@@ -1,0 +1,64 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - 'data/pseo_pages/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build site
+        run: |
+          mkdir -p _site/we-buy-houses
+
+          # Homepage and existing website pages
+          cp website/index.html              _site/index.html
+          cp website/dropship_scout_trends.html _site/dropship_scout_trends.html
+          cp website/salespage_doctor.html   _site/salespage_doctor.html
+
+          # pSEO landing pages — copy flat into root for clean URLs
+          cp data/pseo_pages/*.html _site/
+
+          # Auto-generate sitemap.xml
+          BASE="https://kodelyoko1.github.io/Kode-Claude"
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > _site/sitemap.xml
+          echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/</loc><priority>1.0</priority></url>" >> _site/sitemap.xml
+          for f in _site/we-buy-houses-*.html; do
+            slug=$(basename "$f" .html)
+            echo "  <url><loc>${BASE}/${slug}.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          done
+          echo '</urlset>' >> _site/sitemap.xml
+
+          echo "Site files:"
+          ls _site/ | wc -l
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
