@@ -28,15 +28,35 @@ DRAFTS_DIR = Path(__file__).parent.parent / "data" / "ps_drafts"
 # Curated grid of (city, state, record_type) — every cell is verified to
 # return real rows. Order matters: richest data first.
 PROSPECT_GRID = [
+    # ---- rich data (owner name + $ amount) ----
     ("philadelphia",  "PA", "tax_delinquent"),   # Carto: owner + $ owed + years
     ("norfolk",       "VA", "tax_delinquent"),   # Socrata: owner_name + address
+    ("baltimore",     "MD", "tax_delinquent"),   # Socrata: owner + amount + address (data.baltimorecity.gov)
+    ("detroit",       "MI", "tax_delinquent"),   # Socrata: owner + years delinquent (data.detroitmi.gov)
+    ("cleveland",     "OH", "tax_delinquent"),   # Socrata: parcel + owner + taxes owed (data.clevelandohio.gov)
+    ("pittsburgh",    "PA", "tax_delinquent"),   # Socrata: owner + balance + address (data.wprdc.org)
+    ("st. louis",     "MO", "tax_delinquent"),   # Socrata: owner + address + amount (www.stlouis-mo.gov)
+    # ---- foreclosure filings ----
     ("new york",      "NY", "foreclosure"),      # Socrata: respondent + address
+    ("newark",        "NJ", "foreclosure"),      # Socrata: lis pendens filings (data.newjersey.gov)
+    ("indianapolis",  "IN", "foreclosure"),      # Socrata: sheriff sales + address (data.indy.gov)
+    ("memphis",       "TN", "foreclosure"),      # Socrata: chancery court lis pendens (data.memphistn.gov)
+    # ---- code violations ----
     ("chicago",       "IL", "code_violations"),  # Socrata: address only
-    ("chicago",       "IL", "vacant"),           # Socrata: address only
     ("new york",      "NY", "code_violations"),  # Socrata: address only
     ("san francisco", "CA", "code_violations"),  # Socrata: address only
     ("buffalo",       "NY", "code_violations"),  # Socrata: address only
     ("kansas city",   "MO", "code_violations"),  # Socrata: address only
+    ("milwaukee",     "WI", "code_violations"),  # Socrata: address + status (data.milwaukee.gov)
+    ("cincinnati",    "OH", "code_violations"),  # Socrata: address + violation type (data.cincinnati-oh.gov)
+    ("columbus",      "OH", "code_violations"),  # Socrata: address (opendata.columbus.gov)
+    ("dallas",        "TX", "code_violations"),  # Socrata: address + case type (www.dallasopendata.com)
+    ("houston",       "TX", "code_violations"),  # Socrata: address + complaint type (data.houstontx.gov)
+    ("atlanta",       "GA", "code_violations"),  # Socrata: address + status (atlantaga.gov open data)
+    # ---- vacant properties ----
+    ("chicago",       "IL", "vacant"),           # Socrata: address only
+    ("detroit",       "MI", "vacant"),           # Socrata: vacant + dangerous buildings list (data.detroitmi.gov)
+    ("baltimore",     "MD", "vacant"),           # Socrata: Vacant Building Notices (data.baltimorecity.gov)
 ]
 
 
