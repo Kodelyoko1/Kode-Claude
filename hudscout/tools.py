@@ -101,15 +101,41 @@ LANDING_URL = f"{BASE_URL}/searchresult"
 SEARCH_URL  = f"{BASE_URL}/SearchResult?handler=GetFilteredResult"
 DETAIL_URL  = f"{BASE_URL}/Listing/Detail/"     # + case_number
 
+# Alternative landing URLs to try if the primary 403s or redirects.
+# HUD occasionally restructures Razor Pages paths; the JSON endpoint path
+# stays stable, only the landing slug changes.
+_LANDING_CANDIDATES = [
+    f"{BASE_URL}/searchresult",
+    f"{BASE_URL}/SearchResult",
+    f"{BASE_URL}/home/index",
+    f"{BASE_URL}/",
+]
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
 }
 
 # Token + cookies are pinned per-process: bootstrap once, reuse for every state.
-_TOKEN_RE = re.compile(r'name="request-verification-token"\s+value="([^"]+)"')
+# HUD uses both the hidden-input pattern and the cookie-header meta pattern —
+# match either form regardless of attribute order or case.
+_TOKEN_RE = re.compile(
+    r'(?:'
+    r'name=["\'](?:__RequestVerificationToken|request-verification-token)["\']'
+    r'\s+value=["\']([^"\']+)["\']'
+    r'|'
+    r'value=["\']([^"\']+)["\']\s+name=["\'](?:__RequestVerificationToken|request-verification-token)["\']'
+    r')',
+    re.IGNORECASE,
+)
 
 
 # ============================================================================
@@ -146,19 +172,103 @@ def _save(path: Path, data) -> None:
 # ============================================================================
 
 def _open_session() -> tuple[requests.Session, str]:
-    """Bootstrap a session against the search page and extract the antiforgery
-    token. Subsequent POSTs to SEARCH_URL must send this token in the
-    `RequestVerificationToken` header AND carry the `.AspNetCore.Antiforgery.*`
-    cookie that the GET deposited."""
+    """Bootstrap a session against the HUD search page and extract the
+    antiforgery token. Subsequent POSTs to SEARCH_URL must send this token
+    in the `RequestVerificationToken` header AND carry the
+    `.AspNetCore.Antiforgery.*` cookie that the GET deposited.
+
+    Tries each URL in _LANDING_CANDIDATES in order, stopping at the first
+    that returns HTTP 200 with a recognizable verification token. This
+    handles the case where HUD restructures its Razor Pages routing.
+
+    Raises RuntimeError with a diagnostic message distinguishing:
+      - network-level block (403/connection refused)
+      - page loaded but no token found (HTML structure changed)
+    """
     session = requests.Session()
     session.headers.update(HEADERS)
-    r = session.get(LANDING_URL, timeout=SEARCH_TIMEOUT_SEC)
-    r.raise_for_status()
-    m = _TOKEN_RE.search(r.text)
-    if not m:
-        raise RuntimeError("HUD landing page returned no request-verification-token; "
-                           "site layout may have changed.")
-    return session, m.group(1)
+
+    last_status = None
+    last_url = None
+    tried = []
+
+    for candidate_url in _LANDING_CANDIDATES:
+        tried.append(candidate_url)
+        try:
+            r = session.get(candidate_url, timeout=SEARCH_TIMEOUT_SEC,
+                            allow_redirects=True)
+        except requests.exceptions.ConnectionError as e:
+            print(f"  [HUD] Connection error at {candidate_url}: {e}")
+            continue
+        except requests.exceptions.Timeout:
+            print(f"  [HUD] Timeout at {candidate_url} (>{SEARCH_TIMEOUT_SEC}s)")
+            continue
+        except Exception as e:
+            print(f"  [HUD] Request error at {candidate_url}: {e}")
+            continue
+
+        last_status = r.status_code
+        last_url = r.url
+
+        if r.status_code == 403:
+            body_snippet = r.text[:120].replace("\n", " ").strip()
+            print(f"  [HUD] 403 at {candidate_url}"
+                  + (f" — {body_snippet}" if body_snippet else ""))
+            continue
+        if r.status_code != 200:
+            print(f"  [HUD] HTTP {r.status_code} at {candidate_url}")
+            continue
+
+        # Page loaded — hunt for the token (hidden-input form).
+        m = _TOKEN_RE.search(r.text)
+        found_token = None
+        if m:
+            found_token = m.group(1) or m.group(2) or ""
+
+        # Fallback: meta tag variant.
+        if not found_token:
+            meta_m = re.search(
+                r'<meta\s+name=["\'](?:__RequestVerificationToken|request-verification-token)["\']'
+                r'\s+content=["\']([^"\']+)["\']',
+                r.text, re.IGNORECASE,
+            )
+            if meta_m:
+                found_token = meta_m.group(1)
+
+        if found_token:
+            # Update module-level LANDING_URL so Referer header stays consistent.
+            global LANDING_URL  # noqa: PLW0603
+            LANDING_URL = candidate_url
+            print(f"  [HUD] session bootstrapped from {candidate_url} "
+                  f"(token len={len(found_token)}, cookies={len(session.cookies)})")
+            return session, found_token
+
+        title_m = re.search(r'<title[^>]*>([^<]+)', r.text, re.I)
+        page_title = title_m.group(1)[:60] if title_m else "?"
+        print(f"  [HUD] {candidate_url} returned 200 but no antiforgery token "
+              f"(page title: {page_title})")
+
+    # All candidates exhausted — give the operator a useful error.
+    if last_status == 403:
+        raise RuntimeError(
+            f"HUD Home Store returned 403 Forbidden for all {len(tried)} landing "
+            f"URL candidates. Possible causes: (1) the server's egress allowlist "
+            f"does not include hudhomestore.gov — add it in network settings; "
+            f"(2) HUD has implemented IP-based bot blocking — try adding a "
+            f"residential proxy via HD_PROXY env var; (3) the site moved to a "
+            f"new domain. Last URL tried: {last_url}"
+        )
+    if last_status is None:
+        raise RuntimeError(
+            f"Could not reach HUD Home Store — all {len(tried)} candidates "
+            f"failed at the network level (connection refused or timeout). "
+            f"Check that hudhomestore.gov is reachable from this host."
+        )
+    raise RuntimeError(
+        f"HUD landing page (HTTP {last_status}) returned no request-verification-token "
+        f"across {len(tried)} URL candidates. The site's HTML structure may have "
+        f"changed. Patch _TOKEN_RE in hudscout/tools.py. Last URL: {last_url}"
+    )
 
 
 def search_hud_properties(state: str, session=None, token=None) -> list:
@@ -200,8 +310,32 @@ def search_hud_properties(state: str, session=None, token=None) -> list:
     except ValueError:
         print(f"  [{state}] non-JSON response (first 200 chars: {r.text[:200]})")
         return []
-    raw = payload.get("searchresult") or []
-    return [_normalize_property(p) for p in raw]
+
+    # HUD's response envelope key is "searchresult". If that key is missing
+    # or the structure changed, log the top-level keys so patching is easy.
+    raw = payload.get("searchresult")
+    if raw is None:
+        top_keys = list(payload.keys())[:10] if isinstance(payload, dict) else type(payload).__name__
+        print(f"  [{state}] JSON response has no 'searchresult' key; "
+              f"top-level keys: {top_keys}")
+        return []
+    if not raw:
+        return []
+
+    # Log sample field names from the first record so we can spot renames.
+    if raw and os.environ.get("HD_DEBUG"):
+        first_keys = list(raw[0].keys()) if isinstance(raw[0], dict) else []
+        print(f"  [{state}] sample record keys: {first_keys[:15]}")
+
+    results = []
+    for p in raw:
+        try:
+            norm = _normalize_property(p)
+            if norm:  # skip empty dicts from malformed records
+                results.append(norm)
+        except Exception as e:
+            print(f"  [{state}] _normalize_property failed on record: {e} — {str(p)[:120]}")
+    return results
 
 
 def _to_int(v) -> Optional[int]:
@@ -213,35 +347,115 @@ def _to_int(v) -> Optional[int]:
         return None
 
 
+def _str(v) -> str:
+    """Safe string coerce — returns "" for None, non-string, or whitespace-only."""
+    if v is None:
+        return ""
+    try:
+        return str(v).strip()
+    except Exception:
+        return ""
+
+
 def _normalize_property(p: dict) -> dict:
-    """Map the HUD JSON record into the lead schema the wholesale analyzer
-    reads from data/leads.json."""
-    case_no = (p.get("propertyCaseNumber") or "").strip()
+    """Map a HUD JSON record into the lead schema the wholesale analyzer
+    reads from data/leads.json.
+
+    All field extractions are guarded: missing/None/non-string values produce
+    empty strings or None rather than crashing. The field names listed here
+    were correct as of the last verified HUD API response; if HUD renames
+    fields and returns 0 results, check the raw payload via --diagnose and
+    update the mappings below.
+
+    Known alternate field names (right side = legacy, left = current):
+      listPrice       / listingPrice / price
+      propertyAddress / streetAddress / address1
+      squareFootage   / sqft / squareFeet
+      bedrooms        / bedroomCount / beds
+      bathrooms       / bathroomCount / baths
+    """
+    if not isinstance(p, dict):
+        return {}
+
+    # Case number — primary dedup key
+    case_no = _str(
+        p.get("propertyCaseNumber")
+        or p.get("caseNumber")
+        or p.get("case_number")
+        or ""
+    )
+
+    # Price — try several known aliases
+    raw_price = (
+        p.get("listPrice")
+        or p.get("listingPrice")
+        or p.get("price")
+        or p.get("askingPrice")
+        or 0
+    )
+
+    # Address components
+    address = _str(
+        p.get("propertyAddress")
+        or p.get("streetAddress")
+        or p.get("address1")
+        or p.get("address")
+    )
+    city = _str(p.get("propertyCity") or p.get("city"))
+    state = _str(p.get("propertyState") or p.get("state"))
+    zip_code = _str(p.get("propertyZip") or p.get("zip") or p.get("zipCode"))
+    county = _str(p.get("propertyCounty") or p.get("county"))
+
+    # Numeric fields
+    bedrooms = _to_int(p.get("bedrooms") or p.get("bedroomCount") or p.get("beds"))
+    bathrooms = _to_int(p.get("bathrooms") or p.get("bathroomCount") or p.get("baths"))
+    sqft = _to_int(
+        p.get("squareFootage")
+        or p.get("sqft")
+        or p.get("squareFeet")
+        or p.get("livingArea")
+    )
+    year_built = _to_int(p.get("yearBuilt") or p.get("year_built"))
+
+    # Status / metadata
+    prop_type   = _str(p.get("propertyType") or p.get("propType") or p.get("type"))
+    status      = _str(p.get("propertyStatus") or p.get("status") or p.get("listingStatus"))
+    fha         = _str(p.get("fhaFinancing") or p.get("fhaEligible"))
+    list_period = _str(p.get("listingPeriod") or p.get("listPeriod"))
+    list_date   = _str(p.get("listDate") or p.get("listingDate"))
+    bid_open    = _str(p.get("bidOpenDate") or p.get("bidOpen") or p.get("investorDate"))
+    bidder_types = _str(p.get("bidderTypes") or p.get("bidderType"))
+    eligible    = _str(p.get("eligibleBidders") or p.get("eligibleBidder"))
+
+    # Coordinates — keep as-is (float or None)
+    lat = p.get("latitude") or p.get("lat")
+    lon = p.get("longitude") or p.get("lon") or p.get("lng")
+
     return {
-        "source":         "hudscout",
-        "case_number":    case_no,
-        "address":        (p.get("propertyAddress") or "").strip(),
-        "city":           (p.get("propertyCity") or "").strip(),
-        "state":          (p.get("propertyState") or "").strip(),
-        "zip":            (p.get("propertyZip") or "").strip(),
-        "county":         (p.get("propertyCounty") or "").strip(),
-        "price":          _to_int(p.get("listPrice")) or 0,
-        "bedrooms":       _to_int(p.get("bedrooms")),
-        "bathrooms":      _to_int(p.get("bathrooms")),
-        "sqft":           _to_int(p.get("squareFootage")),
-        "year_built":     _to_int(p.get("yearBuilt")),
-        "property_type":  (p.get("propertyType") or "").strip(),
-        "status":         (p.get("propertyStatus") or "").strip(),
-        "fha_financing":  (p.get("fhaFinancing") or "").strip(),
-        "listing_period": (p.get("listingPeriod") or "").strip(),
-        "list_date":      (p.get("listDate") or "").strip(),
-        "bid_open_date":  (p.get("bidOpenDate") or "").strip(),
-        "bidder_types":   (p.get("bidderTypes") or "").strip(),
-        "eligible_bidders": (p.get("eligibleBidders") or "").strip(),
-        "latitude":       p.get("latitude"),
-        "longitude":      p.get("longitude"),
-        "detail_url":     DETAIL_URL + case_no,
-        "first_seen":     datetime.now().isoformat(),
+        "source":           "hudscout",
+        "case_number":      case_no,
+        "address":          address,
+        "city":             city,
+        "state":            state,
+        "zip":              zip_code,
+        "county":           county,
+        "price":            _to_int(raw_price) or 0,
+        "bedrooms":         bedrooms,
+        "bathrooms":        bathrooms,
+        "sqft":             sqft,
+        "year_built":       year_built,
+        "property_type":    prop_type,
+        "status":           status,
+        "fha_financing":    fha,
+        "listing_period":   list_period,
+        "list_date":        list_date,
+        "bid_open_date":    bid_open,
+        "bidder_types":     bidder_types,
+        "eligible_bidders": eligible,
+        "latitude":         lat,
+        "longitude":        lon,
+        "detail_url":       DETAIL_URL + case_no if case_no else "",
+        "first_seen":       datetime.now().isoformat(),
     }
 
 
