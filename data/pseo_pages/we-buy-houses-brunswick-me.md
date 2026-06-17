@@ -4,7 +4,7 @@
 
 ---
 
-Are you underwater on your mortgage? Wholesale Omniverse buys houses in Brunswick, ME — any condition, any situation.
+Are you behind on payments? Wholesale Omniverse buys houses in Brunswick, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

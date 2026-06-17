@@ -4,7 +4,7 @@
 
 ---
 
-Are you inherited an unwanted property? Wholesale Omniverse buys houses in Lewiston, ME — any condition, any situation.
+Are you relocating out of state? Wholesale Omniverse buys houses in Lewiston, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

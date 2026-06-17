@@ -4,7 +4,7 @@
 
 ---
 
-Are you behind on payments? Wholesale Omniverse buys houses in Portland, ME — any condition, any situation.
+Are you inherited an unwanted property? Wholesale Omniverse buys houses in Portland, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works

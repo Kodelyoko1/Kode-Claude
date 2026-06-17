@@ -4,7 +4,7 @@
 
 ---
 
-Are you going through a divorce? Wholesale Omniverse buys houses in Bangor, ME — any condition, any situation.
+Are you facing foreclosure? Wholesale Omniverse buys houses in Bangor, ME — any condition, any situation.
 We pay cash, cover closing costs, and close on your timeline.
 
 ## How It Works
