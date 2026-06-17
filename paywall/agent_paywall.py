@@ -56,6 +56,7 @@ AGENT_NAMES = {
     "hudscout":         "HUDScout — HUD-Owned Foreclosed Property Feed",
     "dropship_scout":   "DropshipScout — TikTok-Shop + Amazon Trend Digest",
     "batman":           "Batman — Self-Healing Agent Fleet Manager",
+    "videoeditor":      "VideoEditor — Autonomous Video Polish + Reels Cutter",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -102,6 +103,7 @@ DEFAULT_PRICES = {
     "hudscout":         97,
     "dropship_scout":   47,
     "batman":           147,
+    "videoeditor":      99,
 }
 
 
