@@ -40,8 +40,13 @@ from client_prospector.tools import (
 console = Console()
 
 DEFAULT_MARKETS = [
-    ("Detroit", "MI"), ("Memphis", "TN"), ("Atlanta", "GA"),
-    ("Cleveland", "OH"), ("Birmingham", "AL"), ("Jacksonville", "FL"),
+    ("Detroit",       "MI"), ("Memphis",      "TN"), ("Atlanta",      "GA"),
+    ("Cleveland",     "OH"), ("Birmingham",   "AL"), ("Jacksonville", "FL"),
+    ("Indianapolis",  "IN"), ("Kansas City",  "MO"), ("St. Louis",    "MO"),
+    ("Baltimore",     "MD"), ("Milwaukee",    "WI"), ("Columbus",     "OH"),
+    ("Houston",       "TX"), ("Dallas",       "TX"), ("Philadelphia", "PA"),
+    ("Charlotte",     "NC"), ("Louisville",   "KY"), ("Cincinnati",   "OH"),
+    ("Pittsburgh",    "PA"), ("Richmond",     "VA"),
 ]
 
 
