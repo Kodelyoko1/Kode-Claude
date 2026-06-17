@@ -50,6 +50,12 @@ python3 run_batman_auto.py             || log "batman failed"
 # Weekly agents — Mondays only
 if [ "$(date +%u)" = "1" ]; then
     log "── WEEKLY AGENTS (Monday) ──"
+    # Revenue outreach — run every Monday to find new clients + buyers
+    python3 run_buyer_finder_auto.py                  || log "buyer_finder failed"
+    python3 run_outreach_auto.py                      || log "outreach failed"
+    python3 run_prospector_auto.py --product oas      || log "prospector_oas failed"
+    python3 run_prospector_auto.py --product saas     || log "prospector_saas failed"
+    python3 run_prospector_auto.py --followup         || log "prospector_followup failed"
     python3 run_towncrier_auto.py        || log "towncrier failed"
     python3 run_trendscout_auto.py       || log "trendscout failed"
     python3 run_paperbrief_auto.py       || log "paperbrief failed"
