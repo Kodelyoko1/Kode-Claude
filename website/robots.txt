@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kodelyoko1.github.io/Kode-Claude/sitemap.xml
