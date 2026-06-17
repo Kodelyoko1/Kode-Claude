@@ -1,0 +1,52 @@
+name: Run Autonomous Agents
+
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 9 AM ET daily (13:00 UTC)
+  workflow_dispatch:         # also runnable manually from GitHub UI
+
+jobs:
+  run-agents:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      AGENT_PASSWORD:         ${{ secrets.AGENT_PASSWORD }}
+      SMTP_HOST:              smtp.gmail.com
+      SMTP_PORT:              "587"
+      SMTP_USER:              ${{ secrets.SMTP_USER }}
+      SMTP_PASS:              ${{ secrets.SMTP_PASS }}
+      PAYPAL_CLIENT_ID:       ${{ secrets.PAYPAL_CLIENT_ID }}
+      PAYPAL_CLIENT_SECRET:   ${{ secrets.PAYPAL_CLIENT_SECRET }}
+      PAYPAL_MODE:            live
+      PAYPAL_EMAIL:           ${{ secrets.SMTP_USER }}
+      PAYPAL_ME_USERNAME:     wholesaleomniverse
+      ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pillow faster-whisper yt-dlp
+
+      - name: Run all autonomous agents
+        run: |
+          chmod +x run_all_autonomous_agents.sh
+          bash run_all_autonomous_agents.sh
+
+      - name: Commit updated data files
+        run: |
+          git config user.name  "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add data/ website/ || true
+          git diff --staged --quiet || git commit -m "chore: agent run $(date +'%Y-%m-%d')"
+          git push || true
