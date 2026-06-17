@@ -247,6 +247,32 @@ def _email_body(scored: list[dict], date_str: str) -> str:
     return "\n".join(lines)
 
 
+def _trigger_followup_for_hot_leads(hot_leads: list[dict]) -> int:
+    """Kick off stage-1 follow-up for HOT leads that have an email and haven't
+    been contacted yet. Only acts on leads that exist in leads.json (have a
+    lead_id) so we don't spam propscout/hud prospects without a verified email."""
+    try:
+        from followup_agent.tools import send_followup_email
+    except ImportError:
+        return 0
+
+    triggered = 0
+    for lead in hot_leads:
+        lead_id = lead.get("lead_id")
+        if not lead_id:
+            continue
+        email = lead.get("seller_email") or lead.get("email")
+        if not email:
+            continue
+        status = (lead.get("status") or "new").lower()
+        stage  = lead.get("followup_stage", 0)
+        if status == "new" and stage == 0:
+            result = send_followup_email(lead_id)
+            if result.get("email_sent") or result.get("status") in ("sent", "skipped"):
+                triggered += 1
+    return triggered
+
+
 def run_full_cycle() -> dict:
     date_str = _now_utc().strftime("%Y-%m-%d")
 
@@ -257,14 +283,16 @@ def run_full_cycle() -> dict:
         reverse=True,
     )
 
-    hot   = [l for l in scored if l["sieve_tier"] == "HOT"]
-    warm  = [l for l in scored if l["sieve_tier"] == "WARM"]
+    hot  = [l for l in scored if l["sieve_tier"] == "HOT"]
+    warm = [l for l in scored if l["sieve_tier"] == "WARM"]
 
     storage.save("ls_scored.json", scored)
 
     report_md = _build_report(scored, date_str)
     report_path = REPORTS_DIR / f"{date_str}.md"
     report_path.write_text(report_md, encoding="utf-8")
+
+    followup_triggered = _trigger_followup_for_hot_leads(hot)
 
     digest_sent = 0
     owner_email = os.environ.get("LS_OWNER_EMAIL") or os.environ.get("SMTP_USER")
@@ -287,17 +315,19 @@ def run_full_cycle() -> dict:
         leads_scored=len(scored),
         hot_leads=len(hot),
         warm_leads=len(warm),
+        followup_triggered=followup_triggered,
         digest_sent=digest_sent,
         active_subs=sum(1 for s in subs if s.get("status") == "active"),
         mrr=rev["mrr"],
     )
 
     return {
-        "leads_scored":  len(scored),
-        "hot_leads":     len(hot),
-        "warm_leads":    len(warm),
-        "cold_leads":    len(scored) - len(hot) - len(warm),
-        "digest_sent":   digest_sent,
-        "report_path":   str(report_path),
-        "mrr":           rev["mrr"],
+        "leads_scored":        len(scored),
+        "hot_leads":           len(hot),
+        "warm_leads":          len(warm),
+        "cold_leads":          len(scored) - len(hot) - len(warm),
+        "followup_triggered":  followup_triggered,
+        "digest_sent":         digest_sent,
+        "report_path":         str(report_path),
+        "mrr":                 rev["mrr"],
     }
