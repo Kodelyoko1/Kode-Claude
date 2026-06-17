@@ -501,7 +501,37 @@ def _page_html(market: dict, config: dict, hook: str) -> str:
   <title>{title}</title>
   <meta name="description" content="{meta}">
   <meta name="keywords" content="{keyword}, sell my house fast {city}, cash home buyers {city} {state}, {county} home buyers">
-  <link rel="canonical" href="/{slug}.html">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/{slug}.html">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{meta}">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/{slug}.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "name": "Wholesale Omniverse — We Buy Houses in {city}, {state}",
+    "description": "{meta}",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/{slug}.html",
+    "telephone": "{phone}",
+    "email": "{email}",
+    "areaServed": {{
+      "@type": "City",
+      "name": "{city}",
+      "containedInPlace": {{"@type": "State", "addressCountry": "US"}}
+    }},
+    "address": {{
+      "@type": "PostalAddress",
+      "addressLocality": "{city}",
+      "addressRegion": "{state}",
+      "addressCountry": "US"
+    }},
+    "priceRange": "Cash offers — no fees",
+    "paymentAccepted": "Cash",
+    "openingHours": "Mo-Su 08:00-20:00"
+  }}
+  </script>
   <style>
     *{{box-sizing:border-box;margin:0;padding:0}}
     body{{font-family:'Segoe UI',sans-serif;color:#1a1a1a;background:#fff}}
