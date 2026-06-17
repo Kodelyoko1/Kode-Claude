@@ -584,11 +584,40 @@ def _page_html(market: dict, config: dict, hook: str) -> str:
   </div>
 </div>
 
-<div class="section" style="text-align:center;background:#f4f7fb;padding:2rem;border-radius:10px">
-  <h2>Ready to Get Your Cash Offer?</h2>
-  <p style="margin:.8rem 0 1.5rem">No obligation. No pressure. Just a fair offer for your {city} property.</p>
-  <p style="font-size:1.3rem;font-weight:700"><a href="tel:{phone}">{phone}</a></p>
-  <p style="margin:.5rem 0"><a href="mailto:{email}">{email}</a></p>
+<div class="section" id="offer" style="background:#1a3c6e;padding:2.5rem 1rem;border-radius:10px;color:#fff">
+  <h2 style="color:#e8a020;text-align:center">Get Your Free Cash Offer Today</h2>
+  <p style="text-align:center;opacity:.85;margin:.5rem 0 1.5rem">No obligation · No repairs · Close in 7 days</p>
+  <form action="https://formsubmit.co/{email}" method="POST"
+        style="max-width:480px;margin:0 auto;display:grid;gap:.75rem">
+    <input type="hidden" name="_subject" value="New Cash Offer Request — {city}, {state}">
+    <input type="hidden" name="_next"    value="https://kodelyoko1.github.io/Kode-Claude/thank-you.html">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="market"   value="{city}, {state}">
+    <input type="text"  name="name"     placeholder="Your Name"         required
+           style="padding:.75rem;border-radius:6px;border:none;font-size:1rem">
+    <input type="tel"   name="phone"    placeholder="Phone Number"       required
+           style="padding:.75rem;border-radius:6px;border:none;font-size:1rem">
+    <input type="email" name="email"    placeholder="Email Address"
+           style="padding:.75rem;border-radius:6px;border:none;font-size:1rem">
+    <input type="text"  name="address"  placeholder="Property Address"  required
+           style="padding:.75rem;border-radius:6px;border:none;font-size:1rem">
+    <select name="timeline"
+            style="padding:.75rem;border-radius:6px;border:none;font-size:1rem;color:#555">
+      <option value="">How soon do you need to sell?</option>
+      <option>ASAP — within 2 weeks</option>
+      <option>1–3 months</option>
+      <option>3–6 months</option>
+      <option>Just exploring options</option>
+    </select>
+    <button type="submit"
+            style="background:#e8a020;color:#fff;border:none;padding:.9rem;border-radius:6px;
+                   font-size:1.1rem;font-weight:700;cursor:pointer">
+      Request My Cash Offer →
+    </button>
+  </form>
+  <p style="text-align:center;margin-top:1rem;opacity:.7;font-size:.9rem">
+    Or call/text: <a href="tel:{phone}" style="color:#e8a020;font-weight:700">{phone}</a>
+  </p>
 </div>
 
 <footer>
