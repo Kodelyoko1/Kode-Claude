@@ -37,7 +37,11 @@ AGENT_KEY = "videoeditor"
 
 
 @with_healing(AGENT_KEY)
-def cycle(input_path: str | None = None) -> None:
+def cycle(
+    input_path: str | None = None,
+    auto_post: bool = False,
+    post_master: bool = False,
+) -> None:
     console.print(
         Panel(
             "[bold cyan]VideoEditor[/bold cyan]  —  Polish + Reels Cutter\n"
@@ -46,7 +50,7 @@ def cycle(input_path: str | None = None) -> None:
         )
     )
 
-    r = run_full_cycle(input_path=input_path)
+    r = run_full_cycle(input_path=input_path, auto_post=auto_post, post_master=post_master)
 
     if r["processed"] == 0 and r["errors"] == 0:
         console.print("  [dim]No videos found.[/dim]")
@@ -72,6 +76,18 @@ def cycle(input_path: str | None = None) -> None:
             tbl.add_row(label, reel["file"])
 
         tbl.add_row("processing time", f"{meta['processing_time_s']} s")
+
+        # YouTube results
+        for yt in meta.get("youtube", {}).get("youtube_posts", []):
+            kind = "Short" if yt.get("is_short") else "Full video"
+            if yt.get("status") == "uploaded":
+                url = yt.get("shorts_url") if yt.get("is_short") else yt.get("url", "")
+                cap = yt.get("captions", {})
+                cap_note = " + captions" if cap.get("status") == "uploaded" else ""
+                tbl.add_row(f"YouTube {kind}", f"[link]{url}[/link]{cap_note}")
+            else:
+                tbl.add_row(f"YouTube {kind}", f"[red]{yt.get('error', 'failed')}[/red]")
+
         console.print(tbl)
         console.print()
 
@@ -92,13 +108,25 @@ def main() -> None:
         metavar="MINUTES",
         help="Re-scan data/ve_inputs/ every N minutes (0 = run once and exit)",
     )
+    p.add_argument(
+        "--post",
+        action="store_true",
+        default=False,
+        help="Auto-post reels to YouTube after processing (requires YouTube auth)",
+    )
+    p.add_argument(
+        "--post-master",
+        action="store_true",
+        default=False,
+        help="Also post the full master video to YouTube (used with --post)",
+    )
     a = p.parse_args()
 
     if not paywall_prompt(AGENT_KEY):
         return
 
     while True:
-        cycle(input_path=a.input)
+        cycle(input_path=a.input, auto_post=a.post, post_master=a.post_master)
         if a.interval <= 0 or a.input:
             break
         console.print(f"  [dim]Next scan in {a.interval} min…[/dim]")
