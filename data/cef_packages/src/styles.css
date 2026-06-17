@@ -1,0 +1,28 @@
+
+#woa-overlay {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 280px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+  z-index: 99999;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+.woa-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  color: #fff;
+  font-weight: 700;
+}
+.woa-title { flex: 1; }
+.woa-tier  { background: rgba(255,255,255,.2); padding: 2px 8px; border-radius: 20px; font-size: 12px; }
+.woa-close { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; margin-left: 8px; }
+.woa-body  { padding: 12px; }
+.woa-row   { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
+.woa-highlight { background: #f4f7fb; padding: 6px 4px; border-radius: 4px; font-weight: 700; }
+.woa-footer { text-align: center; color: #aaa; font-size: 11px; margin-top: 8px; }

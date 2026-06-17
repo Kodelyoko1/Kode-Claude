@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "zip_path": "/home/user/Kode-Claude/data/cef_packages/deal-analyzer-ext-1.0.0.zip",
+  "src_dir": "/home/user/Kode-Claude/data/cef_packages/src",
+  "built_at": "2026-06-17T20:00:40.212146+00:00",
+  "files": [
+    "icon128.png",
+    "styles.css",
+    "popup.html",
+    "content.js",
+    "icon16.png",
+    "popup.js",
+    "manifest.json",
+    "background.js",
+    "icon48.png"
+  ]
+}
