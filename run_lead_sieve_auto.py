@@ -37,7 +37,8 @@ def cycle():
     console.print(f"  [red]HOT leads:[/red]      {r.get('hot_leads', 0)}")
     console.print(f"  [yellow]WARM leads:[/yellow]     {r.get('warm_leads', 0)}")
     console.print(f"  [dim]COLD leads:[/dim]      {r.get('cold_leads', 0)}")
-    console.print(f"  [green]Digest sent:[/green]    {r.get('digest_sent', 0)}")
+    console.print(f"  [green]Follow-ups triggered:[/green] {r.get('followup_triggered', 0)}")
+    console.print(f"  [green]Digest sent:[/green]          {r.get('digest_sent', 0)}")
     console.print(f"  [dim]Report:[/dim]          {r.get('report_path', '')}")
     console.print(f"  [white]MRR:[/white]             ${r.get('mrr', 0):.0f}")
 
