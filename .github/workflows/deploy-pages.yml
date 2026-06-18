@@ -43,6 +43,7 @@ jobs:
           cp -r website/assets               _site/assets
           cp website/we-buy-houses.html      _site/we-buy-houses.html
           cp website/robots.txt              _site/robots.txt
+          cp website/speedaudit.html         _site/speedaudit.html
 
           # pSEO landing pages — copy flat into root for clean URLs
           cp data/pseo_pages/*.html _site/
@@ -54,6 +55,8 @@ jobs:
           echo "  <url><loc>${BASE}/</loc><priority>1.0</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/pricing.html</loc><priority>0.9</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/we-buy-houses.html</loc><priority>0.9</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/speedaudit.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/salespage_doctor.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           for f in _site/we-buy-houses-*.html; do
             slug=$(basename "$f" .html)
             echo "  <url><loc>${BASE}/${slug}.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
