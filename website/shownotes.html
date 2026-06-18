@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Auto-generate TL;DR, key takeaways, chapter timestamps, and SEO meta from any podcast transcript. $29/episode, $99/mo (4), $297/mo unlimited.">
+  <meta property="og:title" content="ShowNotes — Transcript to Structured Show Notes | Wholesale Omniverse">
+  <meta property="og:description" content="Auto-generate TL;DR, key takeaways, chapter timestamps, and SEO meta from any podcast transcript. $29/episode, $99/mo (4), $297/mo unlimited.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/shownotes.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/shownotes.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ShowNotes",
+    "description": "Transcript to structured show notes: TL;DR, key takeaways, chapter timestamps from SRT, resource links, SEO title and description.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/shownotes.html",
+    "applicationCategory": "BusinessApplication",
+    "offers": [
+      {"@type":"Offer","name":"Per Episode","price":"29","priceCurrency":"USD"},
+      {"@type":"Offer","name":"4 Episodes Monthly","price":"99","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Unlimited","price":"297","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}}
+    ]
+  }
+  </script>
+  <title>ShowNotes — Transcript to Show Notes in 30 Seconds | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .sn-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .sn-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .sn-hero .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .cta-group{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:0}
+    .shownotes-preview{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:0;max-width:680px;margin:0 auto;text-align:left;overflow:hidden}
+    .preview-header{background:#1e293b;padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}
+    .preview-dot{width:12px;height:12px;border-radius:50%}
+    .dot-red{background:#ef4444}
+    .dot-yellow{background:#f59e0b}
+    .dot-green{background:#22c55e}
+    .preview-title{color:#94a3b8;font-size:13px;margin-left:8px}
+    .sn-body{padding:24px 28px}
+    .sn-ep-title{color:#f59e0b;font-size:14px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+    .sn-section{margin-bottom:18px}
+    .sn-section-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#f59e0b;font-weight:700;margin-bottom:8px}
+    .sn-tldr{color:#94a3b8;font-size:14px;line-height:1.6}
+    .sn-takeaways{list-style:none;padding:0;margin:0}
+    .sn-takeaways li{color:#94a3b8;font-size:14px;padding:3px 0;display:flex;gap:8px}
+    .sn-takeaways li::before{content:"•";color:#f59e0b;font-weight:700;flex-shrink:0}
+    .sn-timestamps{list-style:none;padding:0;margin:0}
+    .sn-timestamps li{font-size:14px;padding:3px 0;display:flex;gap:12px}
+    .ts-time{color:#f59e0b;font-weight:700;flex-shrink:0;font-family:monospace;font-size:13px}
+    .ts-label{color:#94a3b8}
+    .sn-meta-block{background:#1e293b;border-radius:8px;padding:14px 16px;margin-top:6px}
+    .sn-meta-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:6px}
+    .sn-meta-value{font-size:13px;color:#94a3b8}
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+    .steps-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));max-width:900px;margin:0 auto;padding:0 24px}
+    .step-card{text-align:center;padding:24px}
+    .step-number{width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px}
+    .step-card h3{color:var(--navy);font-size:16px;margin-bottom:8px}
+    .step-card p{color:var(--slate-6);font-size:14px}
+    .plans-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge-amber{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber)}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+    .section-narrow{max-width:720px;margin:0 auto;padding:60px 24px}
+    footer.site .container .row .col a{display:block;color:var(--slate-5);font-size:14px;margin-bottom:8px}
+    footer.site .container .row .col a:hover{color:var(--amber);text-decoration:none}
+    footer.site .container .row .col h4{color:#fff;margin-bottom:16px}
+    footer.site{background:var(--navy);padding:48px 0 24px}
+    .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid #1e293b;margin-top:40px;padding-top:24px;font-size:13px;color:var(--slate-5)}
+    .footer-bottom a{color:var(--slate-5)}
+    .footer-bottom a:hover{color:var(--amber)}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav class="site-nav">
+      <a href="pricing.html">Pricing</a>
+      <a href="pricing.html#tools">Tools</a>
+      <a href="deal-analyzer.html">Real Estate</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="sn-hero">
+  <p class="eyebrow" style="color:var(--amber);margin-bottom:12px">Podcast · .txt + .srt · Claude opt-in</p>
+  <h1>Upload transcript. <span style="color:var(--amber)">Get show notes in 30 seconds.</span></h1>
+  <p class="lede">ShowNotes reads your transcript or SRT file and outputs a structured show notes package — TL;DR, key takeaways, chapter timestamps, resource links, SEO title + description.</p>
+  <div class="cta-group">
+    <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener">Per Episode — $29 →</a>
+    <a class="btn btn-secondary" href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener">4/Month — $99/mo</a>
+    <a class="btn btn-secondary" href="https://paypal.me/wholesaleomniverse/297" target="_blank" rel="noopener">Unlimited — $297/mo</a>
+  </div>
+</section>
+
+<!-- ── Sample output ──────────────────────────────────────────── -->
+<section style="padding:64px 24px;text-align:center;background:var(--slate-1)">
+  <h2 style="color:var(--navy);margin-bottom:8px">What your show notes look like</h2>
+  <p style="color:var(--slate-6);font-size:15px;max-width:520px;margin:0 auto 36px">A complete, publish-ready show notes package — no copywriter, no formatting work, no wasted time.</p>
+
+  <div class="shownotes-preview">
+    <div class="preview-header">
+      <div class="preview-dot dot-red"></div>
+      <div class="preview-dot dot-yellow"></div>
+      <div class="preview-dot dot-green"></div>
+      <span class="preview-title">data/sn_outputs/ep47-scaled-10k-month.md</span>
+    </div>
+    <div class="sn-body">
+      <div class="sn-ep-title">Episode 47 — "How I Scaled to $10K/Month"</div>
+
+      <div class="sn-section">
+        <div class="sn-section-label">TL;DR</div>
+        <div class="sn-tldr">Guest shares 3 systems that drove growth from zero to $10K/month: cold email outreach with personalized first lines, documented SOPs to remove owner dependency, and a weekly 15-minute review ritual to catch drift before it compounds.</div>
+      </div>
+
+      <div class="sn-section">
+        <div class="sn-section-label">Key Takeaways</div>
+        <ul class="sn-takeaways">
+          <li>Cold email works when you personalize the first line to each recipient</li>
+          <li>SOPs reduce owner dependency by up to 80% within 90 days</li>
+          <li>Weekly 15-minute reviews prevent small problems from becoming big ones</li>
+        </ul>
+      </div>
+
+      <div class="sn-section">
+        <div class="sn-section-label">Chapter Timestamps</div>
+        <ul class="sn-timestamps">
+          <li><span class="ts-time">[00:00]</span><span class="ts-label">Intro</span></li>
+          <li><span class="ts-time">[04:12]</span><span class="ts-label">Guest background</span></li>
+          <li><span class="ts-time">[09:33]</span><span class="ts-label">The cold email system</span></li>
+          <li><span class="ts-time">[18:47]</span><span class="ts-label">SOP framework</span></li>
+          <li><span class="ts-time">[31:02]</span><span class="ts-label">Weekly review ritual</span></li>
+          <li><span class="ts-time">[44:15]</span><span class="ts-label">Q&amp;A</span></li>
+        </ul>
+      </div>
+
+      <div class="sn-section" style="margin-bottom:0">
+        <div class="sn-section-label">SEO Meta</div>
+        <div class="sn-meta-block">
+          <div class="sn-meta-label">SEO Title</div>
+          <div class="sn-meta-value" style="margin-bottom:12px">How I Scaled to $10K/Month: Cold Email, SOPs &amp; Weekly Reviews</div>
+          <div class="sn-meta-label">SEO Description</div>
+          <div class="sn-meta-value">Our guest reveals the 3 systems that drove consistent $10K months — cold email personalization, SOP documentation, and a weekly review ritual anyone can implement this week.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────── -->
+<div class="features-grid">
+  <div class="feat">
+    <div class="feat-icon">⏱️</div>
+    <h3>SRT → Timestamps</h3>
+    <p>Chapter timestamps are auto-extracted from <code>.srt</code> caption files. Every topic shift in the transcript becomes a timestamped chapter link — ready for YouTube chapters and podcast hosts.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🤖</div>
+    <h3>Claude TL;DR (opt-in)</h3>
+    <p>Set <code>ANTHROPIC_API_KEY</code> for an AI-written TL;DR summary. Without the key, the heuristic engine extracts the top sentences from the transcript to build the summary automatically.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🔄</div>
+    <h3>Transcribe Auto-Ingest</h3>
+    <p>Drop audio into the Transcribe agent and ShowNotes automatically picks up the <code>.txt</code> and <code>.srt</code> files from <code>data/tr_outputs/</code>. No manual handoff required.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🔗</div>
+    <h3>Resource Link Extraction</h3>
+    <p>Any URLs mentioned in the transcript are pulled into a dedicated Resources section in the show notes. Books, tools, and websites your guest mentions get surfaced automatically.</p>
+  </div>
+</div>
+
+<!-- ── How it works ───────────────────────────────────────────── -->
+<section style="background:var(--slate-1);padding:64px 24px">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:48px">How ShowNotes works</h2>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Drop transcript or SRT</h3>
+      <p>Save your <code>.txt</code> or <code>.srt</code> file into <code>data/sn_inputs/</code>, or let the Transcribe agent deliver it automatically after processing your audio.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Agent extracts structure</h3>
+      <p>ShowNotes parses timestamps from the SRT, extracts key takeaways and resource links from the text, and drafts the TL;DR — via Claude if your API key is set, heuristics otherwise.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Copy to Buzzsprout / Anchor / your site</h3>
+      <p>Output lands in <code>data/sn_outputs/</code> as a clean markdown file. Paste directly into your podcast host's show notes field, your CMS, or your newsletter tool.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────────── -->
+<section style="padding:64px 24px">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="color:var(--navy)">Pricing</h2>
+    <p style="color:var(--slate-6);max-width:480px;margin:8px auto 0">Pay via PayPal and email your transcript (or a Google Drive link) to WholesaleOmniverse@gmail.com. Show notes delivered within 24 hours.</p>
+  </div>
+  <div class="plans-grid">
+
+    <div class="plan-card">
+      <div class="plan-name">Per Episode</div>
+      <div class="plan-price">$29<span> once</span></div>
+      <p class="plan-desc">One episode, complete show notes package: TL;DR, key takeaways, chapter timestamps, resource links, and SEO meta.</p>
+      <ul class="plan-features">
+        <li>1 episode</li>
+        <li>TL;DR + takeaways + timestamps</li>
+        <li>Resource link extraction</li>
+        <li>SEO title + description</li>
+        <li>Markdown output</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener" class="plan-cta outline">Order — $29 →</a>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-badge-amber">Most Popular</div>
+      <div class="plan-name">4/Month</div>
+      <div class="plan-price">$99<span>/mo</span></div>
+      <p class="plan-desc">Four episodes per month with automatic pickup from the Transcribe agent. Perfect for weekly podcasters.</p>
+      <ul class="plan-features">
+        <li>4 episodes per month</li>
+        <li>Auto-ingest from Transcribe</li>
+        <li>Full show notes package</li>
+        <li>SEO meta every episode</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener" class="plan-cta">Start Monthly — $99/mo →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Unlimited</div>
+      <div class="plan-price">$297<span>/mo</span></div>
+      <p class="plan-desc">No episode cap. Every transcript you drop gets processed. Claude TL;DR summaries when your API key is set.</p>
+      <ul class="plan-features">
+        <li>Unlimited episodes</li>
+        <li>Claude TL;DR (if API key set)</li>
+        <li>Auto-ingest from Transcribe</li>
+        <li>Priority processing</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/297" target="_blank" rel="noopener" class="plan-cta outline">Unlimited — $297/mo</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────────────── -->
+<div class="section-narrow">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:36px">Questions</h2>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What transcript formats are supported?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Plain <code>.txt</code> and <code>.srt</code> (SubRip) files. Drop them into <code>data/sn_inputs/</code> or let them auto-arrive from the Transcribe agent's output folder. If you have an audio file first, run it through Transcribe — it outputs both a <code>.txt</code> and a <code>.srt</code> that ShowNotes picks up automatically.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Do chapter timestamps require an SRT file?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Yes — exact timestamps come from SRT timecodes. For plain <code>.txt</code> transcripts without timing data, the agent still outputs a full TL;DR, key takeaways, and resource links; chapter timestamps show as <code>[estimated]</code> placeholders instead of precise times.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Do I need a Claude API key?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">No. The heuristic engine extracts takeaways, resource links, and SEO meta without any API key. Add <code>ANTHROPIC_API_KEY</code> to your environment if you want a polished, AI-written TL;DR summary rather than the heuristic sentence-extraction version.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What does the output file look like?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Markdown files in <code>data/sn_outputs/</code>. One <code>.md</code> file per episode with clear sections for TL;DR, takeaways, timestamps, resources, and SEO meta. Paste directly into your podcast host's show notes field (Buzzsprout, Podbean, Anchor, etc.) or drop it into your CMS.</p>
+  </details>
+</div>
+
+<!-- ── CTA Banner ─────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">Your next episode deserves real show notes.</h2>
+  <p style="color:rgba(15,23,42,.7);margin-bottom:24px">Send your transcript, get a complete show notes package back within 24 hours. No writer, no formatting, no guesswork.</p>
+  <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/29" target="_blank" rel="noopener" style="background:var(--navy);color:#fff;margin-right:12px">Order Episode — $29 →</a>
+  <a class="btn" href="mailto:WholesaleOmniverse@gmail.com?subject=ShowNotes%20Question" style="background:#fff;color:var(--navy)">Ask a Question</a>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="mao-calculator.html">MAO Calculator</a>
+        <a href="speedaudit.html">SpeedAudit</a>
+        <a href="salespage_doctor.html">SalesPage Doctor</a>
+        <a href="dropship_scout_trends.html">DropshipScout</a>
+        <a href="trendscout.html">TrendScout</a>
+        <a href="inboxzero.html">InboxZero</a>
+        <a href="pricing.html">All Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Content</h4>
+        <a href="seowriter.html">SEOWriter</a>
+        <a href="shownotes.html" style="color:var(--amber)">ShowNotes</a>
+        <a href="deckforge.html">DeckForge</a>
+        <a href="careerforge.html">CareerForge</a>
+        <a href="viral_recycler.html">ViralRecycler</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">PayPal.me/wholesaleomniverse</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
