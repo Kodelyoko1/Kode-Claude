@@ -1,0 +1,7 @@
+# Root Netlify config — Wholesale Omniverse
+# The deployable website lives in the website/ subdirectory.
+# This file overrides any build command set in the Netlify UI.
+[build]
+  base    = "website"
+  publish = "."
+  command = "echo 'Static site — no build step needed.'"
