@@ -45,6 +45,11 @@ jobs:
           cp website/robots.txt              _site/robots.txt
           cp website/speedaudit.html         _site/speedaudit.html
           cp website/mao-calculator.html     _site/mao-calculator.html
+          cp website/404.html                _site/404.html
+          cp website/tools.html              _site/tools.html
+          cp website/buyers.html             _site/buyers.html
+          cp website/sell.html               _site/sell.html
+          cp website/privacy.html            _site/privacy.html
 
           # pSEO landing pages — copy flat into root for clean URLs
           cp data/pseo_pages/*.html _site/
