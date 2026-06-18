@@ -11,6 +11,7 @@ __pycache__/
 !.env.example
 data/yt_client_secrets.json
 data/yt_token.json
+data/.yt_oauth_pending.json
 *.pem
 *_secret.json
 
