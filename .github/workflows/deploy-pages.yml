@@ -59,6 +59,7 @@ jobs:
           cp website/careerforge.html        _site/careerforge.html
           cp website/trendscout.html         _site/trendscout.html
           cp website/inboxzero.html          _site/inboxzero.html
+          cp website/leadsieve.html          _site/leadsieve.html
 
           # pSEO landing pages — copy flat into root for clean URLs
           cp data/pseo_pages/*.html _site/
@@ -81,6 +82,7 @@ jobs:
           echo "  <url><loc>${BASE}/careerforge.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/trendscout.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/inboxzero.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/leadsieve.html</loc><priority>0.9</priority></url>" >> _site/sitemap.xml
           for f in _site/we-buy-houses-*.html; do
             slug=$(basename "$f" .html)
             echo "  <url><loc>${BASE}/${slug}.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
