@@ -40,10 +40,10 @@
     <div class="audit-form">
       <h2 style="color:#fff; margin-top:0;">Free 3-issue audit</h2>
       <p>Drop your sales page URL — we'll email you the audit within 24 hours.</p>
-      <form action="https://formsubmit.co/WholesaleOmniverse@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="SalesPageDoctor — Free Audit Request">
-        <input type="hidden" name="_next" value="https://kodelyoko1.github.io/Kode-Claude/thank-you.html">
-        <input type="hidden" name="_template" value="table">
+      <form name="salespagedoctor" method="POST" action="thank-you.html"
+            data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="salespagedoctor">
+        <p style="display:none;"><label>Skip: <input name="bot-field"></label></p>
         <input name="url" type="url" placeholder="https://gumroad.com/l/your-product" required>
         <input name="email" type="email" placeholder="Where should we send the audit?" required>
         <button type="submit">Get my free audit</button>
