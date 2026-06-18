@@ -50,6 +50,9 @@ jobs:
           cp website/buyers.html             _site/buyers.html
           cp website/sell.html               _site/sell.html
           cp website/privacy.html            _site/privacy.html
+          cp website/viral_recycler.html     _site/viral_recycler.html
+          cp website/viral_recycler_signup.html _site/viral_recycler_signup.html
+          cp website/viral_recycler_dashboard.html _site/viral_recycler_dashboard.html
 
           # pSEO landing pages — copy flat into root for clean URLs
           cp data/pseo_pages/*.html _site/
@@ -64,6 +67,7 @@ jobs:
           echo "  <url><loc>${BASE}/speedaudit.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/salespage_doctor.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/mao-calculator.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/viral_recycler.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           for f in _site/we-buy-houses-*.html; do
             slug=$(basename "$f" .html)
             echo "  <url><loc>${BASE}/${slug}.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
