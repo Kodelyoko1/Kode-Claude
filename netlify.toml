@@ -1,0 +1,33 @@
+# Netlify site config — Wholesale Omniverse
+# Base: repo root. Build copies pSEO pages into website/ before publish.
+[build]
+  publish = "website"
+  command = "cp data/pseo_pages/*.html website/"
+
+[functions]
+  directory = "website/netlify/functions"
+  node_bundler = "esbuild"
+
+[build.processing.html]
+  pretty_urls = true
+
+# Cache static assets aggressively; HTML revalidates each request
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/styles.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/script.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

@@ -58,10 +58,10 @@
     <div class="audit-form">
       <h2 style="color:#fff; margin-top:0;">Get your free speed score</h2>
       <p style="color:#94a3b8; margin-bottom:20px;">We'll audit your site and email you the top 3 fixes within 24 hours.</p>
-      <form action="https://formsubmit.co/WholesaleOmniverse@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="SpeedAudit — Free Audit Request">
-        <input type="hidden" name="_next" value="https://kodelyoko1.github.io/Kode-Claude/thank-you.html">
-        <input type="hidden" name="_template" value="table">
+      <form name="speedaudit" method="POST" action="thank-you.html"
+            data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="speedaudit">
+        <p style="display:none;"><label>Skip: <input name="bot-field"></label></p>
         <input name="website_url" type="url" placeholder="https://yourwebsite.com" required>
         <input name="email" type="email" placeholder="Where should we send the audit?" required>
         <input name="name" type="text" placeholder="Your name (optional)">
@@ -233,10 +233,10 @@
     <div class="audit-form" style="margin-top:56px;">
       <h2 style="color:#fff; margin-top:0;">Ready? Get your free score now.</h2>
       <p style="color:#94a3b8; margin-bottom:20px;">No login. No credit card. Just your URL and email.</p>
-      <form action="https://formsubmit.co/WholesaleOmniverse@gmail.com" method="POST">
-        <input type="hidden" name="_subject" value="SpeedAudit — Free Audit Request">
-        <input type="hidden" name="_next" value="https://kodelyoko1.github.io/Kode-Claude/thank-you.html">
-        <input type="hidden" name="_template" value="table">
+      <form name="speedaudit" method="POST" action="thank-you.html"
+            data-netlify="true" netlify-honeypot="bot-field">
+        <input type="hidden" name="form-name" value="speedaudit">
+        <p style="display:none;"><label>Skip: <input name="bot-field"></label></p>
         <input name="website_url" type="url" placeholder="https://yourwebsite.com" required>
         <input name="email" type="email" placeholder="Your email address" required>
         <button type="submit">Send me my free audit &#8594;</button>
