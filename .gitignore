@@ -12,6 +12,7 @@ __pycache__/
 data/yt_client_secrets.json
 data/yt_token.json
 data/.yt_oauth_pending.json
+data/gdrive_service_account.json
 *.pem
 *_secret.json
 

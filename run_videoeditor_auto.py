@@ -3,25 +3,28 @@ VideoEditor — autonomous video polish + reels cutter.
 
 Usage
 -----
-# Owner (bypass paywall with AGENT_PASSWORD env var)
-python3 run_videoeditor_auto.py                          # scan data/ve_inputs/
-python3 run_videoeditor_auto.py --input /path/to/vid.mp4 # process one file
-python3 run_videoeditor_auto.py --interval 5             # re-scan every 5 min
+# Scan drop folder
+python3 run_videoeditor_auto.py
 
-What it does
-------------
-1. Polishes the video: color grade, sharpen, audio denoise + EBU R128 normalize
-2. Detects the most energetic 30-second and 60-second windows
-3. Exports vertical 9:16 reels (1080×1920) with fade in/out for:
-   • YouTube Shorts / Instagram Reels (30 s)
-   • YouTube Reels / Instagram Reels (60 s)
+# Process a local file
+python3 run_videoeditor_auto.py --input /path/to/vid.mp4
 
-Outputs land in  data/ve_outputs/{slug}/
-Processed inputs move to  data/ve_processed/
-Failed inputs move to     data/ve_failed/
+# Download from YouTube, process, upload to Google Drive
+python3 run_videoeditor_auto.py --youtube "https://youtube.com/watch?v=..."
+
+# All flags together
+python3 run_videoeditor_auto.py --youtube URL --drive --post
+
+Env vars
+--------
+GDRIVE_FOLDER_ID   Google Drive folder ID for uploads
+YT_AUTO_POST=1     Auto-post to YouTube after processing
+YT_POST_MASTER=1   Also post the full master video
+YT_PRIVACY=public  YouTube privacy setting
 """
 
 import argparse
+import os
 import time
 
 from rich.console import Console
@@ -35,20 +38,35 @@ from videoeditor.tools import run_full_cycle
 console = Console()
 AGENT_KEY = "videoeditor"
 
+GDRIVE_FOLDER_ID = "1eYrrQm6FVTTVzD3AhCpn7chcvnIHzZUO"  # user's Drive folder
+
 
 @with_healing(AGENT_KEY)
 def cycle(
     input_path: str | None = None,
+    youtube_url: str | None = None,
     auto_post: bool = False,
     post_master: bool = False,
+    drive_upload: bool = False,
 ) -> None:
     console.print(
         Panel(
             "[bold cyan]VideoEditor[/bold cyan]  —  Polish + Reels Cutter\n"
-            "[dim]Drop videos in  data/ve_inputs/  or pass --input <path>[/dim]",
+            "[dim]YouTube → Process → Google Drive[/dim]",
             border_style="cyan",
         )
     )
+
+    # Download from YouTube if URL provided
+    if youtube_url:
+        console.print(f"  [cyan]Downloading:[/cyan] {youtube_url}")
+        from videoeditor.yt_downloader import download_youtube
+        dl = download_youtube(youtube_url)
+        if "error" in dl:
+            console.print(f"  [red]Download failed:[/red] {dl['error']}")
+            return
+        console.print(f"  [green]Downloaded:[/green] {dl['title']}")
+        input_path = dl["path"]
 
     r = run_full_cycle(input_path=input_path, auto_post=auto_post, post_master=post_master)
 
@@ -67,24 +85,35 @@ def cycle(
         tbl.add_column()
 
         tbl.add_row("slug", meta["slug"])
-        tbl.add_row("source duration", f"{meta['source_duration_s']} s")
-        tbl.add_row("source resolution", meta["source_resolution"])
+        tbl.add_row("duration", f"{meta['source_duration_s']} s")
+        tbl.add_row("resolution", meta["source_resolution"])
         tbl.add_row("master", meta["master"])
 
         for reel in meta.get("reels", []):
-            label = f"{reel['duration_s']}s reel (starts {reel['source_start_s']}s)"
+            label = f"{reel['duration_s']}s reel"
             tbl.add_row(label, reel["file"])
 
         tbl.add_row("processing time", f"{meta['processing_time_s']} s")
+
+        # Google Drive upload
+        if drive_upload or os.getenv("GDRIVE_AUTO_UPLOAD", "0") == "1":
+            console.print("  [cyan]Uploading to Google Drive…[/cyan]")
+            from videoeditor.gdrive_uploader import upload_video_outputs
+            dr = upload_video_outputs(meta, folder_id=GDRIVE_FOLDER_ID)
+            for up in dr.get("uploads", []):
+                fname = os.path.basename(up.get("local_file", ""))
+                if up.get("status") == "uploaded":
+                    tbl.add_row(f"Drive: {fname}", up.get("url", ""))
+                else:
+                    tbl.add_row(f"Drive: {fname}", f"[red]{up.get('error')}[/red]")
 
         # YouTube results
         for yt in meta.get("youtube", {}).get("youtube_posts", []):
             kind = "Short" if yt.get("is_short") else "Full video"
             if yt.get("status") == "uploaded":
                 url = yt.get("shorts_url") if yt.get("is_short") else yt.get("url", "")
-                cap = yt.get("captions", {})
-                cap_note = " + captions" if cap.get("status") == "uploaded" else ""
-                tbl.add_row(f"YouTube {kind}", f"[link]{url}[/link]{cap_note}")
+                cap_note = " + captions" if yt.get("captions", {}).get("status") == "uploaded" else ""
+                tbl.add_row(f"YouTube {kind}", f"{url}{cap_note}")
             else:
                 tbl.add_row(f"YouTube {kind}", f"[red]{yt.get('error', 'failed')}[/red]")
 
@@ -93,41 +122,33 @@ def cycle(
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(
-        description="VideoEditor — autonomous video polish + reels cutter"
-    )
-    p.add_argument(
-        "--input", "-i",
-        metavar="PATH",
-        help="Process a single video file (skips data/ve_inputs/ scan)",
-    )
-    p.add_argument(
-        "--interval",
-        type=int,
-        default=0,
-        metavar="MINUTES",
-        help="Re-scan data/ve_inputs/ every N minutes (0 = run once and exit)",
-    )
-    p.add_argument(
-        "--post",
-        action="store_true",
-        default=False,
-        help="Auto-post reels to YouTube after processing (requires YouTube auth)",
-    )
-    p.add_argument(
-        "--post-master",
-        action="store_true",
-        default=False,
-        help="Also post the full master video to YouTube (used with --post)",
-    )
+    p = argparse.ArgumentParser(description="VideoEditor — YouTube → Process → Google Drive")
+    p.add_argument("--input", "-i", metavar="PATH",
+                   help="Process a local video file")
+    p.add_argument("--youtube", "-y", metavar="URL",
+                   help="Download from YouTube, then process")
+    p.add_argument("--drive", action="store_true", default=False,
+                   help="Upload outputs to Google Drive after processing")
+    p.add_argument("--post", action="store_true", default=False,
+                   help="Auto-post reels to YouTube after processing")
+    p.add_argument("--post-master", action="store_true", default=False,
+                   help="Also post the full master video to YouTube")
+    p.add_argument("--interval", type=int, default=0, metavar="MINUTES",
+                   help="Re-scan data/ve_inputs/ every N minutes (0 = run once)")
     a = p.parse_args()
 
     if not paywall_prompt(AGENT_KEY):
         return
 
     while True:
-        cycle(input_path=a.input, auto_post=a.post, post_master=a.post_master)
-        if a.interval <= 0 or a.input:
+        cycle(
+            input_path=a.input,
+            youtube_url=a.youtube,
+            auto_post=a.post,
+            post_master=a.post_master,
+            drive_upload=a.drive,
+        )
+        if a.interval <= 0 or a.input or a.youtube:
             break
         console.print(f"  [dim]Next scan in {a.interval} min…[/dim]")
         time.sleep(a.interval * 60)
