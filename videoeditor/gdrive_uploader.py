@@ -1,14 +1,14 @@
 """
-Google Drive uploader for VideoEditor using a service account.
+Google Drive uploader for VideoEditor using a service account + requests transport.
 
 Setup (one-time):
-  1. Share your Google Drive output folder with:
-     video-uploader@noble-cubist-489919-q7.iam.gserviceaccount.com
-     (give it Editor access)
-  2. Set GDRIVE_FOLDER_ID in .env to the folder ID from the Drive URL
+  1. Enable Google Drive API in Cloud Console
+  2. Share your Drive output folder with:
+     video-uploader@noble-cubist-489919-q7.iam.gserviceaccount.com  (Editor)
+  3. Set GDRIVE_FOLDER_ID in .env (or it's hardcoded in run_videoeditor_auto.py)
 
 Env vars:
-  GDRIVE_FOLDER_ID   — Drive folder ID to upload into (required)
+  GDRIVE_FOLDER_ID   — Drive folder ID to upload into
   GDRIVE_SA_KEY      — path to service account JSON (default: data/gdrive_service_account.json)
 """
 
@@ -19,87 +19,98 @@ SA_KEY = Path(os.getenv("GDRIVE_SA_KEY", "data/gdrive_service_account.json"))
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 
-def _build_service():
-    try:
-        from google.oauth2 import service_account
-        from google.auth.transport.requests import Request as GRequest
-        from googleapiclient.discovery import build
-        import googleapiclient.discovery
-    except ImportError:
-        return None, "pip install google-api-python-client google-auth requests"
-
-    if not SA_KEY.exists():
-        return None, f"Service account key not found at {SA_KEY}"
+def _get_token() -> str:
+    from google.oauth2 import service_account
+    from google.auth.transport.requests import Request as GRequest
 
     creds = service_account.Credentials.from_service_account_file(
         str(SA_KEY), scopes=SCOPES
     )
     creds.refresh(GRequest())
-
-    # Use requests-based authorized session to avoid httplib2 SSL issues
-    import requests
-    from google.auth.transport.requests import AuthorizedSession
-    authed = AuthorizedSession(creds)
-
-    service = build("drive", "v3", credentials=creds,
-                    requestBuilder=None,
-                    http=None)
-    # Patch with requests transport
-    from googleapiclient.http import build_http
-    service = build("drive", "v3", credentials=creds)
-    return service, None
+    return creds.token
 
 
 def upload_file(local_path: str, filename: str | None = None, folder_id: str | None = None) -> dict:
     """Upload a single file to Google Drive. Returns {status, file_id, url}."""
-    service, err = _build_service()
-    if err:
-        return {"error": err}
+    import requests
+
+    if not SA_KEY.exists():
+        return {"error": f"Service account key not found at {SA_KEY}"}
 
     folder_id = folder_id or os.getenv("GDRIVE_FOLDER_ID")
     if not folder_id:
         return {"error": "Set GDRIVE_FOLDER_ID in .env or pass folder_id"}
 
-    try:
-        from googleapiclient.http import MediaFileUpload
-    except ImportError:
-        return {"error": "pip install google-api-python-client"}
-
     path = Path(local_path)
-    name = filename or path.name
+    if not path.exists():
+        return {"error": f"File not found: {local_path}"}
 
-    # Detect MIME type
+    name = filename or path.name
     suffix = path.suffix.lower()
     mime = {
         ".mp4": "video/mp4",
         ".mov": "video/quicktime",
         ".json": "application/json",
-        ".txt": "text/plain",
-        ".md": "text/markdown",
+        ".txt":  "text/plain",
+        ".md":   "text/markdown",
     }.get(suffix, "application/octet-stream")
 
-    metadata = {"name": name, "parents": [folder_id]}
-    media = MediaFileUpload(str(path), mimetype=mime, resumable=True)
+    try:
+        token = _get_token()
+    except Exception as exc:
+        return {"error": f"Auth failed: {exc}"}
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Resumable upload for large files
+    init_headers = {
+        **headers,
+        "Content-Type": "application/json",
+        "X-Upload-Content-Type": mime,
+        "X-Upload-Content-Length": str(path.stat().st_size),
+    }
+    meta = {"name": name, "parents": [folder_id]}
 
     try:
-        f = service.files().create(
-            body=metadata, media_body=media, fields="id,name,webViewLink"
-        ).execute()
+        init = requests.post(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
+            headers=init_headers,
+            json=meta,
+            timeout=30,
+        )
+        if init.status_code != 200:
+            return {"error": f"Upload init failed {init.status_code}: {init.text[:200]}"}
+
+        upload_url = init.headers["Location"]
+
+        with open(path, "rb") as f:
+            data = f.read()
+
+        up = requests.put(
+            upload_url,
+            headers={**headers, "Content-Type": mime},
+            data=data,
+            timeout=600,
+        )
+        if up.status_code not in (200, 201):
+            return {"error": f"Upload failed {up.status_code}: {up.text[:200]}"}
+
+        file_id = up.json().get("id")
         return {
             "status": "uploaded",
-            "file_id": f["id"],
-            "name": f["name"],
-            "url": f.get("webViewLink", f"https://drive.google.com/file/d/{f['id']}/view"),
+            "file_id": file_id,
+            "name": name,
+            "url": f"https://drive.google.com/file/d/{file_id}/view",
         }
+
     except Exception as exc:
-        return {"error": f"Upload failed: {exc}"}
+        return {"error": f"Upload exception: {exc}"}
 
 
 def upload_video_outputs(meta: dict, folder_id: str | None = None) -> dict:
     """
     Upload all VideoEditor outputs for a processed video to Google Drive.
     meta — dict returned by videoeditor.tools.process_video()
-    Returns {"uploads": [...per-file result dicts...]}
     """
     uploads = []
 
@@ -107,7 +118,6 @@ def upload_video_outputs(meta: dict, folder_id: str | None = None) -> dict:
     for reel in meta.get("reels", []):
         files_to_upload.append(reel["file"])
 
-    # Also upload meta JSON
     slug = meta["slug"]
     meta_json = str(Path(meta["master"]).parent / f"{slug}_meta.json")
     if Path(meta_json).exists():
@@ -118,5 +128,7 @@ def upload_video_outputs(meta: dict, folder_id: str | None = None) -> dict:
             r = upload_file(f, folder_id=folder_id)
             r["local_file"] = f
             uploads.append(r)
+            status = "✓" if r.get("status") == "uploaded" else "✗"
+            print(f"  [{status}] {Path(f).name} → {r.get('url', r.get('error'))}")
 
     return {"uploads": uploads}
