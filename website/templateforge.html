@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TemplateForge — social media template mockup + Canva design brief. Finished PNG preview and exact specs. $19/template, $49/mo (3), $149/mo unlimited.">
+  <meta property="og:title" content="TemplateForge — Social Media Template Mockup Generator">
+  <meta property="og:description" content="Get a finished PNG preview + exact Canva rebuild specs for any social media format. $19/template, ready in 2 hours.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/templateforge.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/templateforge.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TemplateForge",
+    "applicationCategory": "MultimediaApplication",
+    "description": "Social media template mockup and Canva/Figma design brief generator. Finished PNG preview with exact specs.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/templateforge.html",
+    "offers": [
+      {"@type":"Offer","name":"Per Template","price":"19","priceCurrency":"USD"},
+      {"@type":"Offer","name":"3 Per Month","price":"49","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Unlimited","price":"149","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}}
+    ],
+    "provider": {"@type":"Organization","name":"Wholesale Omniverse LLC","telephone":"207-385-4041","email":"WholesaleOmniverse@gmail.com"}
+  }
+  </script>
+  <title>TemplateForge — Social Media Template Mockup Generator | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .hero-dark{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .hero-dark h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .hero-dark .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .hero-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .hero-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline-light{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline-light:hover{border-color:#94a3b8;text-decoration:none}
+    /* Mockup preview */
+    .template-preview{display:grid;gap:16px;grid-template-columns:1fr 1fr;max-width:600px;margin:40px auto 0;padding:0 8px}
+    .tpl{border-radius:10px;padding:20px;aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between}
+    .tpl-ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)}
+    .tpl-li{background:#0a66c2}
+    .tpl-label{color:rgba(255,255,255,.6);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+    .tpl-headline{color:#fff;font-weight:900;font-size:15px;line-height:1.3}
+    .tpl-handle{color:rgba(255,255,255,.5);font-size:11px}
+    .spec-card{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:20px;max-width:500px;margin:20px auto 0;text-align:left;font-family:'Courier New',monospace;font-size:12px}
+    .spec-label{color:var(--amber);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+    .spec-line{color:#c9d1d9;padding:3px 0;line-height:1.7}
+    .spec-key{color:#79c0ff}
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));max-width:860px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:28px;margin-bottom:10px}
+    .feat h3{color:var(--navy);font-size:16px;margin-bottom:6px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.6}
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));max-width:780px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:26px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:12px}
+    .plan-price{font-size:34px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:15px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px}
+    .plan-desc{font-size:13px;color:var(--slate-6);margin-bottom:16px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 16px;font-size:13px;color:var(--slate-7)}
+    .plan-features li{padding:4px 0;display:flex;gap:7px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:11px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .section-label{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+    .section-h2{text-align:center;font-size:clamp(22px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);max-width:560px;margin:0 auto 36px;font-size:16px}
+    .faq-wrap{max-width:680px;margin:0 auto;padding:0 24px 60px}
+    .faq-item{border-bottom:1px solid var(--slate-3);padding:18px 0}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{font-weight:700;color:var(--navy);font-size:15px;margin-bottom:7px}
+    .faq-a{color:var(--slate-6);font-size:14px;line-height:1.65}
+  </style>
+</head>
+<body>
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+  </div>
+</header>
+
+<section class="hero-dark">
+  <p style="color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">No designer. No waiting 3 days.</p>
+  <h1>Template mockup + <span style="color:var(--amber)">Canva rebuild specs</span> in one order</h1>
+  <p class="lede">TemplateForge generates a finished PNG preview for any social media format — Instagram post, LinkedIn banner, Story, YouTube end card — and delivers the exact specs to rebuild it in Canva in under 10 minutes.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Order Template — $19 →</a>
+    <a class="btn-outline-light" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">3/Month — $49/mo</a>
+    <a class="btn-outline-light" href="https://paypal.me/wholesaleomniverse/149" target="_blank" rel="noopener">Unlimited — $149/mo</a>
+  </div>
+  <div class="template-preview">
+    <div class="tpl tpl-ig">
+      <div class="tpl-label">Instagram Post · 1080×1080</div>
+      <div class="tpl-headline">3 Things Every Wholesaler Needs Before Their First Deal</div>
+      <div class="tpl-handle">@wholesaleomniverse</div>
+    </div>
+    <div class="tpl tpl-li">
+      <div class="tpl-label">LinkedIn Banner · 1584×396</div>
+      <div class="tpl-headline">Autonomous Revenue Agents for Real Estate & Content</div>
+      <div class="tpl-handle">Wholesale Omniverse LLC</div>
+    </div>
+  </div>
+  <div class="spec-card">
+    <div class="spec-label">Canva Rebuild Brief</div>
+    <div class="spec-line"><span class="spec-key">size:</span> 1080 × 1080 px</div>
+    <div class="spec-line"><span class="spec-key">background:</span> gradient #833ab4 → #fd1d1d → #fcb045</div>
+    <div class="spec-line"><span class="spec-key">headline font:</span> Montserrat ExtraBold, 52px, white</div>
+    <div class="spec-line"><span class="spec-key">handle font:</span> Montserrat Regular, 18px, rgba(255,255,255,.55)</div>
+    <div class="spec-line"><span class="spec-key">logo:</span> bottom-left, 40px white, 70% opacity</div>
+  </div>
+</section>
+
+<section>
+  <div style="text-align:center;padding:60px 24px 0">
+    <p class="section-label">Formats Supported</p>
+    <h2 class="section-h2">Any format. Any platform.</h2>
+    <p class="section-sub">Tell us the format in your manifest. TemplateForge renders at the correct dimensions and delivers platform-specific specs.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 24px 48px;max-width:700px;margin:0 auto">
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">IG Post 1080²</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">IG Story 1080×1920</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">LinkedIn Banner 1584×396</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">YT End Card 1280×720</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">Twitter/X Header 1500×500</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">Pinterest Pin 1000×1500</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">Facebook Cover 820×312</span>
+    <span style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--navy)">TikTok Thumbnail 1080×1920</span>
+  </div>
+</section>
+
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
+  <div style="text-align:center;padding:60px 24px 0">
+    <p class="section-label">What You Get</p>
+    <h2 class="section-h2">Mockup + brief. Two files.</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🖼️</div>
+      <h3>PNG Mockup Preview</h3>
+      <p>A finished, print-quality PNG rendered at exact platform dimensions. Use it for client approval, a mood board, or social proof — or skip straight to the Canva rebuild.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📐</div>
+      <h3>Canva Rebuild Brief</h3>
+      <p>A spec sheet listing exact sizes, hex colors, font names and weights, element positions, and opacity values. Rebuild the template in Canva or Figma in under 10 minutes.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎨</div>
+      <h3>Your Brand Colors</h3>
+      <p>Pass your hex codes in the manifest. Every element — background, headline, subtext, accent — is generated using your palette. Consistent across every template you order.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <h3>Batch Ordering</h3>
+      <p>Drop multiple manifests into <code>data/sw_inputs/</code> and run once. TemplateForge generates a PNG + spec sheet for every slug in the folder before stopping.</p>
+    </div>
+  </div>
+</section>
+
+<section style="padding:60px 24px 20px;text-align:center">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">$19 per template</h2>
+  <p class="section-sub">Send payment via PayPal. Your PNG + spec brief arrives within 2 hours.</p>
+</section>
+<div class="plans">
+  <div class="plan-card">
+    <div class="plan-price">$19</div>
+    <div class="plan-name">Per Template</div>
+    <div class="plan-desc">One format, one brand palette, one PNG + Canva brief.</div>
+    <ul class="plan-features">
+      <li>1 social format</li>
+      <li>PNG mockup at exact dimensions</li>
+      <li>Canva rebuild spec sheet</li>
+      <li>Your hex colors + fonts</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Order Template — $19 →</a>
+  </div>
+  <div class="plan-card featured">
+    <div class="plan-badge">Most Popular</div>
+    <div class="plan-price">$49<span>/mo</span></div>
+    <div class="plan-name">3 Templates/Month</div>
+    <div class="plan-desc">One template per platform — IG, LinkedIn, YouTube — refreshed monthly for new campaigns.</div>
+    <ul class="plan-features">
+      <li>3 templates per month</li>
+      <li>Mix any formats</li>
+      <li>Brand palette stored between orders</li>
+      <li>PNG + spec for each</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">Subscribe — $49/mo →</a>
+  </div>
+  <div class="plan-card">
+    <div class="plan-price">$149<span>/mo</span></div>
+    <div class="plan-name">Unlimited</div>
+    <div class="plan-desc">Agencies managing multiple brands or posting daily across platforms.</div>
+    <ul class="plan-features">
+      <li>Unlimited templates per month</li>
+      <li>All formats</li>
+      <li>Batch processing</li>
+      <li>Priority turnaround</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/149" target="_blank" rel="noopener">Unlimited — $149/mo →</a>
+  </div>
+</div>
+
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:48px 24px 0">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:32px">
+  <div class="faq-item">
+    <div class="faq-q">Do I need a designer to use the Canva brief?</div>
+    <div class="faq-a">No. The spec sheet gives you every value you need to click-and-place in Canva's free editor. Background color, font name, size, weight, element position — everything is specified. Most people finish the rebuild in under 10 minutes.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What format is the manifest?</div>
+    <div class="faq-a">A JSON file: <code>{"slug": "ig-post-june", "format": "ig_post", "headline": "Your text", "handle": "@yourhandle", "accent": "#833ab4", "bg": "gradient"}</code>. Drop it in the inputs folder and run the agent.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I order the same template in multiple formats?</div>
+    <div class="faq-a">Yes — create one manifest per format slug. The 3/month plan covers three separate format renders, so ordering one design across IG post + IG Story + LinkedIn uses all three slots for that month.</div>
+  </div>
+</div>
+
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Design Tools</h4>
+        <a href="templateforge.html" style="color:var(--amber);font-weight:700">TemplateForge ($19)</a>
+        <a href="thumbforge.html">ThumbForge ($9/thumb)</a>
+        <a href="carouselforge.html">CarouselForge ($29)</a>
+        <a href="deckforge.html">DeckForge ($49/deck)</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="deal-analyzer.html">Deal Analyzer ($197/mo)</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="leadsieve.html">Lead Sieve ($97/mo)</a>
+        <a href="pricing.html">All Agents &amp; Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
