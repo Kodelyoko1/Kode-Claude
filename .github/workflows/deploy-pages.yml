@@ -65,6 +65,8 @@ jobs:
           cp website/proofbot.html          _site/proofbot.html
           cp website/seowriter.html         _site/seowriter.html
           cp website/shownotes.html         _site/shownotes.html
+          cp website/batman.html            _site/batman.html
+          cp website/pantrychef.html        _site/pantrychef.html
 
           # pSEO landing pages — copy flat into root for clean URLs
           cp data/pseo_pages/*.html _site/
@@ -93,6 +95,8 @@ jobs:
           echo "  <url><loc>${BASE}/proofbot.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/seowriter.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           echo "  <url><loc>${BASE}/shownotes.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/batman.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
+          echo "  <url><loc>${BASE}/pantrychef.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
           for f in _site/we-buy-houses-*.html; do
             slug=$(basename "$f" .html)
             echo "  <url><loc>${BASE}/${slug}.html</loc><priority>0.8</priority></url>" >> _site/sitemap.xml
