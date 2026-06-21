@@ -1,0 +1,105 @@
+name: Update Render Env Vars
+
+on:
+  workflow_dispatch:
+    inputs:
+      pw_private_key:
+        description: "PW_PRIVATE_KEY (new wallet private key)"
+        required: true
+        type: string
+      pw_api_key:
+        description: "PW_API_KEY (new PolyMarket API key)"
+        required: true
+        type: string
+      pw_api_secret:
+        description: "PW_API_SECRET (new PolyMarket API secret)"
+        required: true
+        type: string
+
+jobs:
+  update-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find service ID
+        id: find_service
+        run: |
+          SERVICE_ID=$(curl -s "https://api.render.com/v1/services?limit=50" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" | \
+            python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for item in data:
+            svc = item.get('service', item)
+            if svc.get('name') == 'polymarket-weather-agent':
+              print(svc['id'])
+              break
+          ")
+          echo "service_id=$SERVICE_ID" >> $GITHUB_OUTPUT
+          echo "Found service ID: $SERVICE_ID"
+
+      - name: Get current env vars
+        id: get_env
+        run: |
+          curl -s "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/env-vars" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" > /tmp/current_env.json
+          cat /tmp/current_env.json
+
+      - name: Merge and update env vars
+        run: |
+          python3 << 'EOF'
+          import json, os, subprocess, urllib.request, urllib.error
+
+          with open('/tmp/current_env.json') as f:
+              current = json.load(f)
+
+          # Build dict from current vars
+          env_map = {}
+          for item in current:
+              ev = item.get('envVar', item)
+              env_map[ev['key']] = ev['value']
+
+          # Apply new values from workflow inputs
+          new_vals = {
+              'PW_PRIVATE_KEY': os.environ['PW_PRIVATE_KEY'],
+              'PW_API_KEY':     os.environ['PW_API_KEY'],
+              'PW_API_SECRET':  os.environ['PW_API_SECRET'],
+          }
+          env_map.update(new_vals)
+
+          # Build payload
+          payload = [{'key': k, 'value': v} for k, v in env_map.items()]
+
+          service_id = os.environ['SERVICE_ID']
+          api_key    = os.environ['RENDER_API_KEY']
+          url        = f'https://api.render.com/v1/services/{service_id}/env-vars'
+
+          data = json.dumps(payload).encode()
+          req  = urllib.request.Request(url, data=data, method='PUT')
+          req.add_header('Authorization', f'Bearer {api_key}')
+          req.add_header('Content-Type',  'application/json')
+          req.add_header('Accept',        'application/json')
+
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  print('Updated successfully:', resp.status)
+          except urllib.error.HTTPError as e:
+              print('Error:', e.status, e.read().decode())
+              raise
+          EOF
+        env:
+          PW_PRIVATE_KEY: ${{ github.event.inputs.pw_private_key }}
+          PW_API_KEY:     ${{ github.event.inputs.pw_api_key }}
+          PW_API_SECRET:  ${{ github.event.inputs.pw_api_secret }}
+          SERVICE_ID:     ${{ steps.find_service.outputs.service_id }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+      - name: Trigger redeploy
+        run: |
+          curl -s -X POST \
+            "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d '{}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('Deploy triggered:', d.get('id',''))"
