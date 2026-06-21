@@ -1,0 +1,32 @@
+{
+  "event_type": "wind_above_25mph",
+  "feature_cols": [
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "precipitation_sum",
+    "wind_speed_10m_max",
+    "shortwave_radiation_sum",
+    "et0_fao_evapotranspiration",
+    "temp_range",
+    "temp_anomaly_7d",
+    "precip_7d_sum",
+    "month_sin",
+    "month_cos",
+    "doy_sin",
+    "doy_cos"
+  ],
+  "trained": true,
+  "metrics": {
+    "n": 1096,
+    "accuracy": 0.9991,
+    "precision": 1.0,
+    "recall": 0.6667,
+    "brier_score": 0.0008,
+    "brier_skill": 0.7052,
+    "log_loss": 0.0036,
+    "event_rate": 0.0027
+  },
+  "lr_weights": null,
+  "lr_bias": 0.0,
+  "xgb_model_path": "/home/user/Kode-Claude/data/pw_models/wind_above_25mph_xgb.ubj"
+}
