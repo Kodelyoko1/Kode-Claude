@@ -257,8 +257,14 @@ def get_midpoint_price(token_id: str) -> float:
 
 class PolyMarketTrader:
     """
-    Wraps py_clob_client for authenticated L2 order placement.
-    Gracefully degrades to dry-run if credentials are missing.
+    Wraps py_clob_client for authenticated order placement.
+
+    Auth strategy (in priority order):
+      L2: api_key + api_secret + api_passphrase + private_key  (preferred)
+      L1: private_key only — signs every request directly with the wallet key
+          (works when passphrase is unavailable or API key is read-only)
+
+    Gracefully degrades to dry-run when credentials are absent entirely.
     """
 
     def __init__(self):
@@ -277,18 +283,22 @@ class PolyMarketTrader:
         try:
             from py_clob_client.client import ClobClient
             from py_clob_client.clob_types import ApiCreds
+
+            # Use L2 only when ALL three API creds are present
             creds = None
-            if self.api_key:
+            if self.api_key and self.api_secret and self.api_passphrase:
                 creds = ApiCreds(
                     api_key=self.api_key,
                     api_secret=self.api_secret,
                     api_passphrase=self.api_passphrase,
                 )
+
+            sig_type = 1 if creds else 0   # 1 = L2 API key, 0 = L1 private key
             self._client = ClobClient(
                 host=CLOB_API,
                 key=self.private_key,
                 chain_id=CHAIN_ID,
-                signature_type=1 if creds else 0,
+                signature_type=sig_type,
                 creds=creds,
             )
         except ImportError:
