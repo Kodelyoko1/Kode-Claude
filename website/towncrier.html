@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TownCrier — hyper-local event newsletter automatically curated for your city. Sponsor slots $50–$200. Featured listings $25. Newsletter service $97/mo.">
+  <meta property="og:title" content="TownCrier — Hyper-Local Event Newsletter">
+  <meta property="og:description" content="Automated weekly events digest for your city. 6 categories auto-classified. Sponsor slots available. $97/mo newsletter service.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/towncrier.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/towncrier.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TownCrier",
+    "description": "Hyper-local event newsletter service that automatically curates and categorizes local events into a weekly digest for community email lists.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/towncrier.html",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Newsletter Service",
+        "price": "97",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "RecurringChargeSpecification",
+          "billingPeriod": "P1M"
+        }
+      },
+      {
+        "@type": "Offer",
+        "name": "Sponsor Slot",
+        "price": "50",
+        "priceCurrency": "USD",
+        "description": "Sponsor placement in one issue of the digest. Price ranges from $50 to $200 depending on position."
+      },
+      {
+        "@type": "Offer",
+        "name": "Featured Event Listing",
+        "price": "25",
+        "priceCurrency": "USD",
+        "description": "Pin one event at the top of the next weekly digest."
+      }
+    ]
+  }
+  </script>
+  <title>TownCrier — Hyper-Local Event Newsletter | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .tc-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .tc-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .tc-hero .lede{color:#94a3b8;font-size:18px;max-width:580px;margin:0 auto 36px}
+    .newsletter-preview{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:28px;max-width:680px;margin:0 auto;text-align:left}
+    .nl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #334155}
+    .nl-title{color:#f59e0b;font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+    .nl-meta{color:#475569;font-size:12px}
+    .event-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #1e293b}
+    .event-row:last-child{border-bottom:none}
+    .event-row.featured-event{background:rgba(245,158,11,.06);border-radius:8px;padding:12px;margin:-2px -4px;border-bottom:none;margin-bottom:2px}
+    .cat-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;line-height:1.6}
+    .cat-music{background:rgba(139,92,246,.2);color:#a78bfa}
+    .cat-food{background:rgba(239,68,68,.18);color:#f87171}
+    .cat-family{background:rgba(59,130,246,.18);color:#60a5fa}
+    .cat-outdoors{background:rgba(34,197,94,.15);color:#4ade80}
+    .cat-civic{background:rgba(245,158,11,.15);color:#f59e0b}
+    .event-info{flex:1}
+    .event-name{color:#e2e8f0;font-weight:600;font-size:15px;margin-bottom:2px}
+    .event-detail{color:#64748b;font-size:12px}
+    .featured-star{font-size:11px;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.15);padding:2px 8px;border-radius:20px;flex-shrink:0;align-self:flex-start}
+    .nl-cta{text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid #334155}
+    .nl-cta p{color:#64748b;font-size:14px;margin-bottom:14px}
+    .cat-cloud{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 24px;max-width:700px;margin:0 auto 48px}
+    .cat-tag{border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700}
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber)}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+    .section-narrow{max-width:720px;margin:0 auto;padding:60px 24px}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav style="margin-left:auto">
+      <a href="tools.html" style="font-size:14px;color:var(--slate-5);text-decoration:none">← Back to Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="tc-hero">
+  <p class="eyebrow" style="color:var(--amber);margin-bottom:12px">Weekly · Auto-Curated · 6 Categories</p>
+  <h1>TownCrier</h1>
+  <h2 style="color:#94a3b8;font-size:clamp(16px,2.5vw,22px);font-weight:400;margin-bottom:16px">Hyper-Local Event Newsletter — Automatically Curated</h2>
+  <p class="lede">Build a community email list and grow local sponsorship revenue — TownCrier parses your city's event sources every week, auto-classifies every listing into 6 categories, and sends a polished digest your subscribers will actually open.</p>
+
+  <!-- Newsletter Preview Mockup -->
+  <div class="newsletter-preview">
+    <div class="nl-header">
+      <span class="nl-title">📍 Portland, ME — This Week</span>
+      <span class="nl-meta">Jun 23–29, 2026 · 5 events</span>
+    </div>
+
+    <div class="event-row featured-event">
+      <span class="cat-badge cat-music">🎵 Music</span>
+      <div class="event-info">
+        <div class="event-name">Old Port Festival — Main Stage</div>
+        <div class="event-detail">Congress St. Waterfront · Sat Jun 28 · 12 PM – 8 PM · Free admission</div>
+      </div>
+      <span class="featured-star">⭐ Featured</span>
+    </div>
+
+    <div class="event-row">
+      <span class="cat-badge cat-food">🍕 Food</span>
+      <div class="event-info">
+        <div class="event-name">Portland Farmers Market — Summer Edition</div>
+        <div class="event-detail">Deering Oaks Park · Sat Jun 28 · 7 AM – 1 PM</div>
+      </div>
+    </div>
+
+    <div class="event-row">
+      <span class="cat-badge cat-family">👨‍👩‍👧 Family</span>
+      <div class="event-info">
+        <div class="event-name">Story Time at Portland Public Library</div>
+        <div class="event-detail">5 Monument Sq · Wed Jun 25 · 10:30 AM · Ages 3–6</div>
+      </div>
+    </div>
+
+    <div class="event-row">
+      <span class="cat-badge cat-outdoors">🌳 Outdoors</span>
+      <div class="event-info">
+        <div class="event-name">Guided Kayak Tour — Casco Bay Islands</div>
+        <div class="event-detail">Maine Island Kayak Co. · Sun Jun 29 · 8 AM · $65/person</div>
+      </div>
+    </div>
+
+    <div class="event-row">
+      <span class="cat-badge cat-civic">🏛️ Civic</span>
+      <div class="event-info">
+        <div class="event-name">City Council Open Forum — Q3 Budget</div>
+        <div class="event-detail">Portland City Hall · Mon Jun 23 · 6 PM · Public welcome</div>
+      </div>
+    </div>
+
+    <div class="nl-cta">
+      <p>Weekly digest for your city · Sponsor slots available · No manual work required</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener" class="btn btn-primary">Start Newsletter — $97/mo →</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com?subject=Sponsor%20Slot%20Inquiry" class="btn" style="background:transparent;border:2px solid #475569;color:#94a3b8">Sponsor a Slot — $50+ →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Category Badges ──────────────────────────────────────── -->
+<section style="padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">6 Auto-Classified Categories</h2>
+  <p style="color:var(--slate-6);font-size:15px;margin-bottom:28px">Every event is automatically sorted — no manual tagging required</p>
+  <div class="cat-cloud">
+    <span class="cat-tag" style="background:rgba(59,130,246,.12);color:#1d4ed8;border:1px solid rgba(59,130,246,.25)">👨‍👩‍👧 Family</span>
+    <span class="cat-tag" style="background:rgba(139,92,246,.12);color:#6d28d9;border:1px solid rgba(139,92,246,.25)">🎵 Music</span>
+    <span class="cat-tag" style="background:rgba(239,68,68,.10);color:#b91c1c;border:1px solid rgba(239,68,68,.2)">🍕 Food</span>
+    <span class="cat-tag" style="background:rgba(34,197,94,.10);color:#166534;border:1px solid rgba(34,197,94,.2)">🌳 Outdoors</span>
+    <span class="cat-tag" style="background:rgba(245,158,11,.12);color:#92400e;border:1px solid rgba(245,158,11,.25)">🏛️ Civic</span>
+    <span class="cat-tag" style="background:rgba(20,184,166,.10);color:#0f766e;border:1px solid rgba(20,184,166,.2)">🆓 Free</span>
+  </div>
+</section>
+
+<!-- ── Features ────────────────────────────────────────────── -->
+<section style="background:var(--slate-1)">
+  <div class="section-narrow" style="padding:60px 24px">
+    <h2 style="text-align:center;color:var(--navy);margin-bottom:40px">What TownCrier does for you</h2>
+    <div class="features-grid" style="padding:0">
+
+      <div class="feat">
+        <div class="feat-icon">🤖</div>
+        <h3>Automated Curation</h3>
+        <p>TownCrier parses local event HTML snapshots every week and extracts listings automatically — no copy-paste, no manual data entry. Drop in a new HTML snapshot and the digest updates itself.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">🏷️</div>
+        <h3>6 Event Categories</h3>
+        <p>Every event is auto-classified into Family, Music, Food, Outdoors, Civic, or Free using keyword rules. Subscribers can filter by what they care about and sponsors can target the right audience.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">💰</div>
+        <h3>Sponsor Slots</h3>
+        <p>Local businesses pay $50–$200 per placement in your digest depending on position — header banner, mid-digest callout, or footer sponsor. TownCrier flags available slots and pitches local sponsors automatically.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">⭐</div>
+        <h3>Featured Listings</h3>
+        <p>Event organizers pay $25 to pin their event at the top of the next digest with a Featured badge. Higher visibility, more RSVPs — an easy upsell to any local organizer already on your list.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ─────────────────────────────────────────────── -->
+<section style="background:#fff;padding:60px 24px">
+  <div class="section-title" style="text-align:center;margin-bottom:40px">
+    <h2 style="color:var(--navy)">Simple, transparent pricing</h2>
+    <p style="color:var(--slate-6);max-width:480px;margin:8px auto 0">After subscribing, email your PayPal receipt to WholesaleOmniverse@gmail.com and your newsletter will be configured within 24 hours.</p>
+  </div>
+  <div class="plans">
+
+    <div class="plan-card featured">
+      <div class="plan-badge">Newsletter Service</div>
+      <div class="plan-name">Weekly Digest</div>
+      <div class="plan-price">$97<span>/mo</span></div>
+      <p class="plan-desc">A fully automated weekly events digest for one city. We parse the sources, classify the events, and send the digest to your subscriber list every week.</p>
+      <ul class="plan-features">
+        <li>Weekly digest for 1 city</li>
+        <li>Up to 300 subscribers</li>
+        <li>Auto-curation from HTML snapshots</li>
+        <li>All 6 categories included</li>
+        <li>Sponsor slot pitching enabled</li>
+        <li>Featured listing upsell included</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener" class="plan-cta">Start Newsletter — $97/mo →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Sponsor Slot</div>
+      <div class="plan-price">$50<span>–$200</span></div>
+      <p class="plan-desc">One-time placement in a single issue of the digest. Price depends on position — header, mid-digest callout, or footer. Reach the whole subscriber list with your local business.</p>
+      <ul class="plan-features">
+        <li>One-time placement, 1 issue</li>
+        <li>Header slot — $200</li>
+        <li>Mid-digest callout — $100</li>
+        <li>Footer sponsor — $50</li>
+        <li>Clickable link to your site</li>
+      </ul>
+      <a href="mailto:WholesaleOmniverse@gmail.com?subject=Sponsor%20Slot%20Inquiry" class="plan-cta outline">Inquire About Sponsoring →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Featured Event</div>
+      <div class="plan-price">$25<span>/listing</span></div>
+      <p class="plan-desc">Pin your event at the top of the next digest with a Featured badge and ⭐ highlight. More visibility, more RSVPs. Billed once per event, per issue.</p>
+      <ul class="plan-features">
+        <li>Pinned at top of next digest</li>
+        <li>⭐ Featured badge applied</li>
+        <li>Highlighted row in email</li>
+        <li>One event, one issue</li>
+      </ul>
+      <a href="mailto:WholesaleOmniverse@gmail.com?subject=Featured%20Event%20Listing" class="plan-cta outline">Submit Featured Event →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ─────────────────────────────────────────────────── -->
+<div class="section-narrow">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:36px">Questions</h2>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How do events get added to the digest?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">You (or we) drop a saved HTML snapshot of your city's local event pages — municipal calendars, Facebook events pages, local news event listings — into the input folder. TownCrier parses each snapshot, extracts event names, dates, times, and locations, then classifies each listing and builds the digest automatically. No API keys required for the scraping step.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What cities are supported?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Any city where you can save a local HTML event listing page. The agent is source-agnostic — it parses the HTML you provide, so if your city has a public events calendar, a local Facebook group, or a community events page, it works. We currently run digests for cities in Maine, New Hampshire, Vermont, and Massachusetts, but can onboard any US city within 24 hours.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How does sponsor billing work?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Sponsor slots are one-time purchases per issue. Email WholesaleOmniverse@gmail.com with your business name, slot preference (header/mid/footer), and the issue date you want. We'll send a PayPal invoice. Once paid, your placement is locked into that week's digest and goes out with the subscriber send. Featured event listings work the same way — pay $25, send us your event details, and it's pinned in the next issue.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Can I white-label this for a local business client?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Yes. The newsletter digest can be branded with any business name, logo, and color scheme. Local media companies, chambers of commerce, and community orgs have used TownCrier under their own brand to grow their subscriber lists and sell sponsorships to local advertisers. Email us to discuss white-label pricing — typically a flat setup fee plus the standard $97/mo service rate.</p>
+  </details>
+</div>
+
+<!-- ── CTA Banner ──────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">Ready to own your city's inbox?</h2>
+  <p style="color:rgba(15,23,42,.7);margin-bottom:24px">Your first digest goes out within 24 hours of setup. Sponsor revenue starts from day one.</p>
+  <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener" style="margin-right:12px;background:var(--navy);color:#fff">Start Newsletter — $97/mo</a>
+  <a class="btn" href="mailto:WholesaleOmniverse@gmail.com?subject=TownCrier%20Inquiry" style="background:#fff;color:var(--navy)">Ask a Question</a>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="index.html">All Tools</a>
+        <a href="tools.html">Agent Directory</a>
+        <a href="pricing.html">Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="index.html">Sell My House</a>
+        <a href="index.html">Deal Analyzer</a>
+        <a href="index.html">Outreach-as-a-Service</a>
+        <a href="index.html">HUDScout</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="index.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
