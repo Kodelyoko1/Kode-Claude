@@ -100,26 +100,17 @@ def cmd_opportunities():
         console.print("[yellow]No opportunities found above edge threshold.[/yellow]")
         return
 
-    t = Table(title=f"Live Opportunities ({len(opps)} found)", show_header=True)
-    t.add_column("City",       style="dim")
-    t.add_column("Side",       style="bold")
-    t.add_column("Edge",       style="cyan")
-    t.add_column("Model P",    style="green")
-    t.add_column("Market P",   style="yellow")
-    t.add_column("EV",         style="magenta")
-    t.add_column("Question",   no_wrap=True)
-    for o in opps:
+    for rank, o in enumerate(opps, 1):
         d = o.to_dict()
-        t.add_row(
-            d["city"],
-            d["side"],
-            f"{d['edge']:.3f}",
-            f"{d['model_prob']:.3f}",
-            f"{d['market_price']:.3f}",
-            f"{d['ev']:+.4f}",
-            d["question"][:55],
+        console.print(
+            f"  [cyan]{rank:>2}.[/cyan] [{('green' if d['side']=='YES' else 'red')}]{d['side']}[/] "
+            f"edge=[bold]{d['edge']:.3f}[/bold]  "
+            f"model=[green]{d['model_prob']:.3f}[/green]  "
+            f"mkt=[yellow]{d['market_price']:.3f}[/yellow]  "
+            f"ev=[magenta]{d['ev']:+.4f}[/magenta]  "
+            f"[dim]{d['city']}[/dim]\n"
+            f"      [dim]{d['question'][:80]}[/dim]"
         )
-    console.print(t)
 
 
 def cmd_backtest():

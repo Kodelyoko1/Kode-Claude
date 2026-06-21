@@ -276,7 +276,7 @@ class WeatherForecastModel:
             "lr_bias":       self._lr_bias,
         }
         if self._xgb_model is not None:
-            xgb_path = MODELS_DIR / f"{name}_xgb.model"
+            xgb_path = MODELS_DIR / f"{name}_xgb.ubj"
             self._xgb_model.save_model(str(xgb_path))
             payload["xgb_model_path"] = str(xgb_path)
         path.write_text(json.dumps(payload, indent=2))

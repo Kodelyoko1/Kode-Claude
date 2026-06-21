@@ -266,8 +266,8 @@ def run_data_pipeline(
 ) -> dict:
     """
     Orchestrate full data pull:
-      1. Fetch historical weather for each city
-      2. Fetch all PolyMarket weather markets
+      1. Fetch historical weather for each city  (falls back to synthetic on network error)
+      2. Fetch all PolyMarket weather markets    (falls back to synthetic on network error)
       3. Fetch price history for each market
       4. Return a summary dict
     """
@@ -276,7 +276,24 @@ def run_data_pipeline(
     start_str = (today - timedelta(days=365 * lookback_years)).strftime("%Y-%m-%d")
     end_str   = today.strftime("%Y-%m-%d")
 
+    # --- Try live weather data; fall back to synthetic ---
     weather_saved = []
+    live_weather_ok = False
+    for city in cities[:1]:   # probe with one city
+        lat, lon, _ = CITY_COORDS.get(city, (40.71, -74.00, 10))
+        try:
+            fetch_historical_weather(lat, lon, start_str, end_str)
+            live_weather_ok = True
+        except Exception:
+            break
+
+    if not live_weather_ok:
+        if progress_cb:
+            progress_cb("Live weather API unavailable — using synthetic data")
+        from polymarket_weather.synthetic import generate_full_demo_dataset
+        return generate_full_demo_dataset(cities=cities, lookback_years=lookback_years)
+
+    # --- Live path ---
     for city in cities:
         lat, lon, _ = CITY_COORDS.get(city, (40.71, -74.00, 10))
         if progress_cb:
@@ -288,14 +305,14 @@ def run_data_pipeline(
             weather_saved.append({"city": city, "records": len(records), "path": str(path)})
         except Exception as exc:
             weather_saved.append({"city": city, "error": str(exc)})
-        time.sleep(0.3)  # respect Open-Meteo rate limit
+        time.sleep(0.3)
 
     if progress_cb:
         progress_cb("Fetching PolyMarket weather markets…")
     markets = fetch_and_cache_weather_markets(force=True)
 
     price_history_saved = []
-    for mkt in markets[:50]:   # cap at 50 to avoid hammering the API
+    for mkt in markets[:50]:
         cid = mkt.get("condition_id", "")
         if not cid:
             continue
