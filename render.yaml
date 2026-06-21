@@ -47,13 +47,14 @@ services:
     # To enable persistence, upgrade to Starter ($7/mo) and uncomment the disk block,
     # OR add a free Render PostgreSQL instance and migrate JSON storage to SQL.
 
-  - type: worker
+  - type: web
     name: polymarket-weather-agent
     runtime: python
     plan: free
     region: oregon
+    healthCheckPath: /health
     buildCommand: pip install -r requirements.txt
-    startCommand: python3 run_polymarket_weather_worker.py
+    startCommand: python3 run_polymarket_weather_server.py
     envVars:
       - key: PW_LIVE_TRADING
         value: "1"
