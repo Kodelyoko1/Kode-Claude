@@ -1,20 +1,7 @@
 name: Update Render Env Vars
 
 on:
-  workflow_dispatch:
-    inputs:
-      pw_private_key:
-        description: "PW_PRIVATE_KEY (new wallet private key)"
-        required: true
-        type: string
-      pw_api_key:
-        description: "PW_API_KEY (new PolyMarket API key)"
-        required: true
-        type: string
-      pw_api_secret:
-        description: "PW_API_SECRET (new PolyMarket API secret)"
-        required: true
-        type: string
+  workflow_dispatch:   # trigger manually from GitHub UI — no inputs needed
 
 jobs:
   update-env:
@@ -36,41 +23,32 @@ jobs:
               break
           ")
           echo "service_id=$SERVICE_ID" >> $GITHUB_OUTPUT
-          echo "Found service ID: $SERVICE_ID"
 
       - name: Get current env vars
-        id: get_env
         run: |
           curl -s "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/env-vars" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" > /tmp/current_env.json
-          cat /tmp/current_env.json
 
-      - name: Merge and update env vars
+      - name: Merge and push updated env vars
         run: |
           python3 << 'EOF'
-          import json, os, subprocess, urllib.request, urllib.error
+          import json, os, urllib.request, urllib.error
 
           with open('/tmp/current_env.json') as f:
               current = json.load(f)
 
-          # Build dict from current vars
           env_map = {}
           for item in current:
               ev = item.get('envVar', item)
               env_map[ev['key']] = ev['value']
 
-          # Apply new values from workflow inputs
-          new_vals = {
-              'PW_PRIVATE_KEY': os.environ['PW_PRIVATE_KEY'],
-              'PW_API_KEY':     os.environ['PW_API_KEY'],
-              'PW_API_SECRET':  os.environ['PW_API_SECRET'],
-          }
-          env_map.update(new_vals)
+          # Overwrite with values from GitHub Secrets
+          env_map['PW_PRIVATE_KEY'] = os.environ['PW_PRIVATE_KEY']
+          env_map['PW_API_KEY']     = os.environ['PW_API_KEY']
+          env_map['PW_API_SECRET']  = os.environ['PW_API_SECRET']
 
-          # Build payload
-          payload = [{'key': k, 'value': v} for k, v in env_map.items()]
-
+          payload    = [{'key': k, 'value': v} for k, v in env_map.items()]
           service_id = os.environ['SERVICE_ID']
           api_key    = os.environ['RENDER_API_KEY']
           url        = f'https://api.render.com/v1/services/{service_id}/env-vars'
@@ -81,17 +59,13 @@ jobs:
           req.add_header('Content-Type',  'application/json')
           req.add_header('Accept',        'application/json')
 
-          try:
-              with urllib.request.urlopen(req) as resp:
-                  print('Updated successfully:', resp.status)
-          except urllib.error.HTTPError as e:
-              print('Error:', e.status, e.read().decode())
-              raise
+          with urllib.request.urlopen(req) as resp:
+              print('Updated:', resp.status)
           EOF
         env:
-          PW_PRIVATE_KEY: ${{ github.event.inputs.pw_private_key }}
-          PW_API_KEY:     ${{ github.event.inputs.pw_api_key }}
-          PW_API_SECRET:  ${{ github.event.inputs.pw_api_secret }}
+          PW_PRIVATE_KEY: ${{ secrets.PW_PRIVATE_KEY }}
+          PW_API_KEY:     ${{ secrets.PW_API_KEY }}
+          PW_API_SECRET:  ${{ secrets.PW_API_SECRET }}
           SERVICE_ID:     ${{ steps.find_service.outputs.service_id }}
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
 
@@ -102,4 +76,8 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -d '{}' | python3 -c "import json,sys; d=json.load(sys.stdin); print('Deploy triggered:', d.get('id',''))"
+            -d '{}' | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          print('Deploy triggered:', d.get('id', 'ok'))
+          "
