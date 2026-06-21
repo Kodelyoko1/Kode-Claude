@@ -53,7 +53,7 @@ services:
     plan: free
     region: oregon
     healthCheckPath: /health
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements-pw.txt
     startCommand: python3 run_polymarket_weather_server.py
     envVars:
       - key: PW_LIVE_TRADING
