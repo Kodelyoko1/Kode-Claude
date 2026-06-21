@@ -1,0 +1,1 @@
+# PolyMarket Weather Trading Agent
