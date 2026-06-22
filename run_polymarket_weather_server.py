@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,15 +56,80 @@ def status():
 @app.route("/")
 def index():
     risk = _state.get("last_result", {}).get("risk", {})
-    return (
-        f"<h2>PolyMarket Weather Agent</h2>"
-        f"<p>Cycles run: {_state['cycles']}</p>"
-        f"<p>Last cycle: {_state['last_cycle']}</p>"
-        f"<p>Bankroll: ${risk.get('bankroll', 0):.2f}</p>"
-        f"<p>Total P&L: ${risk.get('total_pnl', 0):+.2f}</p>"
-        f"<p>Halted: {risk.get('halted', False)}</p>"
-        f"<p>Live trading: {_state.get('last_result', {}).get('live_trading', False)}</p>"
+    pnl  = risk.get("total_pnl", 0)
+    pnl_color = "#2ecc71" if pnl >= 0 else "#e74c3c"
+    return f"""<!doctype html><html><head>
+<title>PolyMarket Weather Agent</title>
+<meta http-equiv="refresh" content="60">
+<style>
+  body{{font-family:monospace;background:#111;color:#eee;padding:2rem;}}
+  h2{{color:#00bcd4;}} .card{{background:#1a1a1a;border-radius:8px;padding:1rem;margin:.5rem 0;}}
+  .green{{color:#2ecc71;}} .red{{color:#e74c3c;}} a{{color:#00bcd4;}}
+</style></head><body>
+<h2>PolyMarket Weather Agent</h2>
+<div class="card">
+  <b>Cycles run:</b> {_state['cycles']}<br>
+  <b>Last cycle:</b> {_state['last_cycle'] or 'pending…'}<br>
+  <b>Bankroll:</b> ${risk.get('bankroll', 0):.2f}<br>
+  <b>Total P&amp;L:</b> <span style="color:{pnl_color}">${pnl:+.2f}</span><br>
+  <b>Open positions:</b> {risk.get('open_positions', 0)}<br>
+  <b>Halted:</b> {risk.get('halted', False)}<br>
+  <b>Live trading:</b> {_state.get('last_result', {}).get('live_trading', False)}
+</div>
+<div class="card">
+  <a href="/status">JSON status</a> &nbsp;|&nbsp;
+  <a href="/backtest">Run backtest</a> &nbsp;|&nbsp;
+  <a href="/report">Latest report</a>
+</div>
+</body></html>"""
+
+
+@app.route("/backtest")
+def backtest():
+    if not _state["boot_done"]:
+        return Response("Boot training not complete yet — try again in a minute.", 503)
+    try:
+        from polymarket_weather.tools import run_backtest_quick
+        r = run_backtest_quick()
+    except Exception as exc:
+        return Response(f"Backtest failed: {exc}", 500)
+
+    if "error" in r:
+        return Response(f"Backtest error: {r['error']}", 500)
+
+    rows = "".join(
+        f"<tr><td>{k}</td><td><b>{v}</b></td></tr>"
+        for k, v in r.items() if k != "report_path"
     )
+    report_link = (
+        f'<p><a href="/report">View full report</a></p>'
+        if r.get("report_path") else ""
+    )
+    return f"""<!doctype html><html><head><title>Backtest Results</title>
+<style>body{{font-family:monospace;background:#111;color:#eee;padding:2rem;}}
+h2{{color:#00bcd4;}} table{{border-collapse:collapse;width:400px;}}
+td{{padding:.4rem .8rem;border-bottom:1px solid #333;}} a{{color:#00bcd4;}}
+</style></head><body>
+<h2>Backtest Results</h2>
+<table>{rows}</table>
+{report_link}
+<p><a href="/">← Back</a></p>
+</body></html>"""
+
+
+@app.route("/report")
+def report():
+    from pathlib import Path
+    reports = sorted((ROOT / "data" / "pw_reports").glob("*.md"), reverse=True)
+    if not reports:
+        return Response("No reports yet.", 404)
+    content = reports[0].read_text().replace("\n", "<br>").replace("|", "&#124;")
+    return f"""<!doctype html><html><head><title>Report</title>
+<style>body{{font-family:monospace;background:#111;color:#eee;padding:2rem;font-size:.85rem;}}
+a{{color:#00bcd4;}}</style></head><body>
+<p><a href="/">← Back</a></p>
+<pre style="white-space:pre-wrap">{reports[0].read_text()}</pre>
+</body></html>"""
 
 
 # ---------------------------------------------------------------------------
