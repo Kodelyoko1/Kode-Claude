@@ -14,6 +14,22 @@ body {
 a { color: #06b6d4; text-decoration: none; }
 a:hover { text-decoration: underline; color: #22d3ee; }
 img { max-width: 100%; height: auto; display: block; }
+
+/* Scanlines overlay — 2000s CRT feel */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.04) 3px,
+    rgba(0,0,0,0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
 code {
   font-family: "SF Mono", "Fira Code", Consolas, monospace;
   font-size: 0.88em;
@@ -56,6 +72,10 @@ code {
   --text:      #e2e8f0;
   --text-muted:#94a3b8;
   --text-dim:  #64748b;
+  /* Cyberpunk layer */
+  --neon:      #00f0ff;
+  --neon-glow: rgba(0,240,255,0.45);
+  --mono:      "JetBrains Mono","Fira Code","SF Mono",Consolas,monospace;
 }
 
 /* ─── Container + utilities ─────────────────────────────────────────────── */
@@ -122,6 +142,23 @@ p  { margin: 0 0 16px; color: var(--text-muted); }
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+@keyframes flicker {
+  0%, 94%, 100% { opacity: 1; }
+  95% { opacity: 0.82; }
+  96% { opacity: 1; }
+  97% { opacity: 0.88; }
+  98% { opacity: 1; }
+}
+@keyframes scan-sweep {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+@keyframes border-pulse {
+  0%,100% { border-color: rgba(0,240,255,0.45); }
+  50%      { border-color: rgba(0,240,255,0.9); }
 }
 
 /* ─── Buttons ───────────────────────────────────────────────────────────── */
@@ -274,9 +311,19 @@ section.hero::before {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0,240,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.07) 1px, transparent 1px);
   background-size: 60px 60px;
+  pointer-events: none;
+}
+/* Sweep scanline through hero */
+section.hero::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,240,255,0.6), transparent);
+  animation: scan-sweep 6s linear infinite;
   pointer-events: none;
 }
 section.hero.hero-bg-house,
@@ -329,8 +376,8 @@ section.dark p { color: var(--text-muted); }
 }
 .card:hover {
   transform: translateY(-3px);
-  border-color: rgba(6,182,212,0.4);
-  box-shadow: 0 8px 32px rgba(6,182,212,0.1);
+  border-color: rgba(0,240,255,0.55);
+  box-shadow: 0 0 0 1px rgba(0,240,255,0.08), 0 8px 32px rgba(0,240,255,0.18);
 }
 .card .badge {
   font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
@@ -368,12 +415,17 @@ section.dark p { color: var(--text-muted); }
   transform: translateY(-3px);
 }
 .plan-card.featured {
-  border-color: rgba(6,182,212,0.5);
-  box-shadow: 0 0 40px rgba(6,182,212,0.12), inset 0 0 40px rgba(6,182,212,0.03);
-  background: rgba(6,182,212,0.06);
+  border-color: rgba(0,240,255,0.7);
+  box-shadow:
+    0 0 0 1px rgba(0,240,255,0.15),
+    0 0 40px rgba(0,240,255,0.22),
+    inset 0 0 40px rgba(0,240,255,0.04);
+  background: rgba(0,240,255,0.05);
+  animation: border-pulse 3s ease-in-out infinite;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
 }
 .plan-card .plan-name { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); margin-bottom: 8px; }
-.plan-card .plan-price { font-size: 36px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: 4px; }
+.plan-card .plan-price { font-family: var(--mono); font-size: 36px; font-weight: 900; color: #e2e8f0; line-height: 1; margin-bottom: 4px; }
 .plan-card .plan-price span { font-size: 16px; font-weight: 500; color: var(--text-muted); }
 .plan-card .plan-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
 .plan-card ul { list-style: none; margin: 0 0 24px; padding: 0; flex-grow: 1; }
@@ -416,8 +468,8 @@ section.dark p { color: var(--text-muted); }
 }
 .tool-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(6,182,212,0.45);
-  box-shadow: 0 8px 28px rgba(6,182,212,0.1);
+  border-color: rgba(0,240,255,0.55);
+  box-shadow: 0 0 0 1px rgba(0,240,255,0.08), 0 8px 28px rgba(0,240,255,0.18);
   text-decoration: none;
 }
 .tool-tag {
@@ -589,3 +641,45 @@ footer.site .bottom a { display: inline-block; padding: 0; }
   .tool-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   h1 { font-size: clamp(28px, 8vw, 40px); }
 }
+
+/* ─── Cyberpunk utilities ───────────────────────────────────────────────── */
+.mono { font-family: var(--mono); }
+
+.hud-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon);
+  opacity: 0.75;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.terminal {
+  font-family: var(--mono);
+  font-size: 13px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(0,240,255,0.2);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: var(--neon);
+  line-height: 1.7;
+}
+
+/* Angular HUD corner cut — use on featured/hero cards */
+.cyber-corner {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+/* Bright neon border — header on scroll / highlighted elements */
+.neon-border {
+  border: 1px solid rgba(0,240,255,0.5);
+  box-shadow: 0 0 12px rgba(0,240,255,0.2), inset 0 0 12px rgba(0,240,255,0.04);
+}
+
+/* Flicker effect — apply to logos, icons, accent elements */
+.flicker { animation: flicker 8s step-end infinite; }
+
+/* Stat numbers (index hero counters) */
+.counter { font-family: var(--mono); }

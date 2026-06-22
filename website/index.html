@@ -53,8 +53,8 @@
     }
     .agent-card:hover {
       transform: translateY(-4px);
-      border-color: rgba(6,182,212,0.5);
-      box-shadow: 0 8px 32px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.15);
+      border-color: rgba(0,240,255,0.6);
+      box-shadow: 0 8px 32px rgba(0,240,255,0.15), 0 0 0 1px rgba(0,240,255,0.12);
     }
     .agent-card .ag-name {
       font-size: 17px;
@@ -102,9 +102,10 @@
     }
     .stat-item { text-align: left; }
     .stat-item .stat-num {
+      font-family: "JetBrains Mono","Fira Code","SF Mono",Consolas,monospace;
       font-size: 36px;
       font-weight: 900;
-      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      background: linear-gradient(135deg, #00f0ff, #8b5cf6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -137,11 +138,14 @@
       align-items: center;
       justify-content: center;
       width: 36px; height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
-      color: #ffffff;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid rgba(0,240,255,0.5);
+      box-shadow: 0 0 10px rgba(0,240,255,0.25), inset 0 0 10px rgba(0,240,255,0.05);
+      color: #00f0ff;
+      font-family: "JetBrains Mono","Fira Code","SF Mono",Consolas,monospace;
       font-weight: 900;
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 14px;
     }
     .step-card h4 { margin-bottom: 8px; color: #e2e8f0; }
@@ -163,7 +167,8 @@
       display: block;
     }
     .free-tool-card:hover {
-      border-color: rgba(6,182,212,0.5);
+      border-color: rgba(0,240,255,0.6);
+      box-shadow: 0 0 20px rgba(0,240,255,0.15);
       transform: translateY(-3px);
       text-decoration: none;
     }
@@ -213,7 +218,7 @@
 <header class="site">
   <div class="container">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <img src="assets/logo.png" alt="Wholesale Omniverse" class="flicker">
       <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
     </a>
     <button class="menu-toggle" aria-label="Toggle menu">Menu</button>
@@ -233,7 +238,7 @@
 <section class="hero" style="position:relative; overflow:hidden; min-height:560px;">
   <canvas id="hero-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
   <div class="container" style="position:relative;z-index:1;">
-    <p class="eyebrow reveal" style="color:var(--cyan,#06b6d4);">Wholesale Omniverse LLC</p>
+    <span class="hud-label reveal">&#x25B6; SYS::ONLINE &nbsp;|&nbsp; AGENTS::40+ &nbsp;|&nbsp; WHOLESALE OMNIVERSE LLC</span>
     <h1 class="reveal" style="max-width:860px; color:#ffffff;">
       Your revenue.<br>
       <span style="background:linear-gradient(135deg,#06b6d4,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
@@ -265,7 +270,7 @@
         <div class="stat-lbl">Motivated seller leads</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">24/7</div>
+        <div class="stat-num mono">24/7</div>
         <div class="stat-lbl">Fully automated operation</div>
       </div>
     </div>
