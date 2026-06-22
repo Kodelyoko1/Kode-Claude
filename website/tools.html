@@ -3,240 +3,520 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AI Deal Analyzer + Outreach-as-a-Service for real estate wholesalers. Analyze deals in 60 seconds, run motivated seller outreach without lifting a finger.">
-  <meta property="og:title" content="Deal Analyzer + Outreach Tools for Wholesalers — Wholesale Omniverse">
-  <meta property="og:description" content="AI-powered deal analysis in 60 seconds. Done-for-you motivated seller outreach from $300/mo. Built by wholesalers.">
+  <meta name="description" content="40+ autonomous AI agents for real estate, content, e-commerce, and local business — all from Wholesale Omniverse. Pick your agent and activate in 2 hours.">
+  <meta property="og:title" content="All Tools — Wholesale Omniverse AI Agent Directory">
+  <meta property="og:description" content="40+ autonomous agents: Deal Analyzer, DropshipScout, SEOWriter, Batman Fleet Manager, Media Buyer, and more. Pay via PayPal, activate in 2 hours.">
   <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/tools.html">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
   <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/tools.html">
-  <title>Deal Analyzer + Outreach Tools for Wholesalers | Wholesale Omniverse</title>
+  <title>All Tools — Wholesale Omniverse AI Agents</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .tools-hero{background:var(--navy);color:#fff;padding:72px 24px 52px;text-align:center}
+    .tools-hero h1{color:#fff;font-size:clamp(26px,4vw,44px);margin-bottom:14px}
+    .tools-hero p{color:#94a3b8;font-size:17px;max-width:580px;margin:0 auto 28px}
+    .search-bar{display:flex;gap:10px;max-width:480px;margin:0 auto}
+    .search-input{flex:1;padding:12px 16px;border-radius:8px;border:none;font-size:15px;background:#1e293b;color:#e2e8f0;outline:none}
+    .search-input::placeholder{color:#475569}
+    .search-input:focus{box-shadow:0 0 0 2px var(--amber)}
+
+    .category-nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:20px 24px 0;max-width:900px;margin:0 auto}
+    .cat-btn{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid var(--slate-3);background:#fff;color:var(--navy);transition:all .15s}
+    .cat-btn:hover,.cat-btn.active{background:var(--amber);border-color:var(--amber);color:var(--navy)}
+
+    .section-header{padding:48px 24px 0;text-align:center}
+    .section-header h2{font-size:clamp(20px,2.5vw,28px);color:var(--navy);margin-bottom:6px}
+    .section-header p{color:var(--slate-6);font-size:15px;max-width:480px;margin:0 auto}
+    .section-label{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--amber);margin-bottom:10px}
+
+    .tool-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));max-width:1100px;margin:0 auto;padding:24px 24px 0}
+    .tool-card{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:22px;display:flex;flex-direction:column;transition:box-shadow .15s,border-color .15s;text-decoration:none;color:inherit}
+    .tool-card:hover{box-shadow:0 6px 24px rgba(15,23,42,.09);border-color:var(--amber);text-decoration:none}
+    .tool-icon{font-size:28px;margin-bottom:10px}
+    .tool-name{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px}
+    .tool-desc{font-size:13px;color:var(--slate-6);line-height:1.55;flex:1;margin-bottom:14px}
+    .tool-price{font-size:13px;font-weight:700;color:var(--amber-2)}
+    .tool-tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:2px 8px;border-radius:4px;margin-bottom:10px}
+    .tag-re{background:#fef3c7;color:#92400e}
+    .tag-content{background:#e0f2fe;color:#075985}
+    .tag-ecom{background:#f0fdf4;color:#166534}
+    .tag-local{background:#fdf4ff;color:#6b21a8}
+    .tag-infra{background:#fff7ed;color:#9a3412}
+    .tag-saas{background:#f0fdf4;color:#065f46}
+    .tag-media{background:#fdf2f8;color:#831843}
+    .tag-seo{background:#f5f3ff;color:#4c1d95}
+    .tag-free{background:var(--navy);color:var(--amber)}
+
+    .cta-strip{background:linear-gradient(135deg,var(--amber),#fbbf24);padding:48px 24px;text-align:center;margin-top:60px}
+    .cta-strip h2{color:var(--navy);margin-bottom:8px;font-size:clamp(20px,2.5vw,30px)}
+    .cta-strip p{color:rgba(15,23,42,.75);margin-bottom:24px;font-size:16px}
+    .cta-strip a{padding:13px 28px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none;display:inline-block;margin:4px}
+    .btn-dark{background:var(--navy);color:#fff}
+    .btn-dark:hover{background:#1e293b;text-decoration:none}
+    .btn-white{background:#fff;color:var(--navy)}
+    .btn-white:hover{background:#f8fafc;text-decoration:none}
+  </style>
 </head>
 <body>
 
-<header class="site">
-  <div class="container">
-    <a href="index.html" class="brand">
-      <img src="assets/logo.png" alt="Wholesale Omniverse">
-      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
-    </a>
-    <button class="menu-toggle" aria-label="Toggle menu">Menu</button>
-    <nav class="site-nav">
-      <a href="sell.html">List My Property</a>
-      <a href="buyers.html">Cash Buyers</a>
-      <a href="tools.html">Tools for Wholesalers</a>
-      <a href="#analyzer" class="nav-cta">Try free for 7 days</a>
-    </nav>
-  </div>
-</header>
+<nav class="nav" style="position:sticky;top:0;z-index:100">
+  <a href="index.html" class="nav-back">← Home</a>
+  <a href="index.html" class="nav-logo">Wholesale Omniverse</a>
+</nav>
 
-<section class="hero hero-bg-tools">
-  <div class="container">
-    <p class="eyebrow">For wholesalers + investors</p>
-    <h1>Stop analyzing deals manually. <span class="accent">Close more</span> by moving faster.</h1>
-    <p class="lede">
-      Two tools built by wholesalers who got tired of doing it the slow way.
-      An AI deal analyzer that drafts your offer + LOI in 60 seconds. A done-for-you
-      outreach service that runs your motivated seller campaigns for you.
-    </p>
-    <div class="hero-actions">
-      <a href="#analyzer" class="btn btn-primary">Try Deal Analyzer free</a>
-      <a href="#oas" class="btn btn-secondary">See OAS pricing</a>
+<!-- Hero -->
+<section class="tools-hero">
+  <div style="max-width:700px;margin:0 auto">
+    <div style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:16px">Agent Directory</div>
+    <h1>40+ Autonomous Agents.<br>Every Business Problem Covered.</h1>
+    <p>Real estate engines, content tools, paid media, local newsletters, SEO, and infrastructure — all running without you. Pay via PayPal, activate in 2 hours.</p>
+    <div class="search-bar">
+      <input type="text" class="search-input" id="toolSearch" placeholder="Search agents..." oninput="filterTools(this.value)">
     </div>
   </div>
 </section>
 
-<div class="trust-bar">
-  <div class="container">
-    <div class="row">
-      <div class="trust-item"><span class="check">✓</span>Built by wholesalers</div>
-      <div class="trust-item"><span class="check">✓</span>No long-term contracts</div>
-      <div class="trust-item"><span class="check">✓</span>Cancel anytime</div>
-      <div class="trust-item"><span class="check">✓</span>Setup in under 10 min</div>
-    </div>
+<!-- Category filter -->
+<div style="background:#f8fafc;padding:16px 0 20px;border-bottom:1px solid var(--slate-3)">
+  <div class="category-nav">
+    <button class="cat-btn active" onclick="filterCat('all',this)">All</button>
+    <button class="cat-btn" onclick="filterCat('re',this)">Real Estate</button>
+    <button class="cat-btn" onclick="filterCat('content',this)">Content</button>
+    <button class="cat-btn" onclick="filterCat('ecom',this)">E-Commerce</button>
+    <button class="cat-btn" onclick="filterCat('media',this)">Paid Media</button>
+    <button class="cat-btn" onclick="filterCat('seo',this)">SEO</button>
+    <button class="cat-btn" onclick="filterCat('local',this)">Local & Niche</button>
+    <button class="cat-btn" onclick="filterCat('saas',this)">SaaS Tools</button>
+    <button class="cat-btn" onclick="filterCat('infra',this)">Infrastructure</button>
   </div>
 </div>
 
-<section id="analyzer">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <p class="eyebrow">Product 1 of 2</p>
-        <h2>AI Deal Analyzer</h2>
-        <p class="lede" style="color:var(--slate-7); font-size:17px;">
-          Paste an address. Get comps, ARV, repair estimate, max allowable offer,
-          and a ready-to-send LOI in under 60 seconds.
-        </p>
-        <h4 style="margin-top:24px;">What it does:</h4>
-        <ul style="padding-left:18px; color:var(--slate-7);">
-          <li>Pulls comparable sales within 0.5 mi, last 6 months</li>
-          <li>Estimates ARV based on neighborhood + condition tier</li>
-          <li>Calculates repair budget by sq ft and condition signals</li>
-          <li>Computes your max offer using the 70% rule (or custom rule)</li>
-          <li>Drafts a Letter of Intent ready to email or print</li>
-          <li>Logs every deal in your pipeline with notes + status</li>
-        </ul>
-        <p style="margin-top:24px;">
-          <strong>$197/month</strong> &nbsp;·&nbsp; <strong>Free 7-day trial</strong> &nbsp;·&nbsp; Cancel anytime
-        </p>
-        <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/197" target="_blank" rel="noopener">Subscribe via PayPal — $197/mo</a>
-        <p style="margin-top:12px;"><a href="deal-analyzer.html" class="btn btn-secondary" style="font-size:14px;">Full details &amp; FAQ &#8594;</a></p>
-      </div>
-      <div class="col">
-        <div class="card">
-          <div class="badge">Sample output</div>
-          <h3 style="margin-bottom:4px;">742 Evergreen Terrace</h3>
-          <p class="small muted" style="margin-bottom:18px;">Atlanta, GA 30303</p>
-          <div style="font-family:'Courier New',monospace; font-size:13px; line-height:1.7;">
-            <div><strong>ARV</strong> &nbsp;&nbsp;&nbsp;&nbsp; $185,000</div>
-            <div><strong>Repairs</strong> &nbsp; $28,000</div>
-            <div><strong>70% MAO</strong> &nbsp; $91,500</div>
-            <div><strong>Comps</strong> &nbsp;&nbsp;&nbsp; 6 within 0.5 mi (avg sale $182k)</div>
-            <div><strong>Spread</strong> &nbsp;&nbsp; $65,500 (35.4%)</div>
-            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--slate-3);">
-              <strong style="color:#16a34a;">✓ Deal qualifies</strong>
-            </div>
-            <div style="margin-top:14px; font-size:12px; color:var(--slate-6);">
-              LOI drafted · 60.3 sec total
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- Real Estate -->
+<section id="real-estate">
+  <div class="section-header">
+    <span class="section-label">Real Estate</span>
+    <h2>Wholesale Pipeline Engines</h2>
+    <p>Find motivated sellers, build your buyers list, close more deals — on autopilot.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="deal-analyzer.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">Deal Analyzer</div>
+      <div class="tool-desc">AI-powered wholesale deal analysis. Comps, ARV, max offer, LOI — in under 60 seconds per property.</div>
+      <div class="tool-price">$197/mo</div>
+    </a>
+    <a class="tool-card" href="outreach.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">🏠</div>
+      <div class="tool-name">Outreach-as-a-Service</div>
+      <div class="tool-desc">Done-for-you motivated seller campaigns. Gov records + REIA scraping, weekly hot-lead reports delivered.</div>
+      <div class="tool-price">From $300/mo</div>
+    </a>
+    <a class="tool-card" href="buyer-finder.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">🔍</div>
+      <div class="tool-name">Cash Buyer Finder</div>
+      <div class="tool-desc">Scrapes REIA associations + Hotfrog to find active real estate investors in your market and email them your criteria.</div>
+      <div class="tool-price">$97/mo</div>
+    </a>
+    <a class="tool-card" href="followup.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">🤖</div>
+      <div class="tool-name">Seller Follow-Up Sequence</div>
+      <div class="tool-desc">6-touch automated email sequence for motivated sellers. Day 3, 7, 14, 21, 30, 60 — with hot-lead alerts.</div>
+      <div class="tool-price">$147/mo</div>
+    </a>
+    <a class="tool-card" href="hudscout.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">🏛️</div>
+      <div class="tool-name">HUDScout</div>
+      <div class="tool-desc">Daily scrape of HUD Home Store REO listings. HUD-owned homes at deep discounts, bid windows tracked automatically.</div>
+      <div class="tool-price">$97/mo</div>
+    </a>
+    <a class="tool-card" href="leadsieve.html" data-cat="re">
+      <div class="tool-tag tag-re">Real Estate</div>
+      <div class="tool-icon">🔥</div>
+      <div class="tool-name">Lead Sieve</div>
+      <div class="tool-desc">Scores every lead overnight across 5 signals. Wake up to a ranked hot-list showing exactly who to call today.</div>
+      <div class="tool-price">$97/mo</div>
+    </a>
   </div>
 </section>
 
-<section class="alt" id="oas">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <p class="eyebrow">Product 2 of 2</p>
-        <h2>Outreach-as-a-Service</h2>
-        <p class="lede" style="color:var(--slate-7); font-size:17px;">
-          We run your motivated seller campaigns for you. You set the markets.
-          We pull lists, send the emails, and deliver hot-lead reports weekly.
-        </p>
-        <h4 style="margin-top:24px;">What we handle:</h4>
-        <ul style="padding-left:18px; color:var(--slate-7);">
-          <li>Pulling distressed property lists from gov records</li>
-          <li>Skip-tracing for contact info</li>
-          <li>Sending email + voicemail-drop campaigns</li>
-          <li>Reply tracking and lead qualification</li>
-          <li>Weekly hot-lead reports to your inbox</li>
-          <li>Direct handoff of motivated sellers ready to talk</li>
-        </ul>
-        <p class="muted small" style="margin-top:24px;">
-          You stay focused on closing. We handle the grind of finding leads.
-        </p>
-      </div>
-      <div class="col">
-        <div class="cards" style="grid-template-columns:1fr;">
-          <div class="card">
-            <div class="badge">Basic</div>
-            <div class="price"><strong>$300</strong> / month</div>
-            <p>1 market &middot; weekly lead report &middot; cancel anytime</p>
-            <a class="btn btn-dark card-cta" href="https://paypal.me/wholesaleomniverse/300" target="_blank" rel="noopener">Start Basic via PayPal</a>
-          </div>
-          <div class="card">
-            <div class="badge">Standard &middot; Most popular</div>
-            <div class="price"><strong>$500</strong> / month</div>
-            <p>2 markets &middot; weekly lead reports &middot; cancel anytime</p>
-            <a class="btn btn-primary card-cta" href="https://paypal.me/wholesaleomniverse/500" target="_blank" rel="noopener">Start Standard via PayPal</a>
-          </div>
-          <div class="card">
-            <div class="badge">Premium</div>
-            <div class="price"><strong>$800</strong> / month</div>
-            <p>4 markets &middot; weekly + on-demand reports &middot; cancel anytime</p>
-            <a class="btn btn-dark card-cta" href="https://paypal.me/wholesaleomniverse/800" target="_blank" rel="noopener">Start Premium via PayPal</a>
-          </div>
-        </div>
-        <p style="margin-top:16px; text-align:center;">
-          <a href="outreach.html" class="btn btn-secondary" style="font-size:14px;">Full details &amp; FAQ &#8594;</a>
-        </p>
-      </div>
-    </div>
+<!-- Content -->
+<section id="content" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">Content & Publishing</span>
+    <h2>From Raw Content to Polished Assets</h2>
+    <p>Transcribe, write, proof, design, and package your content — automatically.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="shownotes.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🎙️</div>
+      <div class="tool-name">ShowNotes</div>
+      <div class="tool-desc">Podcast transcript → structured show notes: TL;DR, takeaways, chapter timestamps, resource links, SEO title.</div>
+      <div class="tool-price">$29/episode · $99/mo · $297/mo</div>
+    </a>
+    <a class="tool-card" href="transcribe.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🎧</div>
+      <div class="tool-name">Transcribe</div>
+      <div class="tool-desc">Bulk audio/video → .txt + .srt. Local faster-whisper on CPU — no API fees. Drop files, get timestamped transcripts.</div>
+      <div class="tool-price">$19/episode · $79/mo · $297 pack</div>
+    </a>
+    <a class="tool-card" href="seowriter.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">✍️</div>
+      <div class="tool-name">SEOWriter</div>
+      <div class="tool-desc">Keyword → fully structured SEO article: H1, H2 sections, FAQ, meta tags — ready to publish or hand to a copywriter.</div>
+      <div class="tool-price">$39/article · $149/mo · $499/mo</div>
+    </a>
+    <a class="tool-card" href="proofbot.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">✅</div>
+      <div class="tool-name">ProofBot</div>
+      <div class="tool-desc">LanguageTool + custom heuristics for their/there, alot, repeated words. Markdown issues table + safe auto-fixes.</div>
+      <div class="tool-price">$15/page · $39/mo · $129/mo</div>
+    </a>
+    <a class="tool-card" href="thumbforge.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🖼️</div>
+      <div class="tool-name">ThumbForge</div>
+      <div class="tool-desc">CTR-optimized YouTube thumbnails from your title, niche, and accent color. 1280×720 + 1080×1920 Shorts variant.</div>
+      <div class="tool-price">$9/thumb · $49/mo · $199 pack</div>
+    </a>
+    <a class="tool-card" href="carouselforge.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🎞️</div>
+      <div class="tool-name">CarouselForge</div>
+      <div class="tool-desc">LinkedIn, Instagram, Pinterest carousels from your content. Cover + body + CTA slides in dark, light, or brand themes.</div>
+      <div class="tool-price">$29/carousel · $99/mo · $297/mo</div>
+    </a>
+    <a class="tool-card" href="storyforge.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">✏️</div>
+      <div class="tool-name">StoryForge</div>
+      <div class="tool-desc">Daily genre-matched writing prompts, streak tracking, and full story-bible generation for writers and creators.</div>
+      <div class="tool-price">$19 pack · $49/mo · $197 bible</div>
+    </a>
+    <a class="tool-card" href="gutenbergvoice.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">📚</div>
+      <div class="tool-name">GutenbergVoice</div>
+      <div class="tool-desc">50,000+ public-domain books → narration-ready scripts with speaker attribution, pause markers, and character voice notes.</div>
+      <div class="tool-price">$19 pack · $97/mo · $297 full kit</div>
+    </a>
+    <a class="tool-card" href="paperbrief.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">📖</div>
+      <div class="tool-name">PaperBrief</div>
+      <div class="tool-desc">Drop research PDFs, get a per-vertical brief with key findings and practical takeaways in your inbox every week.</div>
+      <div class="tool-price">$39/mo · $399/yr · $999/yr</div>
+    </a>
+    <a class="tool-card" href="courseforge.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">📦</div>
+      <div class="tool-name">CourseForge</div>
+      <div class="tool-desc">Package ShowNotes, transcripts, SEO articles, and briefs into an upload-ready mini-course for Gumroad or Udemy.</div>
+      <div class="tool-price">$29 kit · $99 DFY · $297/mo</div>
+    </a>
+    <a class="tool-card" href="podcleaner.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🎙️</div>
+      <div class="tool-name">PodCleaner</div>
+      <div class="tool-desc">Raw MP3/WAV/M4A → broadcast-ready 192k master. Silence removed, EBU R128 loudness normalized. ffmpeg chain.</div>
+      <div class="tool-price">$9/episode · $49/mo · $199 pack</div>
+    </a>
+    <a class="tool-card" href="shortsforge.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">📱</div>
+      <div class="tool-name">ShortsForge</div>
+      <div class="tool-desc">YouTube Shorts architect for Motivational, Comedy, and Men's Wellness niches. Hook + trim plan + SEO pack.</div>
+      <div class="tool-price">$29/short · $79/mo · $297/mo</div>
+    </a>
+    <a class="tool-card" href="localize.html" data-cat="content">
+      <div class="tool-tag tag-content">Content</div>
+      <div class="tool-icon">🌐</div>
+      <div class="tool-name">Localize</div>
+      <div class="tool-desc">Translate marketing content into 20 languages with cultural context notes, RTL support, and 3 tone modes.</div>
+      <div class="tool-price">$19/page · $49/mo · $199/mo</div>
+    </a>
   </div>
 </section>
 
-<section>
-  <div class="container">
-    <div class="center" style="max-width:680px; margin:0 auto 36px;">
-      <p class="eyebrow">FAQ</p>
-      <h2>Honest answers.</h2>
-    </div>
-    <div class="faq" style="max-width:760px; margin:0 auto;">
-      <details>
-        <summary>How is the Deal Analyzer different from PropStream or DealMachine?</summary>
-        <p>Those are list-builders. The Deal Analyzer runs the math AFTER you have an address: comps, ARV, repair estimate, MAO, and the LOI text. It pairs with whatever list source you already use.</p>
-      </details>
-      <details>
-        <summary>What markets does Outreach-as-a-Service cover?</summary>
-        <p>Any US market with accessible county property records. Detroit, Memphis, Atlanta, Cleveland, Chicago, Kansas City, Norfolk are our most-active. Smaller markets work too — just need decent open data.</p>
-      </details>
-      <details>
-        <summary>Do you guarantee leads?</summary>
-        <p>No. Anyone guaranteeing motivated seller leads is lying. We guarantee the volume of outreach we promise per tier — typically 800–3,000 contacts/month depending on plan. Hot-reply rates run 1–4% in good markets.</p>
-      </details>
-      <details>
-        <summary>Can I see a sample lead report before signing up?</summary>
-        <p>Yes — email me with your target market and I'll send a sample report from a recent campaign in a similar city.</p>
-      </details>
-      <details>
-        <summary>Can I cancel anytime?</summary>
-        <p>Yes. Month-to-month, no contracts. Cancel via reply email — we don't make you call to leave.</p>
-      </details>
-    </div>
+<!-- E-Commerce -->
+<section id="ecom" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">E-Commerce & Short-Form</span>
+    <h2>Find Products, Go Viral, Sell More</h2>
+    <p>Product research, video repurposing, and Meta Ads automation for online sellers.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="dropship_scout_trends.html" data-cat="ecom">
+      <div class="tool-tag tag-ecom">E-Commerce</div>
+      <div class="tool-icon">🛒</div>
+      <div class="tool-name">DropshipScout</div>
+      <div class="tool-desc">Weekly digest of viral TikTok Shop + Amazon Best Sellers with trend data, margin estimates, and supplier links.</div>
+      <div class="tool-price">$47/mo</div>
+    </a>
+    <a class="tool-card" href="viral_recycler.html" data-cat="ecom">
+      <div class="tool-tag tag-ecom">E-Commerce</div>
+      <div class="tool-icon">♻️</div>
+      <div class="tool-name">ViralRecycler</div>
+      <div class="tool-desc">One long-form video → 5–10 optimized short-form clips for TikTok, Shorts, Reels. Auto-uploaded on a cron schedule.</div>
+      <div class="tool-price">$49/mo · $19 trial · $149/mo</div>
+    </a>
+    <a class="tool-card" href="mediabuyeragent.html" data-cat="media">
+      <div class="tool-tag tag-media">Paid Media</div>
+      <div class="tool-icon">📡</div>
+      <div class="tool-name">Media Buyer</div>
+      <div class="tool-desc">Autonomous Meta Ads optimization — daily budget reallocation, Claude creative generation, CAPI, performance reports.</div>
+      <div class="tool-price">From $497/mo</div>
+    </a>
   </div>
 </section>
 
-<section class="cta-strip">
-  <div class="container">
-    <h2>Try the Deal Analyzer free for 7 days.</h2>
-    <p>No card required to start. Cancel anytime.</p>
-    <a class="btn btn-dark" href="mailto:WholesaleOmniverse@gmail.com?subject=Deal Analyzer Free Trial&body=Hi%20Tyreese%2C%0A%0AI%27d%20like%20to%20start%20a%207-day%20free%20trial%20of%20the%20Deal%20Analyzer.">Start free trial</a>
+<!-- SEO -->
+<section id="seo" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">SEO & Reputation</span>
+    <h2>Rank Higher, Protect Your Brand</h2>
+    <p>Dead-link audits, review management, and sales page diagnostics.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="speedaudit.html" data-cat="seo">
+      <div class="tool-tag tag-seo">SEO</div>
+      <div class="tool-icon">⚡</div>
+      <div class="tool-name">SpeedAudit</div>
+      <div class="tool-desc">Website scored 0–100 across 10 performance signals. Prioritized fix list showing exactly what's hurting your conversions.</div>
+      <div class="tool-price">$77 one-time · $37/mo monitoring</div>
+    </a>
+    <a class="tool-card" href="salespage_doctor.html" data-cat="seo">
+      <div class="tool-tag tag-seo">SEO</div>
+      <div class="tool-icon">💊</div>
+      <div class="tool-name">SalesPageDoctor</div>
+      <div class="tool-desc">Audits Gumroad/Payhip/Sellfy pages for conversion killers: missing trust signals, weak CTAs, mobile issues.</div>
+      <div class="tool-price">$77 one-time · $147 launch pkg</div>
+    </a>
+    <a class="tool-card" href="linkmender.html" data-cat="seo">
+      <div class="tool-tag tag-seo">SEO</div>
+      <div class="tool-icon">🔗</div>
+      <div class="tool-name">LinkMender</div>
+      <div class="tool-desc">Find dead links on resource pages via search dorks, scan for 404s, get outreach emails to claim the replacement spot.</div>
+      <div class="tool-price">$97 audit · $47/mo · $197 list</div>
+    </a>
+    <a class="tool-card" href="reputationguard.html" data-cat="seo">
+      <div class="tool-tag tag-seo">SEO</div>
+      <div class="tool-icon">⭐</div>
+      <div class="tool-name">ReputationGuard</div>
+      <div class="tool-desc">Scans Google and Yelp for negative reviews, drafts professional reply templates, flags acquisition targets.</div>
+      <div class="tool-price">$79/mo · $497 deep audit</div>
+    </a>
   </div>
 </section>
 
-<footer class="site">
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <div class="brand">
-          <img src="assets/logo.png" alt="Wholesale Omniverse">
-          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
-        </div>
-        <p style="color:var(--slate-5); font-size:14px; margin-top:16px; max-width:340px;">
-          A motivated-seller property marketplace. Sellers list for free. Buyers subscribe to weekly off-market lists.
-        </p>
-      </div>
-      <div class="col">
-        <h4>For Homeowners</h4>
-        <a href="sell.html">List my property — free</a>
-        <a href="sell.html#process">How the process works</a>
-        <a href="sell.html#faq">Frequently asked questions</a>
-      </div>
-      <div class="col">
-        <h4>For Investors</h4>
-        <a href="buyers.html">Weekly Buyers List ($97/mo)</a>
-        <a href="tools.html">Deal Analyzer ($197/mo)</a>
-        <a href="tools.html#oas">Outreach-as-a-Service</a>
-      </div>
-      <div class="col">
-        <h4>Contact &amp; Legal</h4>
-        <a href="tel:+12073854041">207-385-4041</a>
-        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
-        <a href="privacy.html">Privacy Policy</a>
-      </div>
+<!-- Local & Niche -->
+<section id="local" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">Local & Niche Media</span>
+    <h2>Community Newsletters That Run Themselves</h2>
+    <p>Hyper-local event digests and niche curation newsletters with affiliate injection.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="towncrier.html" data-cat="local">
+      <div class="tool-tag tag-local">Local</div>
+      <div class="tool-icon">📰</div>
+      <div class="tool-name">TownCrier</div>
+      <div class="tool-desc">Automated hyper-local event newsletter. 6 categories, weekly digest, sponsor slots $50–$200, featured listings $25.</div>
+      <div class="tool-price">$97/mo newsletter service</div>
+    </a>
+    <a class="tool-card" href="nichelens.html" data-cat="local">
+      <div class="tool-tag tag-local">Local</div>
+      <div class="tool-icon">🔭</div>
+      <div class="tool-name">NicheLens</div>
+      <div class="tool-desc">Weekly curated digest for any micro-niche with affiliate link injection. Astrophotography, sourdough, keyboards — anything.</div>
+      <div class="tool-price">$7/mo per niche · $59/yr</div>
+    </a>
+    <a class="tool-card" href="trendscout.html" data-cat="local">
+      <div class="tool-tag tag-local">Local</div>
+      <div class="tool-icon">📈</div>
+      <div class="tool-name">TrendScout</div>
+      <div class="tool-desc">Weekly paid newsletter of ranked digital-product niche trends. Signal-filtered, actionable, no noise.</div>
+      <div class="tool-price">$29/mo · $79/mo pro · $497/yr</div>
+    </a>
+  </div>
+</section>
+
+<!-- SaaS Tools -->
+<section id="saas" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">SaaS & Productivity</span>
+    <h2>Tools That Do the Work for You</h2>
+    <p>Resume tailoring, meal planning, chatbot building, moderation, and more.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="careerforge.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">📄</div>
+      <div class="tool-name">CareerForge</div>
+      <div class="tool-desc">Paste a job description, get a tailored resume with exact ATS keywords — plus a cover letter. Never lose to a filter again.</div>
+      <div class="tool-price">$29/tailoring · $49/mo · $147 pkg</div>
+    </a>
+    <a class="tool-card" href="pantrychef.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">🍽️</div>
+      <div class="tool-name">PantryChef</div>
+      <div class="tool-desc">Personalized weekly meal plans based on what's already in your pantry. Reduce waste, save grocery trips, eat better.</div>
+      <div class="tool-price">$14/mo · $29/mo family · $79 pkg</div>
+    </a>
+    <a class="tool-card" href="inboxzero.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">📥</div>
+      <div class="tool-name">InboxZero</div>
+      <div class="tool-desc">Autonomous IMAP triage for your Gmail. Categorizes, archives promo/newsletters, flags urgent, sends daily digest.</div>
+      <div class="tool-price">$97/mo · $297/mo team · $97 clean</div>
+    </a>
+    <a class="tool-card" href="notiontemplate.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">📋</div>
+      <div class="tool-name">NotionTemplate</div>
+      <div class="tool-desc">8 production-ready Notion templates: habit tracker, CRM, content calendar, and more. Bundle includes spec + landing page.</div>
+      <div class="tool-price">$19/template · $49/mo · $149/mo</div>
+    </a>
+    <a class="tool-card" href="chatconfig.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">💬</div>
+      <div class="tool-name">ChatConfig</div>
+      <div class="tool-desc">FAQ chatbot in 4 export formats (Voiceflow, Botpress, Drift, custom widget) from a JSON manifest. Deploy in 3 minutes.</div>
+      <div class="tool-price">$99 setup · $49/mo · $297 multi</div>
+    </a>
+    <a class="tool-card" href="modbot.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">🛡️</div>
+      <div class="tool-name">ModBot</div>
+      <div class="tool-desc">AI comment moderation for IG, TikTok, YouTube, LinkedIn, X, Reddit. Hide/reply/flag/leave with confidence scores.</div>
+      <div class="tool-price">$97/mo · $297/mo team · $497 audit</div>
+    </a>
+    <a class="tool-card" href="plannerforge.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">📅</div>
+      <div class="tool-name">PlannerForge</div>
+      <div class="tool-desc">Branded PDF planners from a JSON manifest. Daily, weekly, monthly, habit tracker, or goals format. Print-ready at 300 DPI.</div>
+      <div class="tool-price">$14/planner · $29/mo · $99/mo</div>
+    </a>
+    <a class="tool-card" href="deckforge.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">DeckForge</div>
+      <div class="tool-desc">Pitch deck generator on Reveal.js. 3 themes, 10-slide structure, open in Chrome or print to PDF. No PowerPoint needed.</div>
+      <div class="tool-price">$49/deck · $149/mo · $497 founder</div>
+    </a>
+    <a class="tool-card" href="bentoforge.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">🔗</div>
+      <div class="tool-name">BentoForge</div>
+      <div class="tool-desc">Beautiful link-in-bio landing page from a JSON manifest. 6 themes, custom handle, deployable HTML. No subscription required.</div>
+      <div class="tool-price">$19 one-time · $9/mo updates</div>
+    </a>
+    <a class="tool-card" href="templateforge.html" data-cat="saas">
+      <div class="tool-tag tag-saas">SaaS</div>
+      <div class="tool-icon">🎨</div>
+      <div class="tool-name">TemplateForge</div>
+      <div class="tool-desc">Social media template mockup + Canva rebuild brief. PNG preview and exact specs — rebuild in Canva in under 10 minutes.</div>
+      <div class="tool-price">$19/template · $49/mo · $149/mo</div>
+    </a>
+  </div>
+</section>
+
+<!-- Infrastructure -->
+<section id="infra" style="margin-top:48px">
+  <div class="section-header">
+    <span class="section-label">Infrastructure</span>
+    <h2>Keep Your Agent Fleet Running</h2>
+    <p>Fleet management, self-healing, and pipeline automation for the whole system.</p>
+  </div>
+  <div class="tool-grid">
+    <a class="tool-card" href="batman.html" data-cat="infra">
+      <div class="tool-tag tag-infra">Infrastructure</div>
+      <div class="tool-icon">🦇</div>
+      <div class="tool-name">Batman Fleet Manager</div>
+      <div class="tool-desc">Self-healing agent overseer. Scans logs, detects failures, quarantines corrupt data, restores schemas, emails digest.</div>
+      <div class="tool-price">$147/mo · $497/qtr · $997/yr</div>
+    </a>
+  </div>
+</section>
+
+<!-- Spacer -->
+<div style="padding:40px 0"></div>
+
+<!-- CTA Strip -->
+<div class="cta-strip">
+  <h2>Ready to Activate Your First Agent?</h2>
+  <p>Pay via PayPal → email your receipt → activated within 2 hours. No contracts, cancel anytime.</p>
+  <a class="btn-dark" href="pricing.html">See Full Pricing →</a>
+  <a class="btn-white" href="mailto:WholesaleOmniverse@gmail.com">Ask a Question</a>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">Wholesale Omniverse</div>
+      <p class="footer-tagline">Autonomous revenue agents for real estate, content, and e-commerce.</p>
     </div>
-    <div class="bottom">
-      <div>© 2026 Wholesale Omniverse LLC. All rights reserved.</div>
-      <div><a href="index.html">Home</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy</a></div>
+    <div>
+      <div class="footer-heading">Quick Links</div>
+      <ul class="footer-links">
+        <li><a href="pricing.html">All Pricing</a></li>
+        <li><a href="deal-analyzer.html">Deal Analyzer</a></li>
+        <li><a href="outreach.html">Outreach Service</a></li>
+        <li><a href="dropship_scout_trends.html">DropshipScout</a></li>
+        <li><a href="batman.html">Batman Fleet Manager</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Real Estate</div>
+      <ul class="footer-links">
+        <li><a href="deal-analyzer.html">Deal Analyzer</a></li>
+        <li><a href="hudscout.html">HUDScout</a></li>
+        <li><a href="leadsieve.html">Lead Sieve</a></li>
+        <li><a href="buyer-finder.html">Buyer Finder</a></li>
+        <li><a href="followup.html">Follow-Up Sequence</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Contact</div>
+      <ul class="footer-links">
+        <li><a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a></li>
+        <li><a href="tel:2073854041">207-385-4041</a></li>
+        <li><a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">paypal.me/wholesaleomniverse</a></li>
+      </ul>
     </div>
   </div>
+  <div class="footer-bottom">© 2026 Wholesale Omniverse LLC</div>
 </footer>
 
-<script src="script.js"></script>
+<script>
+function filterTools(q) {
+  const term = q.toLowerCase();
+  document.querySelectorAll('.tool-card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = text.includes(term) ? '' : 'none';
+  });
+}
+
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tool-card').forEach(card => {
+    card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+  });
+}
+</script>
+
 </body>
 </html>
