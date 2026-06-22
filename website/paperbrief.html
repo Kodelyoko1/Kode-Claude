@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PaperBrief — academic research papers → actionable business briefs. Drop PDFs into a folder, get a clean per-vertical digest in your inbox every week. $39/mo, $399/yr, $999/yr enterprise.">
+  <meta property="og:title" content="PaperBrief — Academic Research → Actionable Business Intelligence">
+  <meta property="og:description" content="Stop drowning in 40-page PDFs. Drop research papers into a folder, get a clean per-vertical brief in your inbox every week. $39/mo, $399/yr.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/paperbrief.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/paperbrief.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PaperBrief",
+    "applicationCategory": "BusinessApplication",
+    "description": "Autonomous research-paper summarization newsletter. Ingests PDFs, emits per-vertical briefs with key findings and practical takeaways.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/paperbrief.html",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Monthly",
+        "price": "39",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "RecurringChargeSpecification",
+          "billingPeriod": "P1M"
+        }
+      },
+      {
+        "@type": "Offer",
+        "name": "Annual",
+        "price": "399",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "RecurringChargeSpecification",
+          "billingPeriod": "P1Y"
+        }
+      },
+      {
+        "@type": "Offer",
+        "name": "Enterprise",
+        "price": "999",
+        "priceCurrency": "USD",
+        "priceSpecification": {
+          "@type": "RecurringChargeSpecification",
+          "billingPeriod": "P1Y"
+        }
+      }
+    ],
+    "operatingSystem": "Linux, macOS, Windows",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>PaperBrief — Academic Research → Actionable Business Intelligence | Wholesale Omniverse</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f172a;
+      --amber: #f59e0b;
+      --amber-2: #d97706;
+      --slate-1: #f8fafc;
+      --slate-3: #e2e8f0;
+      --slate-5: #64748b;
+      --slate-6: #475569;
+      --slate-7: #334155;
+      --white: #ffffff;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; color: var(--navy); background: #fff; line-height: 1.6; }
+    a { color: var(--amber); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; display: block; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    code { font-family: ui-monospace, "Cascadia Code", monospace; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88em; color: var(--slate-7); }
+
+    /* ── Container ─────────────────────────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Header / Nav ──────────────────────────────────────────────── */
+    header.site { background: var(--navy); border-bottom: 1px solid #1e293b; padding: 16px 0; position: sticky; top: 0; z-index: 100; }
+    header.site .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand img { width: 36px; height: 36px; border-radius: 6px; }
+    .brand-text { color: #fff; font-size: 14px; font-weight: 800; letter-spacing: 1px; }
+    .brand-text .accent { color: var(--amber); }
+    .nav-back { color: #94a3b8; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .nav-back:hover { color: var(--amber); text-decoration: none; }
+
+    /* ── Hero ──────────────────────────────────────────────────────── */
+    .pb-hero { background: var(--navy); color: #fff; padding: 80px 24px 64px; text-align: center; }
+    .pb-hero .eyebrow { color: var(--amber); font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+    .pb-hero h1 { color: #fff; font-size: clamp(28px, 4vw, 48px); font-weight: 900; line-height: 1.15; margin-bottom: 18px; }
+    .pb-hero h1 span { color: var(--amber); }
+    .pb-hero .lede { color: #94a3b8; font-size: 18px; max-width: 620px; margin: 0 auto 36px; line-height: 1.7; }
+    .pb-btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 48px; }
+    .pb-btns a { padding: 13px 26px; border-radius: 8px; font-weight: 700; font-size: 15px; text-decoration: none; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+    .btn-primary { background: var(--amber); color: var(--navy); }
+    .btn-primary:hover { background: var(--amber-2); text-decoration: none; }
+    .btn-outline { background: transparent; border: 2px solid #475569; color: #94a3b8; }
+    .btn-outline:hover { border-color: #94a3b8; text-decoration: none; }
+
+    /* ── Brief Mockup Card ─────────────────────────────────────────── */
+    .brief-card { background: #0d1117; border: 1px solid #30363d; border-radius: 14px; padding: 0; max-width: 660px; margin: 0 auto; text-align: left; overflow: hidden; }
+    .bc-topbar { background: #161b22; padding: 12px 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #30363d; }
+    .bc-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .bc-dot-red { background: #ef4444; }
+    .bc-dot-yellow { background: #f59e0b; }
+    .bc-dot-green { background: #22c55e; }
+    .bc-filename { color: #6a737d; font-size: 12px; font-family: ui-monospace, "Cascadia Code", monospace; margin-left: 6px; }
+    .bc-body { padding: 24px 28px; }
+    .bc-vertical-tag { display: inline-block; background: rgba(245,158,11,.15); color: var(--amber); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+    .bc-title { color: #e2e8f0; font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .bc-date { color: #6a737d; font-size: 12px; margin-bottom: 18px; font-family: ui-monospace, "Cascadia Code", monospace; }
+    .bc-findings-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #6a737d; margin-bottom: 10px; }
+    .bc-findings { list-style: none; padding: 0; margin: 0 0 20px; }
+    .bc-findings li { color: #c9d1d9; font-size: 14px; line-height: 1.6; padding: 6px 0; display: flex; gap: 10px; align-items: flex-start; border-bottom: 1px solid #21262d; }
+    .bc-findings li:last-child { border-bottom: none; }
+    .bc-findings li::before { content: "→"; color: var(--amber); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .bc-takeaway { background: rgba(245,158,11,.06); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 12px 16px; }
+    .bc-takeaway-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+    .bc-takeaway-text { color: #94a3b8; font-size: 13px; line-height: 1.65; }
+
+    /* ── Section headers ───────────────────────────────────────────── */
+    .section-label { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin-bottom: 12px; }
+    .section-h2 { text-align: center; font-size: clamp(22px, 3vw, 34px); color: var(--navy); margin-bottom: 8px; font-weight: 800; }
+    .section-sub { text-align: center; color: var(--slate-5); max-width: 560px; margin: 0 auto 40px; font-size: 16px; line-height: 1.65; }
+
+    /* ── Features Grid ─────────────────────────────────────────────── */
+    .features-section { background: var(--slate-1); border-top: 1px solid var(--slate-3); border-bottom: 1px solid var(--slate-3); }
+    .features-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); max-width: 900px; margin: 0 auto; padding: 0 24px 60px; }
+    .feat { background: #fff; border: 1px solid var(--slate-3); border-radius: 12px; padding: 24px; }
+    .feat-icon { font-size: 30px; margin-bottom: 12px; }
+    .feat h3 { color: var(--navy); font-size: 17px; margin-bottom: 8px; font-weight: 700; }
+    .feat p { color: var(--slate-6); font-size: 14px; line-height: 1.65; }
+
+    /* ── How It Works ──────────────────────────────────────────────── */
+    .steps-section { padding: 60px 24px; }
+    .steps-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); max-width: 860px; margin: 0 auto; }
+    .step-card { text-align: center; padding: 24px; }
+    .step-number { width: 52px; height: 52px; background: var(--amber); color: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; margin: 0 auto 18px; }
+    .step-card h3 { color: var(--navy); font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step-card p { color: var(--slate-5); font-size: 14px; line-height: 1.65; }
+    .step-arrow { display: flex; align-items: center; justify-content: center; font-size: 28px; color: #cbd5e1; padding-top: 52px; }
+    @media (max-width: 640px) { .step-arrow { display: none; } }
+
+    /* ── Pricing ───────────────────────────────────────────────────── */
+    .plans-section { background: var(--slate-1); border-top: 1px solid var(--slate-3); padding: 60px 24px; }
+    .plans { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); max-width: 860px; margin: 0 auto; }
+    .plan-card { background: #fff; border: 2px solid var(--slate-3); border-radius: 14px; padding: 28px; display: flex; flex-direction: column; }
+    .plan-card.featured { border-color: var(--amber); box-shadow: 0 8px 32px rgba(245,158,11,.14); }
+    .plan-badge { display: inline-block; background: var(--amber); color: var(--navy); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+    .plan-price { font-size: 36px; font-weight: 900; color: var(--navy); margin-bottom: 4px; }
+    .plan-price span { font-size: 16px; font-weight: 400; color: var(--slate-5); }
+    .plan-name { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .plan-desc { font-size: 14px; color: var(--slate-6); margin-bottom: 20px; flex: 1; line-height: 1.6; }
+    .plan-features { list-style: none; padding: 0; margin: 0 0 24px; font-size: 14px; color: var(--slate-7); }
+    .plan-features li { padding: 5px 0; display: flex; gap: 8px; align-items: flex-start; }
+    .plan-features li::before { content: "✓"; color: var(--amber); font-weight: 700; flex-shrink: 0; }
+    .plan-cta { display: block; text-align: center; background: var(--amber); color: var(--navy); font-weight: 700; padding: 12px; border-radius: 8px; text-decoration: none; margin-top: auto; }
+    .plan-cta:hover { background: var(--amber-2); text-decoration: none; }
+    .plan-cta.outline { background: transparent; border: 2px solid var(--amber); color: var(--amber); }
+    .plan-cta.outline:hover { background: rgba(245,158,11,.08); text-decoration: none; }
+
+    /* ── FAQ ───────────────────────────────────────────────────────── */
+    .faq-section { padding: 60px 24px 0; }
+    .faq-wrap { max-width: 700px; margin: 0 auto; padding-bottom: 60px; }
+    .faq-item { border-bottom: 1px solid var(--slate-3); padding: 20px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-weight: 700; color: var(--navy); font-size: 16px; margin-bottom: 8px; }
+    .faq-a { color: var(--slate-6); font-size: 15px; line-height: 1.65; }
+
+    /* ── Footer ────────────────────────────────────────────────────── */
+    footer.site { background: var(--navy); padding: 48px 0 24px; }
+    footer.site .row { display: grid; gap: 32px; grid-template-columns: 2fr 1fr 1fr 1fr; }
+    @media (max-width: 720px) { footer.site .row { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 440px) { footer.site .row { grid-template-columns: 1fr; } }
+    footer.site .col h4 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.5px; }
+    footer.site .col a { display: block; color: var(--slate-5); font-size: 14px; margin-bottom: 8px; text-decoration: none; }
+    footer.site .col a:hover { color: var(--amber); text-decoration: none; }
+    footer.site .col p { color: var(--slate-5); font-size: 14px; line-height: 1.65; margin-top: 14px; max-width: 280px; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid #1e293b; margin-top: 40px; padding-top: 24px; font-size: 13px; color: var(--slate-5); }
+    .footer-bottom a { color: var(--slate-5); }
+    .footer-bottom a:hover { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────── -->
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <a href="tools.html" class="nav-back">← Back to Tools</a>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────────── -->
+<section class="pb-hero">
+  <p class="eyebrow">Research Automation · PDF Ingestion · Weekly Digest</p>
+  <h1>Academic Research →<br><span>Actionable Business Intelligence</span></h1>
+  <p class="lede">Stop drowning in 40-page PDFs. Drop research papers into a folder, get a clean per-vertical brief in your inbox every week — key findings, practical takeaways, and what it means for your business.</p>
+  <div class="pb-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/39" target="_blank" rel="noopener">Start Brief Subscription — $39/mo →</a>
+    <a class="btn-outline" href="#pricing">View Pricing</a>
+  </div>
+
+  <!-- Sample Brief Mockup -->
+  <div class="brief-card">
+    <div class="bc-topbar">
+      <div class="bc-dot bc-dot-red"></div>
+      <div class="bc-dot bc-dot-yellow"></div>
+      <div class="bc-dot bc-dot-green"></div>
+      <span class="bc-filename">data/pb_briefs/2026-06-20-ecommerce-logistics.md</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-vertical-tag">Vertical: E-Commerce Logistics</div>
+      <div class="bc-title">Weekly Research Brief — June 20, 2026</div>
+      <div class="bc-date">Generated 2026-06-20 · 4 papers ingested · 1,240 words distilled to 280</div>
+      <div class="bc-findings-label">Key Findings</div>
+      <ul class="bc-findings">
+        <li>Same-day delivery adoption slowed 18% in Q1 2026 as consumers prioritize cost-certainty over speed — discount framing outperforms speed framing 3:1 in A/B tests.</li>
+        <li>Returns logistics now represent 23% of total fulfillment cost for mid-market DTC brands; predictive return-likelihood scoring reduced net returns by 31% in one trial.</li>
+        <li>Carbon-labeled packaging lifted perceived brand trust +14 pts NPS among 25–44 urban buyers, with zero negative impact on conversion in the study sample.</li>
+      </ul>
+      <div class="bc-takeaway">
+        <div class="bc-takeaway-label">Key Takeaway for Your Business</div>
+        <div class="bc-takeaway-text">Lead your next email campaign with price-lock messaging rather than delivery speed. Audit your return flow — a simple pre-return quiz could cut your returns cost by a third before touching your fulfillment partner.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────────── -->
+<section class="features-section">
+  <div style="text-align:center;padding:60px 24px 40px">
+    <p class="section-label">What You Get</p>
+    <h2 class="section-h2">Research turned into reading that matters</h2>
+    <p class="section-sub">PaperBrief handles the ingestion, parsing, and synthesis so you can stay informed without the reading debt.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🗂️</div>
+      <h3>Multi-Vertical Sorting</h3>
+      <p>Papers are automatically routed to the correct vertical — E-Commerce, Marketing, Finance, Health, Logistics, and more. Each vertical gets its own brief so you never mix signals across topics.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📄</div>
+      <h3>PDF Ingestion</h3>
+      <p>Drop PDFs directly into <code>data/pb_pdfs/</code> — no upload portal, no web dashboard, no browser required. The agent picks them up automatically on its next run.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📬</div>
+      <h3>Weekly Digest Email</h3>
+      <p>A clean HTML summary email lands in your inbox every Monday morning — per-vertical sections, bullet findings, and an action-item takeaway for each cluster of papers ingested that week.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🤖</div>
+      <h3>Claude AI Summaries</h3>
+      <p>When <code>ANTHROPIC_API_KEY</code> is set, PaperBrief upgrades from heuristic extraction to full Claude-written analysis — nuanced synthesis, cross-paper comparisons, and business-language takeaways.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ────────────────────────────────────────────────── -->
+<section class="steps-section">
+  <p class="section-label">How It Works</p>
+  <h2 class="section-h2">Three steps. Zero manual work.</h2>
+  <p class="section-sub">The whole pipeline runs autonomously on a cron schedule — you interact with it by dropping files and reading email.</p>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Drop PDFs</h3>
+      <p>Place research paper PDFs into <code>data/pb_pdfs/</code>. Name them anything — the agent reads the content, not the filename. Drop one or a hundred; the queue processes automatically.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Agent Processes</h3>
+      <p>PaperBrief extracts text, detects the vertical, pulls key findings and stats, and writes a plain-language summary. Claude AI writes the takeaway when the API key is set; heuristics handle it otherwise.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Brief Lands in Inbox</h3>
+      <p>A formatted digest email arrives Monday morning with every vertical covered that week. Briefs are also saved to <code>data/pb_briefs/</code> and auto-fed into SEOWriter for long-form content downstream.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────────────── -->
+<section class="plans-section" id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">Pick your research depth</h2>
+  <p class="section-sub">Send payment via PayPal. Access key arrives within 2 hours. All plans include the weekly digest email.</p>
+  <div class="plans">
+
+    <!-- Monthly -->
+    <div class="plan-card">
+      <div class="plan-price">$39<span>/mo</span></div>
+      <div class="plan-name">Monthly</div>
+      <div class="plan-desc">Perfect for solo founders and researchers who want to stay on top of one niche without reading every paper themselves.</div>
+      <ul class="plan-features">
+        <li>Weekly brief email every Monday</li>
+        <li>1 research vertical</li>
+        <li>PDF batch ingestion via folder drop</li>
+        <li>Heuristic extraction + key findings</li>
+        <li>Briefs saved to <code>pb_briefs/</code></li>
+      </ul>
+      <a class="plan-cta outline" href="https://paypal.me/wholesaleomniverse/39" target="_blank" rel="noopener">Start Monthly — $39/mo →</a>
+    </div>
+
+    <!-- Annual -->
+    <div class="plan-card">
+      <div class="plan-price">$399<span>/yr</span></div>
+      <div class="plan-name">Annual</div>
+      <div class="plan-desc">For teams and power researchers tracking multiple verticals. Priority processing means your PDFs move to the front of the queue every run.</div>
+      <ul class="plan-features">
+        <li>Everything in Monthly</li>
+        <li>Up to 3 research verticals</li>
+        <li>Priority processing each cycle</li>
+        <li>Cross-vertical comparison notes</li>
+        <li>Auto-feed into SEOWriter pipeline</li>
+        <li>Save $69 vs. monthly billing</li>
+      </ul>
+      <a class="plan-cta outline" href="https://paypal.me/wholesaleomniverse/399" target="_blank" rel="noopener">Go Annual — $399/yr →</a>
+    </div>
+
+    <!-- Enterprise — FEATURED -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Best Value</div>
+      <div class="plan-price">$999<span>/yr</span></div>
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-desc">White-label briefs for agencies, publishers, and consulting firms. Run PaperBrief under your own brand and deliver research digests to your own clients.</div>
+      <ul class="plan-features">
+        <li>Everything in Annual</li>
+        <li>Unlimited verticals</li>
+        <li>White-label output (your logo + brand)</li>
+        <li>Custom branding in digest emails</li>
+        <li>Claude AI summaries included</li>
+        <li>Dedicated setup call</li>
+        <li>Priority email support</li>
+      </ul>
+      <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/999" target="_blank" rel="noopener">Get Enterprise — $999/yr →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────── -->
+<section class="faq-section">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:40px">
+  <div class="faq-item">
+    <div class="faq-q">What is a "vertical"?</div>
+    <div class="faq-a">A vertical is a research topic category — for example, E-Commerce Logistics, Digital Marketing, Consumer Psychology, Health &amp; Wellness, or Finance. PaperBrief reads each paper's content and routes it to the correct vertical automatically. Your digest is then organized by vertical so findings from unrelated fields never get mixed together. On the Monthly plan you specify one vertical; Annual gives you three; Enterprise is unlimited.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do I need an Anthropic API key to use PaperBrief?</div>
+    <div class="faq-a">No. PaperBrief's heuristic extraction engine runs with zero external API keys — it parses PDFs locally, pulls key sentences and statistics, and writes a structured brief without any LLM. When you set <code>ANTHROPIC_API_KEY</code> in your <code>.env</code> file, the agent upgrades to Claude-written synthesis for richer, more nuanced takeaways. The API key is opt-in, not required.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How many papers can I submit at once?</div>
+    <div class="faq-a">There is no hard limit on the number of PDFs you can drop into <code>data/pb_pdfs/</code> at one time. The agent processes all unread papers on each run. For very large batches (50+ papers) the agent may spread processing across two consecutive cron cycles to avoid overloading the email digest with too many findings at once. Each processed paper is tracked so it is never re-summarized on a future run.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I add my own verticals?</div>
+    <div class="faq-a">Yes. Verticals are defined as keyword clusters in <code>paperbrief/tools.py</code>. You can add a new entry to the <code>VERTICALS</code> dict with the name and a list of topic keywords — the routing logic scores each paper against every vertical and assigns it to the highest match. On Enterprise, custom vertical configuration is included in the setup call. On Monthly and Annual, you can edit the config file yourself following the inline comments.</div>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <a href="index.html" class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </a>
+        <p>Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="seowriter.html">SEOWriter ($39/article)</a>
+        <a href="proofbot.html">ProofBot ($15/page)</a>
+        <a href="shownotes.html">ShowNotes ($29/ep)</a>
+        <a href="transcribe.html">Transcribe ($19/ep)</a>
+        <a href="paperbrief.html">PaperBrief ($39/mo)</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">paypal.me/wholesaleomniverse</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a> &nbsp;&middot;&nbsp; <a href="tools.html">All Tools</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

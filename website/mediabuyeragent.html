@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Media Buyer — autonomous Meta Ads optimization agent for lead gen and e-commerce. Daily budget management, creative generation, CAPI integration. From $497/mo.">
+  <meta property="og:title" content="Media Buyer — Autonomous Meta Ads Optimization Agent">
+  <meta property="og:description" content="AI-powered Meta Ads controller for real estate lead gen and e-commerce. Automatic budget reallocation, creative generation, and daily performance reporting.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/mediabuyeragent.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/mediabuyeragent.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Media Buyer",
+    "applicationCategory": "BusinessApplication",
+    "description": "Autonomous Meta Ads optimization agent for real estate lead gen and e-commerce. Daily budget management, creative generation with Claude AI, and Conversions API integration.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/mediabuyeragent.html",
+    "offers": [
+      {"@type":"Offer","name":"Lead Gen","price":"497","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"E-Commerce","price":"797","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Enterprise","price":"1497","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}}
+    ],
+    "operatingSystem": "Linux, macOS, Windows",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>Media Buyer — Autonomous Meta Ads Optimization | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .mb-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .mb-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .mb-hero .lede{color:#94a3b8;font-size:18px;max-width:640px;margin:0 auto 36px}
+    .mb-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .mb-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline:hover{border-color:#94a3b8;text-decoration:none}
+
+    /* Dashboard mockup */
+    .dashboard-card{background:#0d1117;border:1px solid #30363d;border-radius:14px;padding:28px;max-width:700px;margin:40px auto 0;text-align:left;font-family:'Courier New',monospace}
+    .dash-bar{display:flex;gap:6px;margin-bottom:20px;align-items:center}
+    .dd{width:12px;height:12px;border-radius:50%}
+    .dash-filename{font-size:12px;color:#6a737d;margin-left:8px}
+    .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+    .dash-metric{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px}
+    .dash-label{font-size:10px;color:#6a737d;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .dash-val{font-size:20px;font-weight:700}
+    .dash-val.green{color:#56d364}
+    .dash-val.amber{color:#f59e0b}
+    .dash-val.blue{color:#79c0ff}
+    .dash-val.white{color:#c9d1d9}
+    .dash-delta{font-size:10px;color:#6a737d;margin-top:2px}
+    .dash-delta.up{color:#56d364}
+    .dash-delta.down{color:#f85149}
+    .action-row{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+    .action-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;flex-shrink:0}
+    .badge-pause{background:#2d1b1b;color:#f85149;border:1px solid #f85149}
+    .badge-scale{background:#1b2d1b;color:#56d364;border:1px solid #56d364}
+    .badge-create{background:#1b1b2d;color:#79c0ff;border:1px solid #79c0ff}
+    .action-text{font-size:12px;color:#c9d1d9}
+    .action-reason{font-size:10px;color:#6a737d}
+
+    .profile-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:900px;margin:0 auto;padding:0 24px 60px}
+    .profile-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px}
+    .profile-icon{font-size:32px;margin-bottom:12px}
+    .profile-name{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:6px}
+    .profile-desc{font-size:14px;color:var(--slate-6);margin-bottom:16px}
+    .profile-tags{display:flex;flex-wrap:wrap;gap:6px}
+    .profile-tag{font-size:11px;background:#f1f5f9;color:var(--navy);padding:3px 10px;border-radius:6px;font-weight:600}
+
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:900px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber);margin-top:8px}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+
+    .faq{max-width:700px;margin:0 auto;padding:0 24px 80px}
+    .faq h2{text-align:center;margin-bottom:36px}
+    details{border:1px solid var(--slate-3);border-radius:10px;padding:18px 22px;margin-bottom:12px}
+    summary{font-weight:700;color:var(--navy);cursor:pointer;font-size:15px;list-style:none}
+    summary::-webkit-details-marker{display:none}
+    details[open] summary{color:var(--amber-2)}
+    details p{margin:12px 0 0;color:var(--slate-6);font-size:14px;line-height:1.7}
+
+    .section-label{display:block;text-align:center;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--amber);margin-bottom:12px}
+    .section-heading{text-align:center;font-size:clamp(22px,3vw,32px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);font-size:16px;margin-bottom:48px;max-width:560px;margin-left:auto;margin-right:auto}
+
+    .warning-banner{background:#1c1208;border:1px solid #7c4a00;border-radius:10px;padding:14px 18px;max-width:700px;margin:0 auto 0;font-size:13px;color:#d29922;text-align:center}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="tools.html" class="nav-back">← Back to Tools</a>
+  <a href="index.html" class="nav-logo">Wholesale Omniverse</a>
+</nav>
+
+<!-- Hero -->
+<section class="mb-hero">
+  <div style="max-width:860px;margin:0 auto">
+    <div style="display:inline-block;background:rgba(245,158,11,.15);color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px">Paid Media Agent</div>
+    <h1>Media Buyer</h1>
+    <p style="font-size:clamp(20px,2.5vw,28px);color:#e2e8f0;font-weight:600;margin-bottom:16px">Autonomous Meta Ads Optimization — Running Daily While You Sleep</p>
+    <p class="lede">AI-powered Meta Ads controller that wakes up every morning, reads your campaign performance, reallocates budget from losers to winners, pauses underperforming creatives, generates new ad copy with Claude, and emails you a plain-English daily report.</p>
+    <div class="mb-btns">
+      <a class="btn-primary" href="mailto:WholesaleOmniverse@gmail.com?subject=Media Buyer Inquiry" target="_blank" rel="noopener">Get Started — Contact Us →</a>
+      <a class="btn-outline" href="#pricing">See Pricing</a>
+    </div>
+
+    <!-- Dashboard mockup -->
+    <div class="dashboard-card">
+      <div class="dash-bar">
+        <div class="dd" style="background:#ff5f57"></div>
+        <div class="dd" style="background:#febc2e"></div>
+        <div class="dd" style="background:#28c840"></div>
+        <span class="dash-filename">media_buyer — daily_report · 2026-06-21 · Lead Gen profile</span>
+      </div>
+      <div class="dash-grid">
+        <div class="dash-metric"><div class="dash-label">Spend Today</div><div class="dash-val white">$284</div><div class="dash-delta up">↑ $12 vs yesterday</div></div>
+        <div class="dash-metric"><div class="dash-label">Leads</div><div class="dash-val green">19</div><div class="dash-delta up">↑ 4 vs avg</div></div>
+        <div class="dash-metric"><div class="dash-label">CPL</div><div class="dash-val amber">$14.95</div><div class="dash-delta down">↓ $2.10 vs target</div></div>
+        <div class="dash-metric"><div class="dash-label">ROAS</div><div class="dash-val blue">3.8×</div><div class="dash-delta up">↑ 0.4× vs week</div></div>
+      </div>
+      <div class="action-row"><span class="action-badge badge-pause">PAUSE</span><div><div class="action-text">Ad Set "Motivated Sellers — Age 45–65"</div><div class="action-reason">CPL $41.20 · 3× over target · 5 consecutive days</div></div></div>
+      <div class="action-row"><span class="action-badge badge-scale">SCALE</span><div><div class="action-text">Ad Set "Distressed Property — Maine + NH"</div><div class="action-reason">CPL $9.80 · budget increased +$50/day</div></div></div>
+      <div class="action-row"><span class="action-badge badge-create">CREATE</span><div><div class="action-text">New creative for "Cash Offer — 48 Hours"</div><div class="action-reason">Claude-generated copy · 3 variants queued</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Two profiles -->
+<section style="padding:60px 24px 0">
+  <span class="section-label">Two Profiles</span>
+  <h2 class="section-heading">Lead Gen or E-Commerce — One Codebase</h2>
+  <p class="section-sub">Choose the profile that matches your business. Both run fully autonomously once configured.</p>
+  <div class="profile-grid">
+    <div class="profile-card">
+      <div class="profile-icon">🏠</div>
+      <div class="profile-name">Lead Gen Profile</div>
+      <div class="profile-desc">Built for real estate wholesalers. Drives traffic to Instant Forms, processes leads in under 60 seconds via FastAPI webhook, validates phone numbers with Twilio Lookup, and routes hot leads directly to your CRM or email.</div>
+      <div class="profile-tags">
+        <span class="profile-tag">Meta Instant Forms</span>
+        <span class="profile-tag">FastAPI webhook</span>
+        <span class="profile-tag">Twilio phone validation</span>
+        <span class="profile-tag">Real estate targeting</span>
+      </div>
+    </div>
+    <div class="profile-card" style="border-color:var(--amber)">
+      <div class="profile-icon">🛒</div>
+      <div class="profile-name">E-Commerce Profile</div>
+      <div class="profile-desc">Built for Shopify stores. Reads Conversions API (CAPI) data for accurate attribution, optimizes for purchase ROAS, and scales winning product ad sets while pausing underperforming SKUs — automatically every morning.</div>
+      <div class="profile-tags">
+        <span class="profile-tag">Shopify + CAPI</span>
+        <span class="profile-tag">Purchase ROAS optimization</span>
+        <span class="profile-tag">Product ad sets</span>
+        <span class="profile-tag">DPA support</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section>
+  <span class="section-label" style="padding-top:24px">Features</span>
+  <h2 class="section-heading">Every Morning, Before You Wake Up</h2>
+  <p class="section-sub">Runs on a daily cron. Defaults to dry-run — you review before it touches your account. Set MB_LIVE=1 to push actions automatically.</p>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">📊</div>
+      <h3>Budget Reallocation</h3>
+      <p>Reads 7-day performance by ad set. Winners above ROAS threshold get budget increases. Consistent losers get paused. Pure-function decision rules — no ML, fully auditable.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✍️</div>
+      <h3>Claude Creative Generation</h3>
+      <p>When a creative burns out (frequency ≥ 3.5 or CTR drops below baseline), the agent calls Claude to generate 3 new ad copy variants matched to your brand voice and target audience.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📡</div>
+      <h3>Conversions API (CAPI)</h3>
+      <p>Server-side event tracking bypasses iOS 14+ signal loss. The e-commerce profile sends purchase and add-to-cart events directly to Meta from your server — accurate attribution even with ad blockers.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📧</div>
+      <h3>Daily Performance Report</h3>
+      <p>Plain-English email every morning: spend, leads/purchases, CPL/CPA, ROAS, and a bulleted list of every action taken overnight with the reason. Audit log also written to JSONL for history.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing" style="background:#f8fafc;padding:60px 24px 20px;text-align:center">
+  <span class="section-label">Pricing</span>
+  <h2 class="section-heading">Managed Meta Ads — Without an Agency Markup</h2>
+  <p class="section-sub">Email us to get started. We configure the agent for your account and hand you the keys.</p>
+  <div class="warning-banner" style="margin-bottom:40px">⚠️ This agent requires a Meta Business account + ad spend budget. Minimum recommended spend: $30/day. Agent setup requires a 1-hour onboarding call.</div>
+  <div class="plans">
+    <div class="plan-card">
+      <div class="plan-price">$497<span>/mo</span></div>
+      <div class="plan-name">Lead Gen</div>
+      <div class="plan-desc">For real estate wholesalers running Instant Form campaigns. Daily optimization + 60-second lead processing + phone validation.</div>
+      <ul class="plan-features">
+        <li>Lead Gen profile configured</li>
+        <li>Daily budget reallocation</li>
+        <li>FastAPI lead webhook</li>
+        <li>Twilio phone validation</li>
+        <li>Daily performance email</li>
+        <li>Dry-run by default, MB_LIVE on request</li>
+      </ul>
+      <a class="plan-cta" href="mailto:WholesaleOmniverse@gmail.com?subject=Media Buyer Lead Gen" target="_blank" rel="noopener">Get Started — $497/mo</a>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Requested</div>
+      <div class="plan-price">$797<span>/mo</span></div>
+      <div class="plan-name">E-Commerce</div>
+      <div class="plan-desc">For Shopify stores wanting real attribution and automatic scaling. CAPI + purchase ROAS optimization + DPA ad sets.</div>
+      <ul class="plan-features">
+        <li>E-Com profile configured</li>
+        <li>All Lead Gen features</li>
+        <li>Shopify CAPI integration</li>
+        <li>DPA (Dynamic Product Ads)</li>
+        <li>Purchase ROAS targeting</li>
+        <li>Creative burn-out detection</li>
+      </ul>
+      <a class="plan-cta" href="mailto:WholesaleOmniverse@gmail.com?subject=Media Buyer Ecom" target="_blank" rel="noopener">Get Started — $797/mo</a>
+    </div>
+    <div class="plan-card">
+      <div class="plan-price">$1,497<span>/mo</span></div>
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-desc">Multiple ad accounts, both profiles active, weekly strategy call, custom decision rules, and white-label reporting for agencies.</div>
+      <ul class="plan-features">
+        <li>Both profiles active</li>
+        <li>Up to 3 ad accounts</li>
+        <li>Custom decision thresholds</li>
+        <li>Weekly strategy call</li>
+        <li>White-label reports</li>
+        <li>Dedicated Slack channel</li>
+      </ul>
+      <a class="plan-cta" href="mailto:WholesaleOmniverse@gmail.com?subject=Media Buyer Enterprise" target="_blank" rel="noopener">Contact for Enterprise</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <h2>Frequently Asked Questions</h2>
+  <details>
+    <summary>Does the agent spend my money automatically?</summary>
+    <p>No — by default it runs in dry-run mode and emails you a list of planned actions every morning. You review the report and reply to approve. Set <code style="font-size:12px;background:#f1f5f9;padding:1px 5px;border-radius:3px">MB_LIVE=1</code> in your environment only when you want actions to push directly to Meta without approval.</p>
+  </details>
+  <details>
+    <summary>What Meta permissions do you need?</summary>
+    <p>A System User token or a 60-day OAuth token with ads_management and business_management permissions on your Meta Business Suite account. We walk through the setup on the onboarding call.</p>
+  </details>
+  <details>
+    <summary>How is this different from hiring a media buyer?</summary>
+    <p>A human media buyer charges $2,000–$5,000/mo plus a percentage of ad spend, works 9-to-5, and makes subjective decisions. The Media Buyer agent runs 24/7, applies consistent pure-function rules, logs every decision, and costs a fraction of a freelancer — with no percentage-of-spend markup.</p>
+  </details>
+  <details>
+    <summary>What ad spend budget do I need?</summary>
+    <p>Minimum $30/day ($900/mo) to generate enough data for the optimization rules to be meaningful. Most clients run $100–$500/day. The agent is designed to be profitable at this spend level; if your ad spend is under $30/day, a manual human review is likely more cost-effective.</p>
+  </details>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">Wholesale Omniverse</div>
+      <p class="footer-tagline">Autonomous revenue agents for real estate, content, and e-commerce.</p>
+    </div>
+    <div>
+      <div class="footer-heading">E-Commerce Tools</div>
+      <ul class="footer-links">
+        <li><a href="dropship_scout_trends.html">DropshipScout</a></li>
+        <li><a href="viral_recycler.html">ViralRecycler</a></li>
+        <li><a href="carouselforge.html">CarouselForge</a></li>
+        <li><a href="thumbforge.html">ThumbForge</a></li>
+        <li><a href="shortsforge.html">ShortsForge</a></li>
+        <li><a href="pricing.html">All Tools →</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Real Estate</div>
+      <ul class="footer-links">
+        <li><a href="deal-analyzer.html">Deal Analyzer</a></li>
+        <li><a href="outreach.html">Outreach Service</a></li>
+        <li><a href="hudscout.html">HUDScout</a></li>
+        <li><a href="leadsieve.html">Lead Sieve</a></li>
+        <li><a href="buyer-finder.html">Buyer Finder</a></li>
+        <li><a href="followup.html">Follow-Up Sequence</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-heading">Contact</div>
+      <ul class="footer-links">
+        <li><a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a></li>
+        <li><a href="tel:2073854041">207-385-4041</a></li>
+        <li><a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">paypal.me/wholesaleomniverse</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 Wholesale Omniverse LLC</div>
+</footer>
+
+</body>
+</html>

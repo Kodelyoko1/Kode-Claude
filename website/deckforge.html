@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DeckForge — AI-generated pitch decks in minutes. Reveal.js-powered, presents in browser, prints to PDF. $49/deck.">
+  <meta property="og:title" content="DeckForge — Pitch Decks in Minutes | Wholesale Omniverse">
+  <meta property="og:description" content="Stop staring at a blank slide deck. DeckForge generates a polished 10-slide pitch deck from your company brief. Present in browser or print to PDF. $49.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/deckforge.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/deckforge.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DeckForge",
+    "description": "Automated pitch deck generator. Produces a polished 10-slide Reveal.js presentation from a company brief.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/deckforge.html",
+    "applicationCategory": "BusinessApplication",
+    "offers": [
+      {"@type":"Offer","name":"Single Deck","price":"49","priceCurrency":"USD"},
+      {"@type":"Offer","name":"5 Decks Monthly","price":"149","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Founder Fundraising Package","price":"497","priceCurrency":"USD"}
+    ]
+  }
+  </script>
+  <title>DeckForge — Pitch Decks in Minutes | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .dk-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .dk-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .dk-hero .lede{color:#94a3b8;font-size:18px;max-width:580px;margin:0 auto 36px}
+    .deck-preview{max-width:720px;margin:0 auto;position:relative}
+    .slide-stack{position:relative;height:320px}
+    .slide{position:absolute;border-radius:12px;padding:36px;left:50%;transform:translateX(-50%);width:580px;max-width:90vw}
+    .slide-0{background:#1e293b;border:1px solid #334155;top:24px;z-index:1;opacity:.4}
+    .slide-1{background:#0f172a;border:1px solid #f59e0b;top:12px;z-index:2;opacity:.7}
+    .slide-active{background:#0f172a;border:2px solid #f59e0b;top:0;z-index:3;opacity:1}
+    .slide-company{color:#f59e0b;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:16px}
+    .slide-title{color:#fff;font-size:clamp(20px,3vw,28px);font-weight:800;margin-bottom:12px}
+    .slide-subtitle{color:#94a3b8;font-size:15px;line-height:1.6;margin-bottom:20px}
+    .slide-bullets{list-style:none;padding:0;margin:0}
+    .slide-bullets li{color:#cbd5e1;font-size:14px;padding:6px 0;display:flex;gap:10px;align-items:flex-start}
+    .slide-bullets li::before{content:"▸";color:#f59e0b;flex-shrink:0}
+    .slide-counter{position:absolute;bottom:16px;right:20px;font-size:11px;color:#475569}
+    .slide-nav{display:flex;justify-content:center;gap:8px;margin-top:16px}
+    .slide-dot{width:8px;height:8px;border-radius:50%;background:#334155;cursor:pointer;transition:background .15s}
+    .slide-dot.active{background:#f59e0b}
+    .slide-labels{display:flex;gap:20px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+    .slide-label{font-size:13px;color:#64748b;display:flex;align-items:center;gap:6px}
+    .slide-label.active-label{color:#f59e0b;font-weight:600}
+    .structure-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));max-width:900px;margin:0 auto;padding:0 24px}
+    .sli-card{background:#fff;border:1px solid var(--slate-3);border-radius:10px;padding:16px}
+    .sli-num{display:inline-block;width:26px;height:26px;background:var(--navy);color:#fff;border-radius:50%;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+    .sli-card h4{color:var(--navy);font-size:14px;margin-bottom:4px}
+    .sli-card p{color:var(--slate-6);font-size:12px;line-height:1.5;margin:0}
+    .themes{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:0 24px;margin-bottom:48px}
+    .theme-preview{border-radius:10px;padding:20px;width:180px;text-align:center;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+    .theme-preview.dark-theme{background:#0f172a;border-color:#334155}
+    .theme-preview.dark-theme.selected{border-color:#f59e0b}
+    .theme-preview.light-theme{background:#fff;border:2px solid #e2e8f0}
+    .theme-preview.light-theme.selected{border-color:var(--amber)}
+    .theme-preview.minimal-theme{background:#f8fafc;border:2px solid #e2e8f0}
+    .theme-preview.minimal-theme.selected{border-color:var(--amber)}
+    .theme-name{font-size:13px;font-weight:700;margin-bottom:4px}
+    .plans-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber)}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+    .section-narrow{max-width:720px;margin:0 auto;padding:60px 24px}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="dk-hero">
+  <p class="eyebrow" style="color:var(--amber);margin-bottom:12px">Reveal.js · 10 slides · browser-native PDF</p>
+  <h1>Pitch deck ready in <span style="color:var(--amber)">minutes,</span> not days.</h1>
+  <p class="lede">Drop a company brief. Get back a polished 10-slide presentation built on Reveal.js — present directly from your browser or File → Print → Save as PDF to email investors. No PowerPoint, no Figma.</p>
+
+  <!-- Slide preview -->
+  <div class="deck-preview">
+    <div class="slide-stack">
+      <div class="slide slide-0"></div>
+      <div class="slide slide-1"></div>
+      <div class="slide slide-active" id="preview-slide">
+        <div class="slide-company">Acme Coffee</div>
+        <div class="slide-title" id="slide-title">The Problem</div>
+        <div class="slide-subtitle" id="slide-sub">Independent coffee shops lose 30% of potential customers because they can't match chain-store digital loyalty experiences.</div>
+        <ul class="slide-bullets" id="slide-bullets">
+          <li>No-code loyalty → 82% retention lift</li>
+          <li>$240 average customer lifetime value</li>
+          <li>72% of shoppers prefer local when loyalty exists</li>
+        </ul>
+        <span class="slide-counter" id="slide-count">2 / 10</span>
+      </div>
+    </div>
+    <div class="slide-nav" id="slide-nav">
+      <div class="slide-dot"></div>
+      <div class="slide-dot active"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+      <div class="slide-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10-Slide Structure ─────────────────────────────────────── -->
+<section style="background:var(--slate-1);padding:64px 24px">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:8px">10-slide investor-ready structure</h2>
+  <p style="text-align:center;color:var(--slate-6);font-size:15px;max-width:500px;margin:0 auto 36px">The same narrative arc used by YC founders — in a format that takes under 3 minutes to read.</p>
+  <div class="structure-grid">
+    <div class="sli-card"><div class="sli-num">1</div><h4>Title Slide</h4><p>Company name, tagline, contact info.</p></div>
+    <div class="sli-card"><div class="sli-num">2</div><h4>The Problem</h4><p>Quantified pain point with 3 data bullets.</p></div>
+    <div class="sli-card"><div class="sli-num">3</div><h4>Our Solution</h4><p>Product description + key differentiator.</p></div>
+    <div class="sli-card"><div class="sli-num">4</div><h4>Market Size</h4><p>TAM → SAM → SOM with sources.</p></div>
+    <div class="sli-card"><div class="sli-num">5</div><h4>How It Works</h4><p>3-step product walkthrough.</p></div>
+    <div class="sli-card"><div class="sli-num">6</div><h4>Traction</h4><p>Revenue, users, growth rate, key milestones.</p></div>
+    <div class="sli-card"><div class="sli-num">7</div><h4>Business Model</h4><p>Revenue streams, pricing, unit economics.</p></div>
+    <div class="sli-card"><div class="sli-num">8</div><h4>Competition</h4><p>2×2 positioning matrix vs. 3 named competitors.</p></div>
+    <div class="sli-card"><div class="sli-num">9</div><h4>Team</h4><p>Founders with relevant roles and 1-line bio each.</p></div>
+    <div class="sli-card"><div class="sli-num">10</div><h4>The Ask</h4><p>Raise amount, use of funds breakdown, timeline.</p></div>
+  </div>
+</section>
+
+<!-- ── Themes ────────────────────────────────────────────────── -->
+<section style="padding:64px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">3 themes — pick one in your brief</h2>
+  <p style="color:var(--slate-6);font-size:15px;max-width:500px;margin:0 auto 36px">Each theme ships with a matching accent color set. You can override with your brand color.</p>
+  <div class="themes">
+    <div class="theme-preview dark-theme selected">
+      <div style="background:#f59e0b;height:3px;border-radius:2px;margin-bottom:10px"></div>
+      <div style="height:8px;background:#334155;border-radius:4px;margin-bottom:6px;width:70%;margin-left:auto;margin-right:auto"></div>
+      <div style="height:6px;background:#1e293b;border-radius:4px;margin-bottom:4px"></div>
+      <div style="height:6px;background:#1e293b;border-radius:4px;width:80%;margin-left:auto;margin-right:auto"></div>
+      <p class="theme-name" style="color:#fff;margin-top:12px">Dark</p>
+      <p style="font-size:12px;color:#94a3b8">Best for: tech, SaaS, startup</p>
+    </div>
+    <div class="theme-preview light-theme">
+      <div style="background:#0f172a;height:3px;border-radius:2px;margin-bottom:10px"></div>
+      <div style="height:8px;background:#e2e8f0;border-radius:4px;margin-bottom:6px;width:70%;margin-left:auto;margin-right:auto"></div>
+      <div style="height:6px;background:#f1f5f9;border-radius:4px;margin-bottom:4px"></div>
+      <div style="height:6px;background:#f1f5f9;border-radius:4px;width:80%;margin-left:auto;margin-right:auto"></div>
+      <p class="theme-name" style="color:#0f172a;margin-top:12px">Light</p>
+      <p style="font-size:12px;color:#64748b">Best for: consumer, healthcare, food</p>
+    </div>
+    <div class="theme-preview minimal-theme">
+      <div style="background:#e2e8f0;height:3px;border-radius:2px;margin-bottom:10px"></div>
+      <div style="height:8px;background:#e2e8f0;border-radius:4px;margin-bottom:6px;width:70%;margin-left:auto;margin-right:auto"></div>
+      <div style="height:6px;background:#e2e8f0;border-radius:4px;margin-bottom:4px"></div>
+      <div style="height:6px;background:#e2e8f0;border-radius:4px;width:80%;margin-left:auto;margin-right:auto"></div>
+      <p class="theme-name" style="color:#0f172a;margin-top:12px">Minimal</p>
+      <p style="font-size:12px;color:#64748b">Best for: B2B, consulting, finance</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How to order ───────────────────────────────────────────── -->
+<section style="background:var(--slate-1);padding:64px 24px">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:48px">How it works</h2>
+  <div style="display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));max-width:800px;margin:0 auto">
+    <div style="text-align:center;padding:24px">
+      <div style="width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px">1</div>
+      <h3 style="color:var(--navy);margin-bottom:8px">Submit your brief</h3>
+      <p style="color:var(--slate-6);font-size:14px">Pay via PayPal, then email us: company name, tagline, problem, solution, traction numbers, team bios, raise amount, and preferred theme.</p>
+    </div>
+    <div style="text-align:center;padding:24px">
+      <div style="width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px">2</div>
+      <h3 style="color:var(--navy);margin-bottom:8px">We generate your deck</h3>
+      <p style="color:var(--slate-6);font-size:14px">DeckForge builds a polished 10-slide Reveal.js HTML file with your content, brand color, and chosen theme — usually within 4 hours.</p>
+    </div>
+    <div style="text-align:center;padding:24px">
+      <div style="width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px">3</div>
+      <h3 style="color:var(--navy);margin-bottom:8px">Present or export PDF</h3>
+      <p style="color:var(--slate-6);font-size:14px">Open the HTML file in Chrome. Full-screen → present. Or File → Print → Save as PDF for email. No installs, no subscriptions needed to present.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────────── -->
+<section style="padding:64px 24px">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="color:var(--navy)">Pricing</h2>
+    <p style="color:var(--slate-6);max-width:480px;margin:8px auto 0">After paying, email WholesaleOmniverse@gmail.com with your company brief. Your deck will be ready within 4 hours.</p>
+  </div>
+  <div class="plans-grid">
+
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Single Deck</div>
+      <div class="plan-price">$49<span> once</span></div>
+      <p class="plan-desc">One pitch deck, one company. Delivered as a Reveal.js HTML file — present in browser, export to PDF.</p>
+      <ul class="plan-features">
+        <li>10-slide investor-ready structure</li>
+        <li>Your choice of 3 themes</li>
+        <li>Custom brand color accent</li>
+        <li>Delivered within 4 hours</li>
+        <li>One revision included</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener" class="plan-cta">Order Deck — $49 →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">5 Decks / Month</div>
+      <div class="plan-price">$149<span>/mo</span></div>
+      <p class="plan-desc">Best for agencies, consultants, or founders who iterate on their story frequently. 5 fresh decks per month.</p>
+      <ul class="plan-features">
+        <li>5 decks per month</li>
+        <li>All themes + custom colors</li>
+        <li>Priority turnaround (2 hrs)</li>
+        <li>Two revisions per deck</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/149" target="_blank" rel="noopener" class="plan-cta outline">Monthly Plan — $149/mo</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Founder Package</div>
+      <div class="plan-price">$497<span> once</span></div>
+      <p class="plan-desc">Built for a fundraising sprint. 3 deck versions (pre-seed, seed, partner update), a 1-pager tearsheet, and email templates for investor outreach.</p>
+      <ul class="plan-features">
+        <li>3 deck versions (pre-seed, seed, update)</li>
+        <li>1-page tearsheet (PDF)</li>
+        <li>Cold investor email templates (5)</li>
+        <li>Unlimited revisions for 30 days</li>
+        <li>Priority support via email</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/497" target="_blank" rel="noopener" class="plan-cta outline">Founder Package — $497</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────────────── -->
+<div class="section-narrow">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:36px">Questions</h2>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Can I edit the slides after delivery?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Yes. The output is a standard HTML file — you can open it in any text editor and change text, colors, or structure. The Reveal.js library is loaded from CDN so no Node.js or build step is needed. If HTML editing isn't your thing, we include a design brief that maps each slide's content so you can hand it to a designer.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Does the PDF export look professional?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Yes, when you use Chrome's "Save as PDF" print dialog at 100% scale with background graphics enabled. Chrome renders CSS pixel-perfect to PDF. We test every output before delivery. If you want a vector-native PowerPoint instead, request that at checkout and we'll quote a conversion.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What if I don't have traction numbers yet?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Pre-revenue founders still need decks. Just tell us what you have: beta waitlist size, pilot customers, LOIs signed, user interviews conducted, or market research. We'll frame whatever proof of demand you have as credibly as possible on the traction slide.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What information do you need from me?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">After paying, email us: (1) company name + tagline, (2) the problem you solve in 2 sentences, (3) your solution in 2 sentences, (4) any traction metrics, (5) team bios (1 line each), (6) raise amount and use of funds, (7) preferred theme (dark/light/minimal), (8) optional brand hex color. That's it.</p>
+  </details>
+</div>
+
+<!-- ── CTA ────────────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">Your deck is 4 hours away.</h2>
+  <p style="color:rgba(15,23,42,.7);margin-bottom:24px">Pay, email your brief, and we'll have your investor-ready pitch deck back to you today.</p>
+  <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener" style="background:var(--navy);color:#fff;margin-right:12px">Order Deck — $49 →</a>
+  <a class="btn" href="https://paypal.me/wholesaleomniverse/497" target="_blank" rel="noopener" style="background:#fff;color:var(--navy)">Founder Package — $497</a>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Content Tools</h4>
+        <a href="deckforge.html">DeckForge ($49)</a>
+        <a href="careerforge.html">CareerForge ($29)</a>
+        <a href="viral_recycler.html">ViralRecycler ($49/mo)</a>
+        <a href="trendscout.html">TrendScout ($29/mo)</a>
+        <a href="pricing.html">All Agents & Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Simple slide preview cycling
+const slides = [
+  { title: "Title Slide", sub: "Acme Coffee — The loyalty platform for independent coffee shops.", bullets: ["Launching Q3 2026","Seeking $500K pre-seed","Series A target: Q4 2027"] },
+  { title: "The Problem", sub: "Independent coffee shops lose 30% of potential customers because they can't match chain-store digital loyalty experiences.", bullets: ["No-code loyalty → 82% retention lift","$240 average customer lifetime value","72% of shoppers prefer local when loyalty exists"] },
+  { title: "Our Solution", sub: "Acme Coffee is a $19/mo loyalty platform that gives independent shops a mobile-first punch card, email automation, and analytics dashboard.", bullets: ["Customers earn points on every visit","Automated birthday and win-back campaigns","Integrates with Square and Toast POS in 5 minutes"] },
+  { title: "Market Size", sub: "The U.S. coffee shop market represents a $48B TAM with 35,000 independent locations underserved by enterprise loyalty software.", bullets: ["TAM: $48B (U.S. coffee market)","SAM: $2.1B (independent shops, digital-capable)","SOM: $210M (3-year reachable at our pricing)"] },
+  { title: "Traction", sub: "12 paying beta customers across 3 cities. $2,280 MRR after 60 days of soft launch.", bullets: ["$2,280 MRR · 12 shops · 3 cities","NPS: 72 (industry avg 34)","0% churn through beta period"] }
+];
+let current = 1;
+function showSlide(i) {
+  current = i;
+  const s = slides[i % slides.length];
+  document.getElementById('slide-title').textContent = s.title;
+  document.getElementById('slide-sub').textContent = s.sub;
+  const bl = document.getElementById('slide-bullets');
+  bl.innerHTML = s.bullets.map(b => `<li>${b}</li>`).join('');
+  document.getElementById('slide-count').textContent = `${i + 1} / 10`;
+  document.querySelectorAll('.slide-dot').forEach((d, idx) => d.classList.toggle('active', idx === i));
+}
+document.querySelectorAll('.slide-dot').forEach((d, i) => d.addEventListener('click', () => showSlide(i)));
+setInterval(() => showSlide((current + 1) % 5), 3500);
+</script>
+</body>
+</html>
