@@ -276,8 +276,12 @@ def send_branded_email(
             part.add_header("Content-Disposition", f'attachment; filename="{p.name}"')
             outer.attach(part)
 
-        with smtplib.SMTP(smtp_host, smtp_port) as s:
-            s.ehlo(); s.starttls(); s.login(smtp_user, smtp_pass)
+        # Force IPv4 — some environments don't support AF_INET6 (errno 97)
+        import socket as _socket
+        _addrs = _socket.getaddrinfo(smtp_host, smtp_port, _socket.AF_INET)
+        _smtp_ip = _addrs[0][4][0] if _addrs else smtp_host
+        with smtplib.SMTP(_smtp_ip, smtp_port) as s:
+            s.ehlo(smtp_host); s.starttls(); s.login(smtp_user, smtp_pass)
             s.sendmail(smtp_user, to_email, outer.as_string())
 
         return {"status": "sent"}
