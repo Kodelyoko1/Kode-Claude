@@ -1,0 +1,1042 @@
+[
+  {
+    "condition_id": "SYNTHETIC_0000_LOS",
+    "question": "Will the high temperature in Los Angeles exceed 90\u00b0F on 2026-07-03?",
+    "slug": "synthetic_0000_los",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0000_LOS",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0000_LOS",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 39869.6,
+    "liquidity": 2430.44,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.343
+  },
+  {
+    "condition_id": "SYNTHETIC_0001_NEW",
+    "question": "Will it rain in New York on 2026-06-28?",
+    "slug": "synthetic_0001_new",
+    "end_date": "2026-06-28",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0001_NEW",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0001_NEW",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 9103.77,
+    "liquidity": 935.64,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.38
+  },
+  {
+    "condition_id": "SYNTHETIC_0002_NEW",
+    "question": "Will New York temperatures drop below freezing on 2026-06-29?",
+    "slug": "synthetic_0002_new",
+    "end_date": "2026-06-29",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0002_NEW",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0002_NEW",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 38831.24,
+    "liquidity": 7928.71,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.633
+  },
+  {
+    "condition_id": "SYNTHETIC_0003_ATL",
+    "question": "Will the high temperature in Atlanta exceed 90\u00b0F on 2026-06-26?",
+    "slug": "synthetic_0003_atl",
+    "end_date": "2026-06-26",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0003_ATL",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0003_ATL",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 14003.17,
+    "liquidity": 9072.0,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.751
+  },
+  {
+    "condition_id": "SYNTHETIC_0004_CHI",
+    "question": "Will Chicago temperatures drop below freezing on 2026-06-23?",
+    "slug": "synthetic_0004_chi",
+    "end_date": "2026-06-23",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0004_CHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0004_CHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 15312.1,
+    "liquidity": 3496.46,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.812
+  },
+  {
+    "condition_id": "SYNTHETIC_0005_MIA",
+    "question": "Will wind gusts exceed 25 mph in Miami on 2026-06-29?",
+    "slug": "synthetic_0005_mia",
+    "end_date": "2026-06-29",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0005_MIA",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0005_MIA",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 47872.48,
+    "liquidity": 350.27,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.646
+  },
+  {
+    "condition_id": "SYNTHETIC_0006_HOU",
+    "question": "Will the high temperature in Houston exceed 90\u00b0F on 2026-07-03?",
+    "slug": "synthetic_0006_hou",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0006_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0006_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 26621.89,
+    "liquidity": 6463.26,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.85
+  },
+  {
+    "condition_id": "SYNTHETIC_0007_ATL",
+    "question": "Will Atlanta temperatures drop below freezing on 2026-07-01?",
+    "slug": "synthetic_0007_atl",
+    "end_date": "2026-07-01",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0007_ATL",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0007_ATL",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 4776.08,
+    "liquidity": 4676.11,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.425
+  },
+  {
+    "condition_id": "SYNTHETIC_0008_PHI",
+    "question": "Will it rain in Philadelphia on 2026-06-26?",
+    "slug": "synthetic_0008_phi",
+    "end_date": "2026-06-26",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0008_PHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0008_PHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 43411.25,
+    "liquidity": 4853.28,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.545
+  },
+  {
+    "condition_id": "SYNTHETIC_0009_HOU",
+    "question": "Will Houston temperatures drop below freezing on 2026-06-26?",
+    "slug": "synthetic_0009_hou",
+    "end_date": "2026-06-26",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0009_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0009_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 11942.43,
+    "liquidity": 9888.93,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.205
+  },
+  {
+    "condition_id": "SYNTHETIC_0010_PHO",
+    "question": "Will Phoenix see more than 1 inch of rain on 2026-06-29?",
+    "slug": "synthetic_0010_pho",
+    "end_date": "2026-06-29",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0010_PHO",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0010_PHO",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 12969.45,
+    "liquidity": 890.33,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.185
+  },
+  {
+    "condition_id": "SYNTHETIC_0011_HOU",
+    "question": "Will Houston see more than 1 inch of rain on 2026-06-28?",
+    "slug": "synthetic_0011_hou",
+    "end_date": "2026-06-28",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0011_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0011_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 514.22,
+    "liquidity": 1742.96,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.422
+  },
+  {
+    "condition_id": "SYNTHETIC_0012_PHO",
+    "question": "Will Phoenix temperatures drop below freezing on 2026-06-27?",
+    "slug": "synthetic_0012_pho",
+    "end_date": "2026-06-27",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0012_PHO",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0012_PHO",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 48677.07,
+    "liquidity": 2512.47,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.619
+  },
+  {
+    "condition_id": "SYNTHETIC_0013_SAN",
+    "question": "Will San Antonio see more than 1 inch of rain on 2026-06-22?",
+    "slug": "synthetic_0013_san",
+    "end_date": "2026-06-22",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0013_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0013_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 10734.49,
+    "liquidity": 1558.05,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.267
+  },
+  {
+    "condition_id": "SYNTHETIC_0014_MIA",
+    "question": "Will it rain in Miami on 2026-07-05?",
+    "slug": "synthetic_0014_mia",
+    "end_date": "2026-07-05",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0014_MIA",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0014_MIA",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 27693.6,
+    "liquidity": 2856.31,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.247
+  },
+  {
+    "condition_id": "SYNTHETIC_0015_PHO",
+    "question": "Will wind gusts exceed 25 mph in Phoenix on 2026-06-25?",
+    "slug": "synthetic_0015_pho",
+    "end_date": "2026-06-25",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0015_PHO",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0015_PHO",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 32451.42,
+    "liquidity": 1262.62,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.27
+  },
+  {
+    "condition_id": "SYNTHETIC_0016_MIA",
+    "question": "Will Miami temperatures drop below freezing on 2026-06-25?",
+    "slug": "synthetic_0016_mia",
+    "end_date": "2026-06-25",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0016_MIA",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0016_MIA",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 6045.22,
+    "liquidity": 1649.95,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.58
+  },
+  {
+    "condition_id": "SYNTHETIC_0017_CHI",
+    "question": "Will it rain in Chicago on 2026-06-30?",
+    "slug": "synthetic_0017_chi",
+    "end_date": "2026-06-30",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0017_CHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0017_CHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 42279.46,
+    "liquidity": 4162.03,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.816
+  },
+  {
+    "condition_id": "SYNTHETIC_0018_HOU",
+    "question": "Will Houston temperatures drop below freezing on 2026-07-03?",
+    "slug": "synthetic_0018_hou",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0018_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0018_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 7887.93,
+    "liquidity": 9588.72,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.499
+  },
+  {
+    "condition_id": "SYNTHETIC_0019_CHI",
+    "question": "Will wind gusts exceed 25 mph in Chicago on 2026-06-23?",
+    "slug": "synthetic_0019_chi",
+    "end_date": "2026-06-23",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0019_CHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0019_CHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 12118.59,
+    "liquidity": 5656.94,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.16
+  },
+  {
+    "condition_id": "SYNTHETIC_0020_NEW",
+    "question": "Will New York see more than 1 inch of rain on 2026-06-26?",
+    "slug": "synthetic_0020_new",
+    "end_date": "2026-06-26",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0020_NEW",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0020_NEW",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 24368.22,
+    "liquidity": 6059.1,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.4
+  },
+  {
+    "condition_id": "SYNTHETIC_0021_SAN",
+    "question": "Will San Antonio see more than 1 inch of rain on 2026-07-05?",
+    "slug": "synthetic_0021_san",
+    "end_date": "2026-07-05",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0021_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0021_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 31245.73,
+    "liquidity": 4375.8,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.593
+  },
+  {
+    "condition_id": "SYNTHETIC_0022_DAL",
+    "question": "Will Dallas temperatures drop below freezing on 2026-06-28?",
+    "slug": "synthetic_0022_dal",
+    "end_date": "2026-06-28",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0022_DAL",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0022_DAL",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 27667.93,
+    "liquidity": 7993.28,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.407
+  },
+  {
+    "condition_id": "SYNTHETIC_0023_HOU",
+    "question": "Will it rain in Houston on 2026-06-30?",
+    "slug": "synthetic_0023_hou",
+    "end_date": "2026-06-30",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0023_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0023_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 40351.05,
+    "liquidity": 8528.14,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.205
+  },
+  {
+    "condition_id": "SYNTHETIC_0024_PHO",
+    "question": "Will Phoenix temperatures drop below freezing on 2026-07-02?",
+    "slug": "synthetic_0024_pho",
+    "end_date": "2026-07-02",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0024_PHO",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0024_PHO",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 38485.56,
+    "liquidity": 2517.75,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.265
+  },
+  {
+    "condition_id": "SYNTHETIC_0025_PHI",
+    "question": "Will Philadelphia temperatures drop below freezing on 2026-07-01?",
+    "slug": "synthetic_0025_phi",
+    "end_date": "2026-07-01",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0025_PHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0025_PHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 45691.22,
+    "liquidity": 2576.47,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.666
+  },
+  {
+    "condition_id": "SYNTHETIC_0026_HOU",
+    "question": "Will the high temperature in Houston exceed 90\u00b0F on 2026-07-03?",
+    "slug": "synthetic_0026_hou",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0026_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0026_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 41110.69,
+    "liquidity": 7097.58,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.246
+  },
+  {
+    "condition_id": "SYNTHETIC_0027_SAN",
+    "question": "Will the high temperature in San Antonio exceed 90\u00b0F on 2026-06-27?",
+    "slug": "synthetic_0027_san",
+    "end_date": "2026-06-27",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0027_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0027_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 30568.68,
+    "liquidity": 5282.46,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.698
+  },
+  {
+    "condition_id": "SYNTHETIC_0028_LOS",
+    "question": "Will the high temperature in Los Angeles exceed 90\u00b0F on 2026-07-02?",
+    "slug": "synthetic_0028_los",
+    "end_date": "2026-07-02",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0028_LOS",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0028_LOS",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 1958.24,
+    "liquidity": 1905.86,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.324
+  },
+  {
+    "condition_id": "SYNTHETIC_0029_LOS",
+    "question": "Will Los Angeles temperatures drop below freezing on 2026-06-28?",
+    "slug": "synthetic_0029_los",
+    "end_date": "2026-06-28",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0029_LOS",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0029_LOS",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 10153.67,
+    "liquidity": 5837.39,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.243
+  },
+  {
+    "condition_id": "SYNTHETIC_0030_HOU",
+    "question": "Will Houston see more than 1 inch of rain on 2026-06-25?",
+    "slug": "synthetic_0030_hou",
+    "end_date": "2026-06-25",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0030_HOU",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0030_HOU",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 29873.77,
+    "liquidity": 1022.11,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.709
+  },
+  {
+    "condition_id": "SYNTHETIC_0031_SAN",
+    "question": "Will wind gusts exceed 25 mph in San Antonio on 2026-07-05?",
+    "slug": "synthetic_0031_san",
+    "end_date": "2026-07-05",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0031_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0031_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 1913.48,
+    "liquidity": 5219.6,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.481
+  },
+  {
+    "condition_id": "SYNTHETIC_0032_PHO",
+    "question": "Will wind gusts exceed 25 mph in Phoenix on 2026-07-03?",
+    "slug": "synthetic_0032_pho",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0032_PHO",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0032_PHO",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 35940.84,
+    "liquidity": 1385.62,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.81
+  },
+  {
+    "condition_id": "SYNTHETIC_0033_ATL",
+    "question": "Will wind gusts exceed 25 mph in Atlanta on 2026-07-03?",
+    "slug": "synthetic_0033_atl",
+    "end_date": "2026-07-03",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0033_ATL",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0033_ATL",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 28949.52,
+    "liquidity": 262.27,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.167
+  },
+  {
+    "condition_id": "SYNTHETIC_0034_SAN",
+    "question": "Will the high temperature in San Antonio exceed 90\u00b0F on 2026-06-22?",
+    "slug": "synthetic_0034_san",
+    "end_date": "2026-06-22",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0034_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0034_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 21272.45,
+    "liquidity": 8395.7,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.308
+  },
+  {
+    "condition_id": "SYNTHETIC_0035_PHI",
+    "question": "Will the high temperature in Philadelphia exceed 90\u00b0F on 2026-06-22?",
+    "slug": "synthetic_0035_phi",
+    "end_date": "2026-06-22",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0035_PHI",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0035_PHI",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 35095.63,
+    "liquidity": 5369.99,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.221
+  },
+  {
+    "condition_id": "SYNTHETIC_0036_NEW",
+    "question": "Will it rain in New York on 2026-06-23?",
+    "slug": "synthetic_0036_new",
+    "end_date": "2026-06-23",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0036_NEW",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0036_NEW",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 48923.31,
+    "liquidity": 6316.86,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.365
+  },
+  {
+    "condition_id": "SYNTHETIC_0037_ATL",
+    "question": "Will the high temperature in Atlanta exceed 90\u00b0F on 2026-06-26?",
+    "slug": "synthetic_0037_atl",
+    "end_date": "2026-06-26",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0037_ATL",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0037_ATL",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 24865.25,
+    "liquidity": 6762.49,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.416
+  },
+  {
+    "condition_id": "SYNTHETIC_0038_SAN",
+    "question": "Will wind gusts exceed 25 mph in San Antonio on 2026-06-23?",
+    "slug": "synthetic_0038_san",
+    "end_date": "2026-06-23",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0038_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0038_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 47458.77,
+    "liquidity": 3704.9,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.178
+  },
+  {
+    "condition_id": "SYNTHETIC_0039_SAN",
+    "question": "Will wind gusts exceed 25 mph in San Antonio on 2026-06-25?",
+    "slug": "synthetic_0039_san",
+    "end_date": "2026-06-25",
+    "tokens": [
+      {
+        "token_id": "YES_SYNTHETIC_0039_SAN",
+        "outcome": "YES"
+      },
+      {
+        "token_id": "NO_SYNTHETIC_0039_SAN",
+        "outcome": "NO"
+      }
+    ],
+    "volume": 41796.86,
+    "liquidity": 5823.87,
+    "closed": false,
+    "tags": [
+      {
+        "slug": "weather"
+      }
+    ],
+    "_synthetic": true,
+    "_mid_price": 0.785
+  }
+]

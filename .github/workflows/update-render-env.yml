@@ -1,0 +1,83 @@
+name: Update Render Env Vars
+
+on:
+  workflow_dispatch:   # trigger manually from GitHub UI — no inputs needed
+
+jobs:
+  update-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find service ID
+        id: find_service
+        run: |
+          SERVICE_ID=$(curl -s "https://api.render.com/v1/services?limit=50" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" | \
+            python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for item in data:
+            svc = item.get('service', item)
+            if svc.get('name') == 'polymarket-weather-agent':
+              print(svc['id'])
+              break
+          ")
+          echo "service_id=$SERVICE_ID" >> $GITHUB_OUTPUT
+
+      - name: Get current env vars
+        run: |
+          curl -s "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/env-vars" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" > /tmp/current_env.json
+
+      - name: Merge and push updated env vars
+        run: |
+          python3 << 'EOF'
+          import json, os, urllib.request, urllib.error
+
+          with open('/tmp/current_env.json') as f:
+              current = json.load(f)
+
+          env_map = {}
+          for item in current:
+              ev = item.get('envVar', item)
+              env_map[ev['key']] = ev['value']
+
+          # Overwrite with values from GitHub Secrets
+          env_map['PW_PRIVATE_KEY'] = os.environ['PW_PRIVATE_KEY']
+          env_map['PW_API_KEY']     = os.environ['PW_API_KEY']
+          env_map['PW_API_SECRET']  = os.environ['PW_API_SECRET']
+
+          payload    = [{'key': k, 'value': v} for k, v in env_map.items()]
+          service_id = os.environ['SERVICE_ID']
+          api_key    = os.environ['RENDER_API_KEY']
+          url        = f'https://api.render.com/v1/services/{service_id}/env-vars'
+
+          data = json.dumps(payload).encode()
+          req  = urllib.request.Request(url, data=data, method='PUT')
+          req.add_header('Authorization', f'Bearer {api_key}')
+          req.add_header('Content-Type',  'application/json')
+          req.add_header('Accept',        'application/json')
+
+          with urllib.request.urlopen(req) as resp:
+              print('Updated:', resp.status)
+          EOF
+        env:
+          PW_PRIVATE_KEY: ${{ secrets.PW_PRIVATE_KEY }}
+          PW_API_KEY:     ${{ secrets.PW_API_KEY }}
+          PW_API_SECRET:  ${{ secrets.PW_API_SECRET }}
+          SERVICE_ID:     ${{ steps.find_service.outputs.service_id }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+      - name: Trigger redeploy
+        run: |
+          curl -s -X POST \
+            "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d '{}' | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          print('Deploy triggered:', d.get('id', 'ok'))
+          "

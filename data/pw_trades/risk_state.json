@@ -1,0 +1,83 @@
+{
+  "bankroll": 1000.0,
+  "daily_start_bankroll": 1000.0,
+  "daily_date": "2026-06-21",
+  "halted": false,
+  "halt_reason": "",
+  "open_positions": [
+    {
+      "order_id": "DRY-1782016358",
+      "token_id": "NO_SYNTHETIC_0032_PHO",
+      "side": "NO",
+      "size": 47.45,
+      "opened": "2026-06-21T04:32:38.212641+00:00"
+    },
+    {
+      "order_id": "DRY-1782016358",
+      "token_id": "NO_SYNTHETIC_0004_CHI",
+      "side": "NO",
+      "size": 46.23,
+      "opened": "2026-06-21T04:32:38.713118+00:00"
+    },
+    {
+      "order_id": "DRY-1782016359",
+      "token_id": "NO_SYNTHETIC_0039_SAN",
+      "side": "NO",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:39.213724+00:00"
+    },
+    {
+      "order_id": "DRY-1782016359",
+      "token_id": "NO_SYNTHETIC_0017_CHI",
+      "side": "NO",
+      "size": 41.56,
+      "opened": "2026-06-21T04:32:39.714401+00:00"
+    },
+    {
+      "order_id": "DRY-1782016360",
+      "token_id": "NO_SYNTHETIC_0003_ATL",
+      "side": "NO",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:40.215038+00:00"
+    },
+    {
+      "order_id": "DRY-1782016360",
+      "token_id": "NO_SYNTHETIC_0025_PHI",
+      "side": "NO",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:40.715656+00:00"
+    },
+    {
+      "order_id": "DRY-1782016361",
+      "token_id": "NO_SYNTHETIC_0030_HOU",
+      "side": "NO",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:41.216289+00:00"
+    },
+    {
+      "order_id": "DRY-1782016361",
+      "token_id": "NO_SYNTHETIC_0002_NEW",
+      "side": "NO",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:41.716952+00:00"
+    },
+    {
+      "order_id": "DRY-1782016362",
+      "token_id": "YES_SYNTHETIC_0026_HOU",
+      "side": "YES",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:42.217569+00:00"
+    },
+    {
+      "order_id": "DRY-1782016362",
+      "token_id": "YES_SYNTHETIC_0024_PHO",
+      "side": "YES",
+      "size": 50.0,
+      "opened": "2026-06-21T04:32:42.718235+00:00"
+    }
+  ],
+  "consecutive_losses": 0,
+  "trade_count": 10,
+  "daily_pnl": 0.0,
+  "total_pnl": 0.0
+}

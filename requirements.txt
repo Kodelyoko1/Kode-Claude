@@ -18,3 +18,8 @@ praw>=7.8.0
 # run_media_buyer_server.py. Cron usage of run_media_buyer_auto.py works without these.
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
+
+# PolyMarket Weather Trading Agent
+numpy>=1.26.0
+xgboost>=2.0.0
+py-clob-client>=0.18.0   # optional — only required for live order placement

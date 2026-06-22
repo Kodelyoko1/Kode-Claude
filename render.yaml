@@ -46,3 +46,30 @@ services:
     # Data in /app/data is wiped on every redeploy.
     # To enable persistence, upgrade to Starter ($7/mo) and uncomment the disk block,
     # OR add a free Render PostgreSQL instance and migrate JSON storage to SQL.
+
+  - type: web
+    name: polymarket-weather-agent
+    runtime: python
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    buildCommand: pip install -r requirements-pw.txt
+    startCommand: python3 run_polymarket_weather_server.py
+    envVars:
+      - key: PW_LIVE_TRADING
+        value: "1"
+      - key: PW_BANKROLL
+        value: "1000"
+      - key: PW_MIN_EDGE
+        value: "0.07"
+      - key: PW_MIN_LIQUIDITY
+        value: "500"
+      - key: AGENT_PASSWORD
+        value: owner
+      # Set these three in the Render dashboard (Environment tab) — never commit keys
+      - key: PW_PRIVATE_KEY
+        sync: false
+      - key: PW_API_KEY
+        sync: false
+      - key: PW_API_SECRET
+        sync: false
