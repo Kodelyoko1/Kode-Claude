@@ -21,20 +21,18 @@
       letter-spacing: 3px;
       text-transform: uppercase;
       font-weight: 700;
-      color: var(--amber);
+      color: var(--cyan);
       margin: 0 0 8px;
     }
     .section-heading {
       font-size: clamp(22px, 2.5vw, 32px);
       font-weight: 800;
-      color: var(--navy);
+      color: #e2e8f0;
       margin: 0 0 28px;
       padding-bottom: 12px;
-      border-bottom: 2px solid var(--slate-3);
+      border-bottom: 1px solid rgba(6,182,212,0.2);
     }
-    .agent-group {
-      margin-bottom: 64px;
-    }
+    .agent-group { margin-bottom: 64px; }
     /* ── Agent card overrides ──────────────────────────────────────────── */
     .agent-grid {
       display: grid;
@@ -42,36 +40,37 @@
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     }
     .agent-card {
-      background: #ffffff;
-      border: 1px solid var(--slate-3);
-      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
       padding: 24px;
       display: flex;
       flex-direction: column;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       text-decoration: none;
       color: inherit;
+      backdrop-filter: blur(10px);
     }
     .agent-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(15,23,42,0.10);
-      border-color: var(--amber);
+      transform: translateY(-4px);
+      border-color: rgba(6,182,212,0.5);
+      box-shadow: 0 8px 32px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.15);
     }
     .agent-card .ag-name {
       font-size: 17px;
       font-weight: 800;
-      color: var(--navy);
+      color: #e2e8f0;
       margin: 0 0 4px;
     }
     .agent-card .ag-price {
       font-size: 13px;
       font-weight: 700;
-      color: var(--amber);
+      color: var(--cyan);
       margin: 0 0 12px;
     }
     .agent-card .ag-desc {
       font-size: 14px;
-      color: var(--slate-6);
+      color: #94a3b8;
       flex-grow: 1;
       margin: 0;
       line-height: 1.55;
@@ -82,16 +81,17 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       font-weight: 700;
-      background: rgba(245,158,11,0.12);
-      color: var(--amber);
+      background: rgba(6,182,212,0.12);
+      color: var(--cyan);
+      border: 1px solid rgba(6,182,212,0.25);
       border-radius: 4px;
       padding: 3px 8px;
       margin-bottom: 10px;
     }
-    /* ── "Coming soon" badge ───────────────────────────────────────────── */
     .ag-soon {
       background: rgba(100,116,139,0.10);
-      color: var(--slate-5);
+      color: #64748b;
+      border-color: rgba(100,116,139,0.2);
     }
     /* ── Hero stats row ────────────────────────────────────────────────── */
     .stat-row {
@@ -100,31 +100,37 @@
       gap: 32px;
       margin-top: 40px;
     }
-    .stat-item {
-      text-align: left;
-    }
+    .stat-item { text-align: left; }
     .stat-item .stat-num {
       font-size: 36px;
       font-weight: 900;
-      color: var(--amber);
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       line-height: 1;
     }
     .stat-item .stat-lbl {
       font-size: 13px;
-      color: #cbd5e1;
+      color: #94a3b8;
       margin-top: 4px;
     }
     /* ── How-it-works row ──────────────────────────────────────────────── */
     .step-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 28px;
+      gap: 24px;
     }
     .step-card {
-      background: var(--slate-1);
-      border: 1px solid var(--slate-3);
-      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
       padding: 28px 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .step-card:hover {
+      border-color: rgba(6,182,212,0.35);
+      transform: translateY(-3px);
     }
     .step-num {
       display: inline-flex;
@@ -132,34 +138,72 @@
       justify-content: center;
       width: 36px; height: 36px;
       border-radius: 50%;
-      background: var(--amber);
-      color: var(--navy);
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      color: #ffffff;
       font-weight: 900;
       font-size: 16px;
       margin-bottom: 14px;
     }
-    .step-card h4 { margin-bottom: 8px; }
-    .step-card p { font-size: 14px; margin: 0; }
-    /* ── Agents section bg alternation ─────────────────────────────────── */
+    .step-card h4 { margin-bottom: 8px; color: #e2e8f0; }
+    .step-card p  { font-size: 14px; margin: 0; color: #94a3b8; }
+    /* ── Agents section ─────────────────────────────────────────────────── */
     #agents {
-      background: var(--slate-1);
+      background: var(--bg, #030712);
       padding: 72px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
-    /* ── Final CTA box ──────────────────────────────────────────────────── */
+    /* ── Free tools cards ───────────────────────────────────────────────── */
+    .free-tool-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+      text-decoration: none;
+      display: block;
+    }
+    .free-tool-card:hover {
+      border-color: rgba(6,182,212,0.5);
+      transform: translateY(-3px);
+      text-decoration: none;
+    }
+    .free-tool-card .tool-emoji { font-size: 36px; margin-bottom: 12px; }
+    .free-tool-card h3 { color: #e2e8f0; font-size: 18px; margin: 0 0 8px; }
+    .free-tool-card p  { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 16px; }
+    .free-tool-card .cta-link { color: var(--cyan); font-weight: 700; font-size: 14px; }
+    /* ── Trust bar ──────────────────────────────────────────────────────── */
+    .trust-bar {
+      background: rgba(6,182,212,0.04);
+      border-top: 1px solid rgba(6,182,212,0.12);
+      border-bottom: 1px solid rgba(6,182,212,0.12);
+      padding: 20px 0;
+    }
+    .trust-item { color: #94a3b8; font-size: 14px; }
+    .trust-item .check { color: #4ade80; }
+    /* ── CTA box ────────────────────────────────────────────────────────── */
     .cta-card {
-      background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
-      border: 1px solid rgba(245,158,11,0.3);
-      border-radius: 16px;
-      padding: 48px 40px;
+      background: linear-gradient(135deg, rgba(6,182,212,0.08) 0%, rgba(139,92,246,0.08) 100%);
+      border: 1px solid rgba(6,182,212,0.25);
+      border-radius: 20px;
+      padding: 56px 40px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .cta-card h2 { color: #ffffff; margin-bottom: 14px; }
-    .cta-card p  { color: #cbd5e1; font-size: 18px; margin-bottom: 28px; }
-    /* ── Responsive adjustments ────────────────────────────────────────── */
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-card h2 { color: #ffffff; margin-bottom: 14px; position: relative; }
+    .cta-card p  { color: #94a3b8; font-size: 18px; margin-bottom: 28px; position: relative; }
+    /* ── Responsive ─────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .stat-row { gap: 20px; }
       .stat-item .stat-num { font-size: 28px; }
-      .cta-card { padding: 32px 20px; }
+      .cta-card { padding: 36px 20px; }
     }
   </style>
 </head>
@@ -186,32 +230,38 @@
 </header>
 
 <!-- ─── Hero ────────────────────────────────────────────────────────────── -->
-<section class="hero">
-  <div class="container">
-    <p class="eyebrow">Wholesale Omniverse LLC</p>
-    <h1>Autonomous <span class="accent">Revenue Agents</span> &#8212; set them loose, collect the output.</h1>
-    <p class="lede">
-      A fleet of 35+ fully-autonomous agents covering real estate wholesale, content production,
-      social video, e-commerce, SEO, and vertical SaaS. Every agent runs on a cron or script call &#8212;
+<section class="hero" style="position:relative; overflow:hidden; min-height:560px;">
+  <canvas id="hero-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+  <div class="container" style="position:relative;z-index:1;">
+    <p class="eyebrow reveal" style="color:var(--cyan,#06b6d4);">Wholesale Omniverse LLC</p>
+    <h1 class="reveal" style="max-width:860px; color:#ffffff;">
+      Your revenue.<br>
+      <span style="background:linear-gradient(135deg,#06b6d4,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+        <span id="typewriter">on autopilot.</span>
+      </span>
+    </h1>
+    <p class="lede reveal" style="max-width:680px; color:#94a3b8;">
+      A fleet of 40+ fully-autonomous agents covering real estate wholesale, content production,
+      social video, e-commerce, SEO, and vertical SaaS. Every agent runs on a cron or a single command &#8212;
       no dashboards to babysit, no manual API calls.
     </p>
-    <div class="hero-actions">
+    <div class="hero-actions reveal">
       <a href="mailto:WholesaleOmniverse@gmail.com?subject=Agent%20Inquiry" class="btn btn-primary">Get Started</a>
       <a href="#agents" class="btn btn-secondary">Browse all agents</a>
-      <a href="we-buy-houses.html" class="btn btn-secondary" style="margin-left:0">Sell Your House Fast &#8212; Find Your City</a>
+      <a href="we-buy-houses.html" class="btn btn-secondary">Sell Your House Fast</a>
     </div>
 
-    <div class="stat-row">
+    <div class="stat-row reveal">
       <div class="stat-item">
-        <div class="stat-num">35+</div>
+        <div class="stat-num"><span class="counter" data-target="40" data-suffix="+">0</span></div>
         <div class="stat-lbl">Autonomous agents</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">$0</div>
-        <div class="stat-lbl">Extra API keys to run most agents</div>
+        <div class="stat-num"><span class="counter" data-target="668" data-suffix="+">0</span></div>
+        <div class="stat-lbl">SEO city landing pages</div>
       </div>
       <div class="stat-item">
-        <div class="stat-num">530+</div>
+        <div class="stat-num"><span class="counter" data-target="530" data-suffix="+">0</span></div>
         <div class="stat-lbl">Motivated seller leads</div>
       </div>
       <div class="stat-item">
@@ -235,41 +285,31 @@
 </div>
 
 <!-- ─── Free Tools ───────────────────────────────────────────────────────── -->
-<section style="background:#f8fafc; border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0;">
+<section style="border-top:1px solid rgba(6,182,212,0.1); border-bottom:1px solid rgba(6,182,212,0.1);">
   <div class="container">
-    <div class="center" style="max-width:560px; margin:0 auto 40px;">
+    <div class="center reveal" style="max-width:560px; margin:0 auto 40px;">
       <p class="eyebrow">No login. No credit card.</p>
-      <h2>Free tools — use them right now</h2>
+      <h2 style="color:#e2e8f0;">Free tools &#8212; use them right now</h2>
     </div>
     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px; max-width:900px; margin:0 auto;">
-
-      <a href="mao-calculator.html" style="text-decoration:none;">
-        <div style="background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:28px; transition:border-color 0.15s, transform 0.15s;" onmouseover="this.style.borderColor='#f59e0b';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-          <div style="font-size:36px; margin-bottom:12px;">&#127968;</div>
-          <h3 style="color:#0f172a; font-size:18px; margin:0 0 8px;">MAO Calculator</h3>
-          <p style="color:#475569; font-size:14px; line-height:1.6; margin:0 0 16px;">Enter ARV + repairs → get your Max Allowable Offer, wholesale fee, and a deal verdict instantly.</p>
-          <span style="color:#f59e0b; font-weight:700; font-size:14px;">Calculate now &#8594;</span>
-        </div>
+      <a href="mao-calculator.html" class="free-tool-card reveal">
+        <div class="tool-emoji">&#127968;</div>
+        <h3>MAO Calculator</h3>
+        <p>Enter ARV + repairs &#8594; get your Max Allowable Offer, wholesale fee, and a deal verdict instantly.</p>
+        <span class="cta-link">Calculate now &#8594;</span>
       </a>
-
-      <a href="speedaudit.html" style="text-decoration:none;">
-        <div style="background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:28px; transition:border-color 0.15s, transform 0.15s;" onmouseover="this.style.borderColor='#f59e0b';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-          <div style="font-size:36px; margin-bottom:12px;">&#9889;</div>
-          <h3 style="color:#0f172a; font-size:18px; margin:0 0 8px;">SpeedAudit</h3>
-          <p style="color:#475569; font-size:14px; line-height:1.6; margin:0 0 16px;">Free website performance score — TTFB, caching, image formats, HTTPS, and 8 more. Top 3 fixes emailed in 24h.</p>
-          <span style="color:#f59e0b; font-weight:700; font-size:14px;">Get free audit &#8594;</span>
-        </div>
+      <a href="speedaudit.html" class="free-tool-card reveal">
+        <div class="tool-emoji">&#9889;</div>
+        <h3>SpeedAudit</h3>
+        <p>Free website performance score &#8212; TTFB, caching, image formats, HTTPS, and 8 more. Top 3 fixes emailed.</p>
+        <span class="cta-link">Get free audit &#8594;</span>
       </a>
-
-      <a href="salespage_doctor.html" style="text-decoration:none;">
-        <div style="background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:28px; transition:border-color 0.15s, transform 0.15s;" onmouseover="this.style.borderColor='#f59e0b';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-          <div style="font-size:36px; margin-bottom:12px;">&#128203;</div>
-          <h3 style="color:#0f172a; font-size:18px; margin:0 0 8px;">SalesPageDoctor</h3>
-          <p style="color:#475569; font-size:14px; line-height:1.6; margin:0 0 16px;">Free 3-issue audit of your Gumroad / Payhip / Ko-fi page. Score out of 100 + conversion fixes.</p>
-          <span style="color:#f59e0b; font-weight:700; font-size:14px;">Audit my page &#8594;</span>
-        </div>
+      <a href="salespage_doctor.html" class="free-tool-card reveal">
+        <div class="tool-emoji">&#128203;</div>
+        <h3>SalesPageDoctor</h3>
+        <p>Free 3-issue audit of your Gumroad / Payhip / Ko-fi page. Score out of 100 + conversion fixes.</p>
+        <span class="cta-link">Audit my page &#8594;</span>
       </a>
-
     </div>
   </div>
 </section>
@@ -277,28 +317,28 @@
 <!-- ─── How it works ─────────────────────────────────────────────────────── -->
 <section>
   <div class="container">
-    <div class="center" style="max-width:680px; margin:0 auto 48px;">
+    <div class="center reveal" style="max-width:680px; margin:0 auto 48px;">
       <p class="eyebrow">How it works</p>
-      <h2>One platform, many revenue streams.</h2>
+      <h2 style="color:#e2e8f0;">One platform, many revenue streams.</h2>
       <p>Each agent is a standalone Python script with a paywall gate, Gmail-SMTP email output, and flat JSON data storage. Run one or run all of them.</p>
     </div>
     <div class="step-row">
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">1</div>
         <h4>Set your env vars</h4>
         <p>Drop <code>SMTP_USER</code>, <code>SMTP_PASS</code>, and <code>AGENT_PASSWORD</code> in <code>.env</code>. Most agents need nothing else.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">2</div>
         <h4>Run the agent</h4>
         <p>Every agent is <code>python3 run_&lt;agent&gt;_auto.py</code>. Wire it into cron or <code>run_all_autonomous_agents.sh</code>.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">3</div>
         <h4>Collect the output</h4>
         <p>Leads, reports, newsletters, audio files, carousel images &#8212; all land in <code>data/</code> and get emailed to you automatically.</p>
       </div>
-      <div class="step-card">
+      <div class="step-card reveal">
         <div class="step-num">4</div>
         <h4>Gate external clients</h4>
         <p>Subscribers pay via PayPal or Stripe. The paywall system manages access keys, subscription records, and renewal emails without you lifting a finger.</p>
@@ -312,7 +352,7 @@
   <div class="container">
 
     <!-- Real Estate -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Category</p>
       <h2 class="section-heading">Real Estate</h2>
       <div class="agent-grid">
@@ -370,7 +410,7 @@
     </div>
 
     <!-- Content & Media -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Category</p>
       <h2 class="section-heading">Content &amp; Media</h2>
       <div class="agent-grid">
@@ -491,7 +531,7 @@
     </div>
 
     <!-- Social & Video -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Category</p>
       <h2 class="section-heading">Social &amp; Video</h2>
       <div class="agent-grid">
@@ -542,7 +582,7 @@
     </div>
 
     <!-- E-commerce & SEO -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Category</p>
       <h2 class="section-heading">E-commerce &amp; SEO</h2>
       <div class="agent-grid">
@@ -593,7 +633,7 @@
     </div>
 
     <!-- Vertical SaaS -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Category</p>
       <h2 class="section-heading">Vertical SaaS</h2>
       <div class="agent-grid">
@@ -644,7 +684,7 @@
     </div>
 
     <!-- Fleet Manager -->
-    <div class="agent-group">
+    <div class="agent-group reveal">
       <p class="section-label">Infrastructure</p>
       <h2 class="section-heading">Fleet Manager</h2>
       <div class="agent-grid">
