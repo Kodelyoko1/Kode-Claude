@@ -17,8 +17,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 
 DATA_DIR   = Path(__file__).parent.parent / "data"
-BUYERS_FILE = DATA_DIR / "cash_buyers.json"
-EMAIL_LOG   = DATA_DIR / "email_log.json"
+BUYERS_FILE  = DATA_DIR / "cash_buyers.json"
+EMAIL_LOG    = DATA_DIR / "email_log.json"
+BOUNCED_FILE = DATA_DIR / "bf_bounced.json"
 
 COMPANY_NAME  = "Wholesale Omniverse LLC"
 COMPANY_EMAIL = "info@wholesaleomniverse.com"
@@ -34,6 +35,29 @@ HEADERS = {
 SKIP_EMAILS = {"noreply", "example", "webmaster", "admin@", "support@", "no-reply",
                "donotreply", "postmaster", "privacy@", "legal@", "press@",
                "hotfrog", "godaddy", "filler@", "placeholder", "info@2x"}
+
+# Directory/platform domains — never email these directly
+SKIP_DOMAINS = {"hotfrog.", "reia.", "godaddy.", "squarespace.", "wix.com",
+                "weebly.", "wordpress.com", "blogspot.", "tumblr."}
+
+
+def _is_bounced(email: str) -> bool:
+    try:
+        bounced = json.loads(BOUNCED_FILE.read_text()) if BOUNCED_FILE.exists() else []
+        return email.lower() in [b.lower() for b in bounced]
+    except Exception:
+        return False
+
+
+def _mark_bounced(email: str) -> None:
+    try:
+        bounced = json.loads(BOUNCED_FILE.read_text()) if BOUNCED_FILE.exists() else []
+        if email.lower() not in [b.lower() for b in bounced]:
+            bounced.append(email.lower())
+            DATA_DIR.mkdir(exist_ok=True)
+            BOUNCED_FILE.write_text(json.dumps(bounced, indent=2))
+    except Exception:
+        pass
 
 
 def _load(path, default):
@@ -109,6 +133,9 @@ def _save_buyer(name: str, email: str, phone: str, markets: str, source: str, no
 
 
 def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "") -> dict:
+    if _is_bounced(to_email):
+        return {"status": "skipped_bounced"}
+
     smtp_host = os.environ.get("SMTP_HOST", "")
     smtp_user = os.environ.get("SMTP_USER", "")
     smtp_pass = os.environ.get("SMTP_PASS", "")
@@ -123,7 +150,6 @@ def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "")
         return {"status": "quota_exceeded", "count": quota["count"], "cap": quota["cap"]}
     try:
         if body_html and LOGO_PATH.exists():
-            # multipart/related so logo CID reference resolves
             outer = MIMEMultipart("mixed")
             outer["Subject"] = subject
             outer["From"]    = f"{SENDER_NAME} <{smtp_user}>"
@@ -150,13 +176,24 @@ def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "")
             if body_html:
                 msg.attach(MIMEText(body_html, "html"))
 
-        with smtplib.SMTP(smtp_host, smtp_port) as s:
-            s.ehlo(); s.starttls(); s.login(smtp_user, smtp_pass)
+        import socket as _socket
+        _addrs = _socket.getaddrinfo(smtp_host, smtp_port, _socket.AF_INET)
+        _ip = _addrs[0][4][0] if _addrs else smtp_host
+        with smtplib.SMTP(_ip, smtp_port) as s:
+            s.ehlo(smtp_host); s.starttls(); s.login(smtp_user, smtp_pass)
             s.sendmail(smtp_user, to_email, msg.as_string())
         return {"status": "sent"}
+    except smtplib.SMTPRecipientsRefused:
+        release_send()
+        _mark_bounced(to_email)
+        return {"status": "bounced", "email": to_email}
     except Exception as e:
         release_send()
-        return {"status": "failed", "error": str(e)}
+        err = str(e)
+        # 550/551/553 = permanent failure — mark bounced so we never retry
+        if any(code in err for code in ["550", "551", "553", "4.4.4", "5.1.1", "5.1.2"]):
+            _mark_bounced(to_email)
+        return {"status": "failed", "error": err}
 
 
 BUYER_INTRO_TEMPLATE_TEXT = """Hi {name},
@@ -450,11 +487,11 @@ def _guess_email_from_domain(website_url: str) -> str:
         domain = re.sub(r'https?://(www\.)?', '', website_url).split("/")[0].strip()
         if not domain or "." not in domain:
             return ""
+        bad = {"gmail", "yahoo", "hotmail", "outlook"} | SKIP_DOMAINS
+        if any(s in domain for s in bad):
+            return ""
         for prefix in ["info", "contact", "hello", "invest"]:
-            candidate = f"{prefix}@{domain}"
-            # Basic sanity check — not a utility domain
-            if not any(s in domain for s in ["gmail", "yahoo", "hotmail", "outlook"]):
-                return candidate
+            return f"{prefix}@{domain}"
     except Exception:
         pass
     return ""
@@ -495,7 +532,7 @@ def find_buyers_hotfrog(city: str, state: str) -> dict:
                 website_link = ""
                 for a in d_soup.select("a[href]"):
                     href_val = a.get("href", "")
-                    if href_val.startswith("http") and "hotfrog.com" not in href_val:
+                    if href_val.startswith("http") and not any(s in href_val for s in SKIP_DOMAINS):
                         website_link = href_val
                         break
 
@@ -637,7 +674,7 @@ def enrich_buyers_with_email(limit: int = 50) -> dict:
                     break
                 # Visit result URL for email
                 result_url = r.get("url", "")
-                if result_url and "hotfrog.com" not in result_url:
+                if result_url and not any(s in result_url for s in SKIP_DOMAINS):
                     website = result_url
                     email = _scrape_website_for_email(result_url)
                     if email:
