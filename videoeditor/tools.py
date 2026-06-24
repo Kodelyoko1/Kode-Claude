@@ -294,6 +294,7 @@ def run_full_cycle(
     input_path: str | None = None,
     auto_post: bool | None = None,
     post_master: bool | None = None,
+    tiktok_post: bool | None = None,
 ) -> dict:
     """
     Scan data/ve_inputs/ for pending videos (or process a single explicit path)
@@ -301,15 +302,17 @@ def run_full_cycle(
 
     auto_post    — post to YouTube after processing. Defaults to YT_AUTO_POST env var.
     post_master  — also post the full master video. Defaults to YT_POST_MASTER env var.
+    tiktok_post  — post reels to TikTok after processing. Defaults to TIKTOK_AUTO_POST env var.
     """
     ensure_dirs()
     check_ffmpeg()
 
-    # Resolve YouTube posting flags from env if not explicitly passed
     if auto_post is None:
         auto_post = os.getenv("YT_AUTO_POST", "0") == "1"
     if post_master is None:
         post_master = os.getenv("YT_POST_MASTER", "0") == "1"
+    if tiktok_post is None:
+        tiktok_post = os.getenv("TIKTOK_AUTO_POST", "0") == "1"
 
     if input_path:
         pending = [Path(input_path)]
@@ -336,6 +339,11 @@ def run_full_cycle(
                 from videoeditor.youtube_poster import post_to_youtube
                 yt_result = post_to_youtube(meta, post_master=post_master)
                 meta["youtube"] = yt_result
+
+            if tiktok_post:
+                from videoeditor.tiktok_poster import post_to_tiktok
+                tt_result = post_to_tiktok(meta)
+                meta["tiktok"] = tt_result
 
             results.append(meta)
             processed += 1
