@@ -9,18 +9,20 @@ python3 run_videoeditor_auto.py
 # Process a local file
 python3 run_videoeditor_auto.py --input /path/to/vid.mp4
 
-# Download from YouTube, process, upload to Google Drive
-python3 run_videoeditor_auto.py --youtube "https://youtube.com/watch?v=..."
+# Download from YouTube, process, post to TikTok
+python3 run_videoeditor_auto.py --youtube "https://youtube.com/watch?v=..." --tiktok
 
 # All flags together
-python3 run_videoeditor_auto.py --youtube URL --drive --post
+python3 run_videoeditor_auto.py --youtube URL --drive --post --tiktok
 
 Env vars
 --------
-GDRIVE_FOLDER_ID   Google Drive folder ID for uploads
-YT_AUTO_POST=1     Auto-post to YouTube after processing
-YT_POST_MASTER=1   Also post the full master video
-YT_PRIVACY=public  YouTube privacy setting
+GDRIVE_FOLDER_ID      Google Drive folder ID for uploads
+YT_AUTO_POST=1        Auto-post to YouTube after processing
+YT_POST_MASTER=1      Also post the full master video
+YT_PRIVACY=public     YouTube privacy setting
+TIKTOK_AUTO_POST=1    Auto-post reels to TikTok after processing
+TIKTOK_ACCESS_TOKEN   TikTok API token (if not set, emails you the file instead)
 """
 
 import argparse
@@ -48,11 +50,12 @@ def cycle(
     auto_post: bool = False,
     post_master: bool = False,
     drive_upload: bool = False,
+    tiktok_post: bool = False,
 ) -> None:
     console.print(
         Panel(
             "[bold cyan]VideoEditor[/bold cyan]  —  Polish + Reels Cutter\n"
-            "[dim]YouTube → Process → Google Drive[/dim]",
+            "[dim]YouTube → Process → TikTok / Google Drive[/dim]",
             border_style="cyan",
         )
     )
@@ -68,7 +71,12 @@ def cycle(
         console.print(f"  [green]Downloaded:[/green] {dl['title']}")
         input_path = dl["path"]
 
-    r = run_full_cycle(input_path=input_path, auto_post=auto_post, post_master=post_master)
+    r = run_full_cycle(
+        input_path=input_path,
+        auto_post=auto_post,
+        post_master=post_master,
+        tiktok_post=tiktok_post,
+    )
 
     if r["processed"] == 0 and r["errors"] == 0:
         console.print("  [dim]No videos found.[/dim]")
@@ -117,6 +125,15 @@ def cycle(
             else:
                 tbl.add_row(f"YouTube {kind}", f"[red]{yt.get('error', 'failed')}[/red]")
 
+        # TikTok results
+        for tt in meta.get("tiktok", {}).get("tiktok_posts", []):
+            if tt.get("status") == "uploaded":
+                tbl.add_row("TikTok", f"posted ({tt['duration_s']}s reel)")
+            elif tt.get("status") == "handed_off":
+                tbl.add_row("TikTok", f"emailed to {tt.get('to', '')} — paste & upload")
+            else:
+                tbl.add_row("TikTok", f"[red]{tt.get('error', 'failed')}[/red]")
+
         console.print(tbl)
         console.print()
 
@@ -133,6 +150,8 @@ def main() -> None:
                    help="Auto-post reels to YouTube after processing")
     p.add_argument("--post-master", action="store_true", default=False,
                    help="Also post the full master video to YouTube")
+    p.add_argument("--tiktok", action="store_true", default=False,
+                   help="Post reels to TikTok after processing (API or email handoff)")
     p.add_argument("--interval", type=int, default=0, metavar="MINUTES",
                    help="Re-scan data/ve_inputs/ every N minutes (0 = run once)")
     a = p.parse_args()
@@ -147,6 +166,7 @@ def main() -> None:
             auto_post=a.post,
             post_master=a.post_master,
             drive_upload=a.drive,
+            tiktok_post=a.tiktok,
         )
         if a.interval <= 0 or a.input or a.youtube:
             break
