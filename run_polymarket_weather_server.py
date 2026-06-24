@@ -55,9 +55,12 @@ def status():
 
 @app.route("/")
 def index():
-    risk = _state.get("last_result", {}).get("risk", {})
-    pnl  = risk.get("total_pnl", 0)
+    from polymarket_weather.resolver import resolved_count
+    risk  = _state.get("last_result", {}).get("risk", {})
+    pnl   = risk.get("total_pnl", 0)
+    res   = _state.get("last_result", {}).get("total_resolutions", resolved_count())
     pnl_color = "#2ecc71" if pnl >= 0 else "#e74c3c"
+    model_quality = "improving" if res >= 50 else f"collecting ({res}/50 resolved markets)"
     return f"""<!doctype html><html><head>
 <title>PolyMarket Weather Agent</title>
 <meta http-equiv="refresh" content="60">
@@ -74,12 +77,14 @@ def index():
   <b>Total P&amp;L:</b> <span style="color:{pnl_color}">${pnl:+.2f}</span><br>
   <b>Open positions:</b> {risk.get('open_positions', 0)}<br>
   <b>Halted:</b> {risk.get('halted', False)}<br>
-  <b>Live trading:</b> {_state.get('last_result', {}).get('live_trading', False)}
+  <b>Live trading:</b> {_state.get('last_result', {}).get('live_trading', False)}<br>
+  <b>Model quality:</b> {model_quality}
 </div>
 <div class="card">
   <a href="/status">JSON status</a> &nbsp;|&nbsp;
   <a href="/backtest">Run backtest</a> &nbsp;|&nbsp;
-  <a href="/report">Latest report</a>
+  <a href="/report">Latest report</a> &nbsp;|&nbsp;
+  <a href="/collect">Collect resolutions</a>
 </div>
 </body></html>"""
 
@@ -113,6 +118,31 @@ td{{padding:.4rem .8rem;border-bottom:1px solid #333;}} a{{color:#00bcd4;}}
 <h2>Backtest Results</h2>
 <table>{rows}</table>
 {report_link}
+<p><a href="/">← Back</a></p>
+</body></html>"""
+
+
+@app.route("/collect")
+def collect():
+    try:
+        from polymarket_weather.tools import collect_resolutions
+        r = collect_resolutions()
+    except Exception as exc:
+        return Response(f"Collection failed: {exc}", 500)
+    rows = "".join(
+        f"<tr><td>{k}</td><td><b>{v}</b></td></tr>" for k, v in r.items()
+    )
+    return f"""<!doctype html><html><head><title>Resolution Collector</title>
+<style>body{{font-family:monospace;background:#111;color:#eee;padding:2rem;}}
+h2{{color:#00bcd4;}} table{{border-collapse:collapse;width:400px;}}
+td{{padding:.4rem .8rem;border-bottom:1px solid #333;}} a{{color:#00bcd4;}}
+</style></head><body>
+<h2>Resolved Market Collection</h2>
+<table>{rows}</table>
+<p style="color:#aaa;font-size:.85rem">
+  New records are saved to data/pw_resolved/resolved.jsonl and blended
+  into model retraining. Run this every few days to improve accuracy.
+</p>
 <p><a href="/">← Back</a></p>
 </body></html>"""
 
