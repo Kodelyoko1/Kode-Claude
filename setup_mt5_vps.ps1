@@ -74,6 +74,11 @@ MT5_SERVER=
 # Leave IP_MT5_LIVE unset (or 0) for dry-run. Set to 1 only once you've
 # confirmed dry-run output looks correct against your real account balance.
 IP_MT5_LIVE=0
+
+# DEMO/TEST ACCOUNTS ONLY. Even with IP_MT5_LIVE=1, the agent refuses to
+# place orders unless MT5 reports the connected account as demo/contest.
+# Only set this to 1 if you deliberately intend to trade real money.
+IP_MT5_ALLOW_REAL=0
 "@ | Out-File -Encoding utf8 $EnvPath
 } else {
     Write-Host ".env already exists — leaving it as-is." -ForegroundColor Yellow

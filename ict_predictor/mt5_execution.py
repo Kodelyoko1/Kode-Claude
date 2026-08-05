@@ -12,6 +12,11 @@ Buyer's MB_LIVE, PolyMarket Weather's PW_LIVE_TRADING):
     Anything short of that — package not installed, terminal not running,
     login failure, symbol not found — degrades to "simulated" and the
     cycle keeps going; it never raises out of tools.py.
+  - DEMO ACCOUNTS ONLY. Even with IP_MT5_LIVE=1, submission is blocked
+    unless the connected account reports as demo or contest. The check
+    fails closed: an account we cannot positively identify as demo is
+    treated as real and refused. Trading a real-money account requires
+    deliberately setting IP_MT5_ALLOW_REAL=1.
   - The MetaTrader5 package is optional and Windows-only (Wine on Linux).
     Its absence never breaks report generation — only order submission.
 
@@ -20,6 +25,7 @@ Credentials (.env, never hardcoded):
 
 Env knobs:
   IP_MT5_LIVE          default "0" — set "1" to actually place orders
+  IP_MT5_ALLOW_REAL    default "0" — required to trade a non-demo account
   IP_MT5_SYMBOL_GC     default "XAUUSD" — must match your broker's symbol
   IP_MT5_SYMBOL_CL     default "USOIL"  — must match your broker's symbol
   IP_MT5_RISK_PCT      default "0.5"  — % of account balance risked/trade
@@ -40,6 +46,13 @@ except ImportError:
     MT5_PACKAGE_AVAILABLE = False
 
 LIVE = os.getenv("IP_MT5_LIVE", "0") == "1"
+# Demo-only guard. The owner's standing instruction is that this agent trades
+# TEST/DEMO accounts only, so live submission is additionally gated on the
+# connected account actually being a demo/contest account. Placing orders on a
+# real-money account requires deliberately setting IP_MT5_ALLOW_REAL=1 — the
+# gate fails CLOSED, so an account we can't positively identify as demo is
+# treated as real and blocked.
+ALLOW_REAL = os.getenv("IP_MT5_ALLOW_REAL", "0") == "1"
 SYMBOL_MAP = {
     "GC": os.getenv("IP_MT5_SYMBOL_GC", "XAUUSD"),
     "CL": os.getenv("IP_MT5_SYMBOL_CL", "USOIL"),
@@ -52,6 +65,30 @@ DEVIATION = int(os.getenv("IP_MT5_DEVIATION", "20"))
 
 def symbol_for(asset: str) -> str:
     return SYMBOL_MAP.get(asset, asset)
+
+
+def account_kind() -> tuple[str, str]:
+    """
+    Classify the connected MT5 account as demo / contest / real / unknown.
+    Returns (kind, human_label). Requires an active connection; callers must
+    treat "unknown" as unsafe (fail closed) rather than assuming demo.
+    """
+    if not MT5_PACKAGE_AVAILABLE:
+        return "unknown", "MT5 package unavailable"
+    try:
+        info = mt5.account_info()
+        if info is None:
+            return "unknown", "account_info() returned None"
+        mode = info.trade_mode
+        if mode == mt5.ACCOUNT_TRADE_MODE_DEMO:
+            return "demo", f"demo account {info.login} ({info.server})"
+        if mode == mt5.ACCOUNT_TRADE_MODE_CONTEST:
+            return "contest", f"contest account {info.login} ({info.server})"
+        if mode == mt5.ACCOUNT_TRADE_MODE_REAL:
+            return "real", f"REAL-MONEY account {info.login} ({info.server})"
+        return "unknown", f"unrecognized trade_mode={mode}"
+    except Exception as exc:
+        return "unknown", f"account_info() failed: {exc}"
 
 
 def _connect() -> bool:
@@ -193,6 +230,17 @@ def submit(pred: dict) -> dict:
         if not connected:
             return {"status": "connect_failed", "live": True, "plan": plan,
                     "note": "Could not connect/login to the MT5 terminal."}
+
+        # Demo-only guard — fails closed on anything not positively demo/contest.
+        kind, label = account_kind()
+        if kind not in ("demo", "contest") and not ALLOW_REAL:
+            return {
+                "status": "real_account_blocked", "live": True, "plan": plan,
+                "account_kind": kind,
+                "note": f"Refusing to trade: connected to {label}. This agent is "
+                        f"configured for demo/test accounts only. Set "
+                        f"IP_MT5_ALLOW_REAL=1 to deliberately override.",
+            }
 
         info = mt5.symbol_info(plan["symbol"])
         if info is None or not mt5.symbol_select(plan["symbol"], True):

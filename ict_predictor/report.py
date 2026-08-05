@@ -149,6 +149,7 @@ _STATUS_LABEL = {
     "connect_failed": "⚠️ CONNECT FAILED — could not reach/login to the MT5 terminal",
     "symbol_not_found": "⚠️ SYMBOL NOT FOUND — check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL",
     "mt5_unavailable": "⚠️ MT5 PACKAGE NOT INSTALLED",
+    "real_account_blocked": "🛑 BLOCKED — not a demo account (demo/test accounts only)",
     "rejected": "❌ REJECTED by broker",
     "error": "❌ ERROR submitting order",
     "skipped": "— no order (NO TRADE signal)",
