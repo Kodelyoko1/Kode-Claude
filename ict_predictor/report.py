@@ -132,7 +132,7 @@ def format_report(pred: dict) -> str:
         f"3. Market Structure Shift (MSS): {_mss_line(pred)}",
         f"4. Entry Zone / FVG: {_fvg_line(pred)}",
         "",
-        "--- UPSIDEONLY PREDICTION DIRECTIVE ---",
+        "--- MT5 PREDICTION DIRECTIVE ---",
         f"• PREDICTION DIRECTION: {direction}",
         f"• CONFIDENCE LEVEL: {pred.get('confidence', 'Low')}",
         f"• DIRECTIONAL TARGET: {_fmt(pred.get('target'))}",
@@ -140,6 +140,38 @@ def format_report(pred: dict) -> str:
         f"• EXECUTION SUMMARY: {execution_summary(pred)}",
         "=" * 50,
     ]
+    return "\n".join(lines)
+
+
+_STATUS_LABEL = {
+    "submitted": "✅ SUBMITTED — live order placed on MT5",
+    "simulated": "🧪 SIMULATED — dry-run only, nothing sent (set IP_MT5_LIVE=1 to arm)",
+    "connect_failed": "⚠️ CONNECT FAILED — could not reach/login to the MT5 terminal",
+    "symbol_not_found": "⚠️ SYMBOL NOT FOUND — check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL",
+    "mt5_unavailable": "⚠️ MT5 PACKAGE NOT INSTALLED",
+    "rejected": "❌ REJECTED by broker",
+    "error": "❌ ERROR submitting order",
+    "skipped": "— no order (NO TRADE signal)",
+}
+
+
+def format_mt5_status(order_result: dict) -> str:
+    """Supplemental block appended after the fixed report template — kept
+    separate so the template itself stays exactly as specified."""
+    status = order_result.get("status", "skipped")
+    label = _STATUS_LABEL.get(status, status)
+    lines = ["--- MT5 ORDER STATUS ---", f"• {label}"]
+
+    plan = order_result.get("plan")
+    if plan:
+        lines.append(
+            f"• Order: {plan['order_type']} {plan['volume']} lot(s) {plan['symbol']} "
+            f"@ {_fmt(plan['entry'])} | SL {_fmt(plan['sl'])} | TP {_fmt(plan['tp'])}"
+        )
+    if order_result.get("ticket"):
+        lines.append(f"• Ticket: {order_result['ticket']}")
+    if order_result.get("note"):
+        lines.append(f"• Note: {order_result['note']}")
     return "\n".join(lines)
 
 

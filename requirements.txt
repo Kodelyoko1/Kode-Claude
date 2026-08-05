@@ -23,3 +23,10 @@ uvicorn[standard]>=0.27.0
 numpy>=1.26.0
 xgboost>=2.0.0
 py-clob-client>=0.18.0   # optional — only required for live order placement
+
+# ICT Predictor — MetaTrader 5 order submission
+# Optional — the agent's price analysis and report generation work without it.
+# Only needed to actually submit orders to a running MT5 terminal, and MT5's
+# native API is Windows-only (works under Wine on Linux). Not installable on
+# this dev sandbox; import is guarded so its absence never breaks the agent.
+MetaTrader5>=5.0.45   # optional — only required for MT5 order submission
