@@ -214,6 +214,21 @@ Audits Gumroad/Payhip/Sellfy/Ko-fi/Lemon Squeezy creator sales pages for convers
 
 ---
 
+## Trading & Prediction Agents
+
+### ICT Predictor (`ict_predictor/`) — $147/mo signal feed, $397/mo priority alerts, $997/yr white-label
+Rule-based Inner Circle Trader (ICT) prediction agent for Gold (GC) and WTI Crude Oil (CL), for submission on UpsideOnly.com. Pulls free intraday OHLC candles (Yahoo Finance chart JSON, no key) for the 15M bias frame and a 5M/1M precision frame, then runs the ICT Decision & Validation Matrix in pure price-action code (never LLM-invented levels): Step 1 gates on an active killzone (London 07:00–10:00 UTC for GC, NY AM 12:00–15:00 UTC for GC & CL — outside both is an automatic NO TRADE); Step 3 maps unswept buy-/sell-side liquidity (DOL) via swing-point fractals on the 15M frame; Step 4 detects a liquidity sweep + strong-bodied displacement candle confirming a Market Structure Shift (MSS) on the precision frame, then a 3-candle Fair Value Gap (FVG) in the displacement leg (entry = FVG midpoint / CE); Step 5 requires ≥1:2 reward:risk against the opposing liquidity pool or the setup is downgraded to NO TRADE. Optional `ANTHROPIC_API_KEY` (Claude `claude-sonnet-4-6`) only rephrases the 2-sentence execution summary from the already-computed numbers — it never sets a price. Output matches the fixed `AUTONOMOUS ICT PREDICTION AGENT REPORT` template for direct UpsideOnly.com submission. Not financial advice; informational signal feed only, no order placement.  
+**Run:** `python3 run_ict_predictor_auto.py` (full cycle) · `--asset GC|CL` (single scan) · `--status` (recent predictions)  
+**Env:** `IP_ASSETS` (default `GC,CL`), `IP_LTF_INTERVAL` (default `5m`), `IP_MIN_RR` (default `2.0`), `IP_SWEEP_LOOKBACK`, `IP_OWNER_EMAIL`  
+**Data:** `data/ip_candles/` (cached price feed), `data/ip_predictions.json` (rolling log), `data/ip_reports/YYYY-MM-DD.md` (digest)
+
+### PolyMarket Weather (`polymarket_weather/`)
+Autonomous weather-market trading agent for PolyMarket. Trains a per-city, per-event-type forecast model, scans live markets for model-vs-market pricing edge, sizes positions with fractional Kelly under a `risk.py` bankroll/drawdown manager, and (dry-run by default; `PW_LIVE_TRADING=1` to place real orders) submits orders via `py-clob-client`. Weekly backtests + retraining, daily digest emailed to the owner.  
+**Run:** `python3 run_polymarket_weather_auto.py` (`--backtest` / `--train` / `--refresh` / `--status` / `--opportunities`)  
+**Data:** `data/pw_historical/`, `data/pw_models/`, `data/pw_reports/`
+
+---
+
 ## SEO & Reputation
 
 ### LinkMender (`link_mender/`) — $97 audit, $47/mo monitoring, $197 agency lead list

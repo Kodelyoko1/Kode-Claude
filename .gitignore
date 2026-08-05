@@ -56,6 +56,9 @@ data/.batman_quarantine/
 data/media_buyer/
 data/mb_cron_logs/
 data/ds_cron_logs/
+data/ip_reports/
+data/ip_candles/
+data/ip_predictions.json
 
 # Per-agent runtime data (auto-generated; never commit)
 # Lead lists, delivery logs, prospect drafts, queue state, owner inputs/outputs

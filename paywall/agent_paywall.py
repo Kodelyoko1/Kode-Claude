@@ -57,6 +57,7 @@ AGENT_NAMES = {
     "dropship_scout":   "DropshipScout — TikTok-Shop + Amazon Trend Digest",
     "batman":               "Batman — Self-Healing Agent Fleet Manager",
     "polymarket_weather":   "PolyMarket Weather — Prediction Market Trading Agent",
+    "ict_predictor":        "ICT Predictor — Gold & Crude ICT Killzone Signal Feed",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -103,6 +104,7 @@ DEFAULT_PRICES = {
     "hudscout":         97,
     "dropship_scout":   47,
     "batman":           147,
+    "ict_predictor":    147,
 }
 
 
