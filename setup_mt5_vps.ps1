@@ -60,19 +60,31 @@ python -m venv .venv
 
 $EnvPath = Join-Path $InstallDir ".env"
 if (-not (Test-Path $EnvPath)) {
-    Write-Host "Writing .env template (fill in your real values — this file is git-ignored)." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Let's fill in your MT5 login (stored locally in .env; never committed)." -ForegroundColor Green
+    Write-Host "Press Enter to skip any field and edit the file by hand later." -ForegroundColor DarkGray
+
+    $mt5Login    = Read-Host "  MT5 login (account number)"
+    $mt5Password = Read-Host "  MT5 password"
+    $mt5Server   = Read-Host "  MT5 server (e.g. MetaQuotes-Demo)"
+
     @"
 # Owner bypass for the paywall prompt — set any value
 AGENT_PASSWORD=owner
 
-# MetaTrader 5 login — fill these in with your real account details
-MT5_LOGIN=
-MT5_PASSWORD=
-MT5_SERVER=
+# MetaTrader 5 login
+MT5_LOGIN=$mt5Login
+MT5_PASSWORD=$mt5Password
+MT5_SERVER=$mt5Server
 # MT5_PATH=C:\Program Files\MetaTrader 5\terminal64.exe   # only if not default install path
 
-# Leave IP_MT5_LIVE unset (or 0) for dry-run. Set to 1 only once you've
-# confirmed dry-run output looks correct against your real account balance.
+# Broker symbol names — run '--doctor' and it will tell you the exact values
+# to put here if the defaults (XAUUSD / USOIL) don't exist on your broker.
+# IP_MT5_SYMBOL_GC=XAUUSD
+# IP_MT5_SYMBOL_CL=USOIL
+
+# Leave IP_MT5_LIVE at 0 for dry-run. Set to 1 only once you've confirmed
+# dry-run output looks correct against your real account balance.
 IP_MT5_LIVE=0
 
 # DEMO/TEST ACCOUNTS ONLY. Even with IP_MT5_LIVE=1, the agent refuses to
@@ -80,18 +92,27 @@ IP_MT5_LIVE=0
 # Only set this to 1 if you deliberately intend to trade real money.
 IP_MT5_ALLOW_REAL=0
 "@ | Out-File -Encoding utf8 $EnvPath
+    Write-Host "  Wrote $EnvPath" -ForegroundColor Green
 } else {
     Write-Host ".env already exists — leaving it as-is." -ForegroundColor Yellow
 }
+
+Write-Host ""
+Write-Host "Running preflight diagnostics..." -ForegroundColor Green
+& ".\.venv\Scripts\python.exe" run_ict_predictor_auto.py --doctor
 
 Pop-Location
 
 Write-Host ""
 Write-Host "=== Setup complete ===" -ForegroundColor Cyan
-Write-Host "Next steps:"
-Write-Host "  1. Open MT5 on this VPS and log into your account (if you haven't already)."
-Write-Host "  2. Edit $EnvPath and fill in MT5_LOGIN / MT5_PASSWORD / MT5_SERVER."
-Write-Host "  3. cd `"$InstallDir`""
-Write-Host "  4. .\.venv\Scripts\python.exe run_ict_predictor_auto.py --asset GC"
-Write-Host "     -> Confirm the MT5 ORDER STATUS block says 'simulated' and sizes off your real balance."
-Write-Host "  5. Only once that looks right, set IP_MT5_LIVE=1 in .env to arm live order submission."
+Write-Host "Read the diagnostics above. Fix any [X] items, then:"
+Write-Host ""
+Write-Host "  cd `"$InstallDir`""
+Write-Host "  .\.venv\Scripts\python.exe run_ict_predictor_auto.py --doctor    # re-check"
+Write-Host "  .\.venv\Scripts\python.exe run_ict_predictor_auto.py --asset GC  # single scan"
+Write-Host "  .\.venv\Scripts\python.exe run_ict_predictor_auto.py             # full cycle"
+Write-Host ""
+Write-Host "Most common first-run fixes:" -ForegroundColor DarkGray
+Write-Host "  - Open the MT5 desktop app and log in (the API needs a RUNNING terminal)."
+Write-Host "  - If a symbol is 'not found', --doctor prints your broker's actual names."
+Write-Host "  - Signals only appear during killzones (07-10 and 12-15 UTC)."

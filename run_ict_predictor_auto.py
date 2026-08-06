@@ -85,6 +85,32 @@ def cmd_status():
     console.print(table)
 
 
+def cmd_doctor():
+    from ict_predictor.doctor import run_diagnostics, summarize
+
+    console.print("\n[bold]Preflight Diagnostics[/bold]\n")
+    checks = run_diagnostics()
+
+    icons = {"ok": "[green]✓[/green]", "warn": "[yellow]![/yellow]",
+             "fail": "[red]✗[/red]", "info": "[dim]·[/dim]"}
+    for c in checks:
+        console.print(f"  {icons[c['status']]} [bold]{c['name']}[/bold]: {c['detail']}")
+        if c["fix"]:
+            console.print(f"      [dim]→ {c['fix']}[/dim]")
+
+    fails, warns = summarize(checks)
+    console.print()
+    if fails:
+        console.print(f"[red bold]{fails} blocking issue(s)[/red bold]"
+                      f"{f', {warns} warning(s)' if warns else ''} — "
+                      f"fix the ✗ items above.")
+    elif warns:
+        console.print(f"[yellow]{warns} warning(s)[/yellow] — usable, but read the ! items.")
+    else:
+        console.print("[green bold]All checks passed.[/green bold] "
+                      "Ready to run a cycle.")
+
+
 def cmd_scan(asset: str):
     from ict_predictor.tools import analyze_asset
     from ict_predictor.report import format_report, format_mt5_status
@@ -104,12 +130,18 @@ def main():
                         help="Scan a single asset and print its report, then exit")
     parser.add_argument("--status", action="store_true",
                         help="Show recently logged predictions, then exit")
+    parser.add_argument("--doctor", action="store_true",
+                        help="Run preflight checks (MT5, credentials, symbols, feed), then exit")
     args = parser.parse_args()
 
     if not paywall_prompt(AGENT_KEY):
         return
 
     _banner()
+
+    if args.doctor:
+        cmd_doctor()
+        return
 
     if args.status:
         cmd_status()
