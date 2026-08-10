@@ -33,6 +33,17 @@ from rich.text import Text
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
+# Load .env before anything reads os.environ. The rest of the fleet relies on
+# the shell doing this (`export $(grep -v '^#' .env | xargs) && python3 ...`),
+# but this agent has to run on Windows for MetaTrader5, where that idiom does
+# not exist — so it loads its own config. Must happen before the ict_predictor
+# modules are imported, since several read their env knobs at import time.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass  # python-dotenv is in requirements.txt; fall back to a pre-set environment
+
 from paywall.agent_paywall import paywall_prompt
 from autonomous.self_healing import run_with_healing
 from autonomous import storage
