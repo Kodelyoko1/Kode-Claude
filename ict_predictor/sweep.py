@@ -236,18 +236,26 @@ def format_report(sweep: dict, asset: str, period: str) -> str:
             "     it as a discretionary alert rather than an automated system.",
         ]
     else:
-        agree = [r for r in usable
-                 if r["is_expectancy"] > 0 and r["oos_expectancy"] > 0]
+        holds = [r for r in usable if _verdict(r) == "holds OOS"]
+        failed = [r for r in usable if _verdict(r) == "FAILED OOS"]
+        flipped = [r for r in usable if _verdict(r) == "sign flip"]
+        neg = [r for r in usable if _verdict(r) == "negative both"]
+        pool = pooled(usable)
         lines += [
-            f"{len(usable)} combination(s) cleared the trade threshold in both halves.",
-            f"{len(agree)} of those held positive expectancy OUT-OF-SAMPLE.",
+            f"{len(usable)} combination(s) cleared the trade threshold in both halves:",
+            f"  {len(holds):>3} positive in BOTH halves        (holds OOS)",
+            f"  {len(failed):>3} positive IS, negative OOS      (classic overfitting)",
+            f"  {len(flipped):>3} negative IS, positive OOS      (sign flip)",
+            f"  {len(neg):>3} negative in BOTH halves",
+            "",
+            f"Pooled across those {len(usable)} settings: {pool['trades']:,} trades, "
+            f"{pool['expectancy']:+.3f} R/trade ({pool['total_r']:+.1f} R total).",
             "",
         ]
-        if agree:
-            top = max(agree, key=lambda r: r["oos_expectancy"])
+        if holds:
+            top = max(holds, key=lambda r: r["oos_expectancy"])
             p = top["params"]
-            spike = top["oos_expectancy"] < 0 or \
-                top["neighbourhood_expectancy"] < 0.3 * top["is_expectancy"]
+            spike = top["neighbourhood_expectancy"] < 0.3 * top["is_expectancy"]
             lines += [
                 f"Most durable: displacement_mult={p['displacement_mult']}, "
                 f"sweep_lookback={p['sweep_lookback']}, min_rr={p['min_rr']}",
@@ -256,11 +264,30 @@ def format_report(sweep: dict, asset: str, period: str) -> str:
                 f"  neighbourhood {top['neighbourhood_expectancy']:+.3f} R "
                 f"({'SPIKE — treat with suspicion' if spike else 'plateau — more credible'})",
             ]
+        elif failed:
+            lines += [
+                "Nothing held up. Settings that looked good on the first portion lost",
+                "on the held-out data — the signature of fitting noise. Do not trade",
+                "any row above on the strength of this table.",
+            ]
+        elif flipped and not neg:
+            lines += [
+                "Every viable setting changed SIGN between the two halves: negative in",
+                "the first period, positive in the second. That is not an edge appearing",
+                "— it is the strategy being regime-dependent. A rule set with a real edge",
+                "is positive in both halves; one that loses in one market and wins in the",
+                "next is indistinguishable from taking the market's direction with extra",
+                "steps, and you cannot know which regime comes next.",
+                "",
+                f"The pooled figure ({pool['expectancy']:+.3f} R over {pool['trades']:,} trades) is the",
+                "fairer read, and it is close enough to zero that commission, swap and",
+                "slippage — none of which are modelled here — would plausibly sink it.",
+            ]
         else:
             lines += [
-                "None survived out-of-sample. Every setting that looked good on the",
-                "first portion failed on the held-out data — the signature of fitting",
-                "noise. Do not trade any row above on the strength of this table.",
+                "No setting was positive in both halves. The results are either negative",
+                "throughout or inconsistent between periods; neither supports trading",
+                "this rule set as specified.",
             ]
 
     lines += [
@@ -274,10 +301,28 @@ def format_report(sweep: dict, asset: str, period: str) -> str:
 
 
 def _verdict(r: dict) -> str:
+    """
+    All four quadrants, named for what they actually mean. An earlier version
+    collapsed both negative-in-sample cases into "negative", which made a run
+    where every viable setting flipped from negative to positive read as
+    "looked good then failed" — the opposite of the truth.
+    """
     if r["is_resolved"] < MIN_TRADES_FOR_CLAIM or r["oos_resolved"] < MIN_TRADES_FOR_CLAIM:
         return "too few trades"
-    if r["is_expectancy"] > 0 and r["oos_expectancy"] > 0:
+    pos_is, pos_oos = r["is_expectancy"] > 0, r["oos_expectancy"] > 0
+    if pos_is and pos_oos:
         return "holds OOS"
-    if r["is_expectancy"] > 0:
+    if pos_is and not pos_oos:
         return "FAILED OOS"
-    return "negative"
+    if not pos_is and pos_oos:
+        return "sign flip"
+    return "negative both"
+
+
+def pooled(rows: list[dict]) -> dict:
+    """Both halves combined. A setting whose halves disagree has a pooled
+    figure closer to its true long-run behaviour than either half alone."""
+    n = sum(r["is_resolved"] + r["oos_resolved"] for r in rows)
+    total = sum(r["is_resolved"] * r["is_expectancy"] +
+                r["oos_resolved"] * r["oos_expectancy"] for r in rows)
+    return {"trades": n, "total_r": total, "expectancy": (total / n) if n else 0.0}
