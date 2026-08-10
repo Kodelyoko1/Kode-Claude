@@ -23,6 +23,12 @@ INVALIDATION_BUFFER_PCT = float(os.getenv("IP_INVALIDATION_BUFFER_PCT", "0.0015"
 # 5M chart, 12 bars covers a full hour — wide enough to catch a raid early
 # in the killzone while the MSS/FVG that follows is still fresh.
 SWEEP_LOOKBACK = int(os.getenv("IP_SWEEP_LOOKBACK", "12"))
+# Minimum displacement-candle body, as a multiple of average bar range, for a
+# Market Structure Shift to count. This is the strategy's tightest filter —
+# measured on real gold it rejected ~88% of swept setups — so it needs to be
+# configurable, otherwise a setting the sweep identifies cannot actually be
+# backtested or traded.
+DISPLACEMENT_MULT = float(os.getenv("IP_DISPLACEMENT_MULT", "1.3"))
 
 
 def _nearest_fvg(gaps: list[dict], direction: str, current_price: float) -> Optional[dict]:
@@ -39,7 +45,7 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
                       ltf_candles: list[dict], ltf_label: str = "5M",
                       min_rr: Optional[float] = None,
                       sweep_lookback: Optional[int] = None,
-                      displacement_mult: float = 1.3) -> dict:
+                      displacement_mult: Optional[float] = None) -> dict:
     """
     htf_candles: 15M candles, used for bias / draw-on-liquidity.
     ltf_candles: precision-entry candles (5M or 1M), used for the sweep,
@@ -53,6 +59,8 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
     """
     min_rr = MIN_RR if min_rr is None else min_rr
     sweep_lookback = SWEEP_LOOKBACK if sweep_lookback is None else sweep_lookback
+    displacement_mult = (DISPLACEMENT_MULT if displacement_mult is None
+                         else displacement_mult)
     out = {
         "asset": asset,
         "timeframe": f"15M / {ltf_label}",

@@ -249,7 +249,15 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
         elif trade.fill_t:
             open_until = trade.fill_t
 
-    return _summarize(trades, signals_seen, killzone_bars, spread, funnel)
+    from ict_predictor import predictor as _p
+    eff = {"displacement_mult": (params or {}).get("displacement_mult", _p.DISPLACEMENT_MULT),
+           "sweep_lookback":    (params or {}).get("sweep_lookback", _p.SWEEP_LOOKBACK),
+           "min_rr":            (params or {}).get("min_rr", _p.MIN_RR)}
+    out = _summarize(trades, signals_seen, killzone_bars, spread, funnel)
+    out["params_used"] = (f"displacement_mult={eff['displacement_mult']} "
+                          f"sweep_lookback={eff['sweep_lookback']} "
+                          f"min_rr={eff['min_rr']}")
+    return out
 
 
 def _summarize(trades: list[Trade], signals: int, kz_bars: int, spread: float,
@@ -323,6 +331,7 @@ def format_report(result: dict, asset: str, period: str) -> str:
         f"ICT STRATEGY BACKTEST — {asset}",
         "=" * 62,
         f"Period analysed      : {period}",
+        f"Parameters           : {result.get('params_used', 'defaults')}",
         f"Killzone bars scanned: {result['killzone_bars_scanned']:,}",
         f"Signals generated    : {result['signals_generated']}",
         f"Orders placed        : {result['trades_taken']}",
