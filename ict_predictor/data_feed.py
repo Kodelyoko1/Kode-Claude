@@ -228,6 +228,44 @@ def _fetch_from_yahoo(asset: str, interval: str) -> list[dict]:
     return candles
 
 
+def get_history(asset: str, interval: str, bars: int) -> list[dict]:
+    """
+    Deep history for backtesting — bypasses the live cache and pulls as many
+    bars as MT5 will give. Only MT5 is supported here: Yahoo's intraday
+    windows are far too short to backtest, and its futures prices are the
+    wrong instrument anyway.
+    """
+    from ict_predictor import mt5_execution
+
+    if not mt5_execution.MT5_PACKAGE_AVAILABLE:
+        raise FeedError(
+            "Backtesting needs MetaTrader5 for deep history (Windows only). "
+            "Yahoo's intraday range is too short and quotes futures, not the "
+            "spot symbol you trade.")
+
+    import MetaTrader5 as mt5
+    timeframes = {"1m": mt5.TIMEFRAME_M1, "5m": mt5.TIMEFRAME_M5,
+                  "15m": mt5.TIMEFRAME_M15}
+    if interval not in timeframes:
+        raise FeedError(f"unsupported interval '{interval}'")
+
+    symbol = mt5_execution.symbol_for(asset)
+    if not mt5_execution._connect():
+        raise FeedError("MT5 terminal not connected")
+    try:
+        mt5.symbol_select(symbol, True)
+        rates = mt5.copy_rates_from_pos(symbol, timeframes[interval], 0, bars)
+        if rates is None or len(rates) == 0:
+            raise FeedError(f"no history for {symbol} {interval}: {mt5.last_error()}")
+        offset = _server_utc_offset(int(rates[-1]["time"]), interval)
+        return [{"t": int(r["time"]) - offset, "o": float(r["open"]),
+                 "h": float(r["high"]), "l": float(r["low"]),
+                 "c": float(r["close"]), "v": float(r["tick_volume"])}
+                for r in rates]
+    finally:
+        mt5_execution._disconnect()
+
+
 def active_source() -> str:
     """Which feed will actually be used: 'mt5' or 'yahoo'."""
     if PRICE_SOURCE in ("mt5", "yahoo"):
