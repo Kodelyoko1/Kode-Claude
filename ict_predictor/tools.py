@@ -98,12 +98,14 @@ def _write_digest(predictions: list[dict]) -> Path:
         block.append("```")
         block.append("")
 
-    existing = path.read_text() if path.exists() else (
+    # encoding is explicit on both ends: the digest contains emoji + em-dashes,
+    # and on Windows the default is cp1252, which raises UnicodeEncodeError.
+    existing = path.read_text(encoding="utf-8") if path.exists() else (
         f"# ICT Gold & Crude Prediction Agent — {today}\n\n"
         f"_Not financial advice. Signal-feed output formatted for MetaTrader 5 "
         f"submission; trading futures carries substantial risk._\n\n"
     )
-    path.write_text(existing + "\n".join(block) + "\n")
+    path.write_text(existing + "\n".join(block) + "\n", encoding="utf-8")
     return path
 
 
