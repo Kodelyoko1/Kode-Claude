@@ -49,9 +49,37 @@ DEFAULT_GRID = {
 MIN_TRADES_FOR_CLAIM = 30
 
 
-def _split(bars: list[dict], frac: float) -> tuple[list[dict], list[dict]]:
-    cut = int(len(bars) * frac)
-    return bars[:cut], bars[cut:]
+def _split_by_time(htf: list[dict], ltf: list[dict], frac: float):
+    """
+    Split both frames at the SAME instant, over their common period.
+
+    Splitting each array independently by index is wrong whenever the two
+    frames cover different spans — which is the norm, since brokers hold far
+    more 15M history than 5M. Doing so put the halves in different eras: the
+    in-sample half ended up with bias-frame bars that had no precision-frame
+    data at all, so nearly every decision was skipped and its statistics were
+    meaningless, while the out-of-sample half quietly received the only
+    genuinely overlapping stretch.
+
+    Here both frames are first trimmed to their intersection, then cut at one
+    shared timestamp, so the two halves are consecutive slices of the same
+    tradeable history.
+    """
+    start = max(htf[0]["t"], ltf[0]["t"])
+    end = min(htf[-1]["t"], ltf[-1]["t"])
+    htf = [b for b in htf if start <= b["t"] <= end]
+    ltf = [b for b in ltf if start <= b["t"] <= end]
+    if not htf or not ltf:
+        return [], [], [], [], (start, end, start)
+
+    boundary = htf[int(len(htf) * frac)]["t"] if len(htf) > 1 else htf[0]["t"]
+    return (
+        [b for b in htf if b["t"] < boundary],
+        [b for b in ltf if b["t"] < boundary],
+        [b for b in htf if b["t"] >= boundary],
+        [b for b in ltf if b["t"] >= boundary],
+        (start, end, boundary),
+    )
 
 
 def run_sweep(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
@@ -71,8 +99,12 @@ def run_sweep(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
                                "sweep_lookback": sl,
                                "min_rr": rr})
 
-    htf_is, htf_oos = _split(htf_bars, is_frac)
-    ltf_is, ltf_oos = _split(ltf_bars, is_frac)
+    htf_is, ltf_is, htf_oos, ltf_oos, bounds = _split_by_time(
+        htf_bars, ltf_bars, is_frac)
+    if not htf_is or not htf_oos:
+        return {"rows": [], "grid": grid, "is_frac": is_frac,
+                "is_bars": 0, "oos_bars": 0, "bounds": bounds,
+                "error": "no common period between the 15M and 5M frames"}
 
     rows = []
     for n, params in enumerate(combos, 1):
@@ -99,7 +131,9 @@ def run_sweep(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
 
     _attach_neighbourhood(rows, grid)
     return {"rows": rows, "grid": grid, "is_frac": is_frac,
-            "is_bars": len(htf_is), "oos_bars": len(htf_oos)}
+            "is_bars": len(htf_is), "oos_bars": len(htf_oos),
+            "is_ltf_bars": len(ltf_is), "oos_ltf_bars": len(ltf_oos),
+            "bounds": bounds}
 
 
 def _attach_neighbourhood(rows: list[dict], grid: dict) -> None:
@@ -128,6 +162,19 @@ def _attach_neighbourhood(rows: list[dict], grid: dict) -> None:
         r["neighbours"] = len(neigh)
 
 
+def _split_line(sweep: dict) -> str:
+    from datetime import datetime, timezone
+    b = sweep.get("bounds")
+    if not b:
+        return "Split             : (unknown)"
+    start, end, boundary = b
+    f = lambda ts: datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+    return (f"Split             : {f(start)} -> {f(boundary)} in-sample "
+            f"({sweep['is_bars']:,} 15M / {sweep.get('is_ltf_bars', 0):,} 5M bars)"
+            f"  |  {f(boundary)} -> {f(end)} held out "
+            f"({sweep['oos_bars']:,} 15M / {sweep.get('oos_ltf_bars', 0):,} 5M bars)")
+
+
 def format_report(sweep: dict, asset: str, period: str) -> str:
     rows = sweep["rows"]
     if not rows:
@@ -138,9 +185,7 @@ def format_report(sweep: dict, asset: str, period: str) -> str:
         f"ICT PARAMETER SENSITIVITY SWEEP — {asset}",
         "=" * 100,
         f"Period            : {period}",
-        f"Split             : first {sweep['is_frac']:.0%} in-sample "
-        f"({sweep['is_bars']:,} 15M bars) / remaining "
-        f"({sweep['oos_bars']:,} bars) held out",
+        _split_line(sweep),
         f"Combinations      : {len(rows)}",
         f"Trade threshold   : {MIN_TRADES_FOR_CLAIM} resolved trades before an "
         f"expectancy is treated as evidence",
