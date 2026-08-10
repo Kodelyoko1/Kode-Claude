@@ -41,9 +41,17 @@ def _check(name: str, status: str, detail: str, fix: str = "") -> dict:
     return {"name": name, "status": status, "detail": detail, "fix": fix}
 
 
+# Category paths that mean "this is an equity/ETF, not the commodity itself".
+# Matching on ticker text alone is dangerous: on MetaQuotes-Demo, "WTI" is
+# W&T Offshore Inc (a stock) and "OILK" is an ETF — trading either instead of
+# crude would be silently, catastrophically wrong.
+_EQUITY_PATH_HINTS = ("STOCK", "ETF", "NASDAQ", "NYSE", "SHARE", "EQUIT", "BOND")
+
+
 def discover_symbols(asset: str) -> list[str]:
-    """Ask the connected broker which symbols look like gold / crude oil.
-    Returns [] when MT5 isn't available or nothing matches."""
+    """Ask the connected broker which symbols plausibly ARE gold / crude oil.
+    Equities and ETFs whose tickers merely contain 'OIL'/'WTI' are excluded —
+    they are not the underlying commodity. Returns [] if nothing qualifies."""
     if not mt5_execution.MT5_PACKAGE_AVAILABLE:
         return []
     try:
@@ -52,8 +60,15 @@ def discover_symbols(asset: str) -> list[str]:
         if not symbols:
             return []
         hints = _SYMBOL_HINTS.get(asset, ())
-        found = [s.name for s in symbols
-                 if any(h in s.name.upper() for h in hints)]
+        found = []
+        for s in symbols:
+            if not any(h in s.name.upper() for h in hints):
+                continue
+            path = (getattr(s, "path", "") or "").upper()
+            if any(bad in path for bad in _EQUITY_PATH_HINTS):
+                continue  # a share/ETF that happens to be named like the commodity
+            desc = (getattr(s, "description", "") or "").strip()
+            found.append(f"{s.name} ({desc[:38]})" if desc else s.name)
         return sorted(found)[:12]
     except Exception:
         return []
@@ -142,11 +157,26 @@ def run_diagnostics() -> list[dict]:
                 continue
             try:
                 import MetaTrader5 as mt5
-                exists = mt5.symbol_info(configured) is not None
+                sym = mt5.symbol_info(configured)
             except Exception:
-                exists = False
-            if exists:
-                checks.append(_check(f"Symbol for {asset}", OK, f"'{configured}' found on broker"))
+                sym = None
+            if sym is not None:
+                # Existing isn't enough — confirm it's the commodity, not a
+                # same-named equity/ETF, which would trade the wrong instrument.
+                path = (getattr(sym, "path", "") or "").upper()
+                desc = (getattr(sym, "description", "") or "").strip()
+                if any(bad in path for bad in _EQUITY_PATH_HINTS):
+                    checks.append(_check(
+                        f"Symbol for {asset}", FAIL,
+                        f"'{configured}' resolves to an equity/ETF, not {asset}: "
+                        f"{desc[:50]} [{getattr(sym, 'path', '')}]",
+                        f"This would trade the WRONG instrument. Pick a real "
+                        f"{asset} contract, or drop {asset} from IP_ASSETS."))
+                else:
+                    detail = f"'{configured}' found on broker"
+                    if desc:
+                        detail += f" ({desc[:40]})"
+                    checks.append(_check(f"Symbol for {asset}", OK, detail))
             else:
                 candidates = discover_symbols(asset)
                 env_var = f"IP_MT5_SYMBOL_{asset}"
