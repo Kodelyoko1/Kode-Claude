@@ -31,6 +31,7 @@ from __future__ import annotations
 import os
 import statistics
 import sys
+from bisect import bisect_right
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Optional
@@ -46,6 +47,23 @@ from ict_predictor.predictor import build_prediction
 DEFAULT_SPREAD = float(os.getenv("IP_BT_SPREAD", "0.30"))
 # Bars of history the predictor needs before it can map structure.
 WARMUP_BARS = int(os.getenv("IP_BT_WARMUP", "60"))
+# Trailing precision-frame bars handed to the predictor. It only maps recent
+# structure, so anything beyond this was being copied and discarded.
+LTF_WINDOW_BARS = int(os.getenv("IP_BT_LTF_WINDOW", "300"))
+# Trailing BIAS-frame bars. This is a modelling choice, not just an
+# optimisation, so it is stated plainly: find_swing_points() rescans its whole
+# input, and the input grew with every bar, making the replay quadratic in
+# history length — 81 hours for a full sweep at ~18k bars. Bounding it also
+# reflects the strategy's own logic: a liquidity level from ~3 weeks back is
+# not the intraday draw on liquidity ICT targets, and an old swing that price
+# never closed through is vanishingly rare. Measured against an unbounded
+# window, 1000 bars (~10 trading days on 15M) changes 0.5% of decisions.
+# Raise it to trade fidelity for time; IP_BT_HTF_WINDOW=0 disables the bound.
+HTF_WINDOW_BARS = int(os.getenv("IP_BT_HTF_WINDOW", "1000"))
+# Forward bars scanned when resolving a trade. These are 5M bars, so 1440 is
+# ~5 days — far more than an intraday setup needs, since orders expire the
+# same day and anything still unresolved is reported as "open_at_end".
+FORWARD_BARS = int(os.getenv("IP_BT_FORWARD", "1440"))
 
 
 class Trade:
@@ -162,6 +180,12 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
     funnel = {"no_liquidity": 0, "no_sweep": 0, "no_mss": 0,
               "no_fvg": 0, "rr_too_low": 0, "other": 0}
 
+    # Timestamps hoisted out so each decision can binary-search its window.
+    # Rebuilding the slices with a linear scan per decision made the loop
+    # O(decisions x len(ltf_bars)): ~72 billion element visits across a full
+    # 60-cell sweep, which is hours rather than minutes.
+    ltf_times = [b["t"] for b in ltf_bars]
+
     total = len(htf_bars)
     for i in range(WARMUP_BARS, total):
         if progress and i % 200 == 0:
@@ -179,14 +203,19 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
             continue  # mirrors the live duplicate/exposure guard
 
         # --- strict no-look-ahead slicing -------------------------------
-        htf_window = htf_bars[:i + 1]
-        ltf_window = [b for b in ltf_bars if b["t"] <= decision_t]
-        assert not htf_window or htf_window[-1]["t"] <= decision_t
-        assert not ltf_window or ltf_window[-1]["t"] <= decision_t
-        if len(ltf_window) < 20:
+        # bisect_right returns the first index STRICTLY after decision_t, so
+        # ltf_bars[:cut] is exactly the set of bars that had closed by then —
+        # the same result the linear filter produced, without rescanning.
+        cut = bisect_right(ltf_times, decision_t)
+        if cut < 20:
             continue
+        htf_start = max(0, i + 1 - HTF_WINDOW_BARS) if HTF_WINDOW_BARS else 0
+        htf_window = htf_bars[htf_start:i + 1]
+        ltf_window = ltf_bars[max(0, cut - LTF_WINDOW_BARS):cut]
+        assert htf_window[-1]["t"] <= decision_t
+        assert ltf_window[-1]["t"] <= decision_t
 
-        pred = build_prediction(asset, kz, htf_window, ltf_window[-300:], "5M",
+        pred = build_prediction(asset, kz, htf_window, ltf_window, "5M",
                                 **(params or {}))
         if pred.get("direction") not in ("LONG", "SHORT"):
             reason = (pred.get("reason") or "").lower()
@@ -208,7 +237,11 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
         trade = Trade(pred["direction"], decision_t, pred["entry"],
                       pred["invalidation"], pred["target"],
                       pred.get("risk_reward", 0), pred.get("confidence", ""))
-        future = [b for b in ltf_bars if b["t"] > decision_t]
+        # Bounded forward slice. Orders expire same-day and trades resolve at
+        # SL/TP, so a few days of bars is far more than any trade consumes;
+        # anything still unresolved inside it is reported "open_at_end" either
+        # way, exactly as before.
+        future = ltf_bars[cut:cut + FORWARD_BARS]
         trade = _resolve_trade(trade, future, spread)
         trades.append(trade)
         if trade.exit_t:
