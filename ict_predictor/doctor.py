@@ -176,7 +176,17 @@ def run_diagnostics() -> list[dict]:
                     detail = f"'{configured}' found on broker"
                     if desc:
                         detail += f" ({desc[:40]})"
-                    checks.append(_check(f"Symbol for {asset}", OK, detail))
+                    # Selecting into Market Watch is what makes quotes and
+                    # reliable tick values available; without it sizing degrades.
+                    quote = ""
+                    try:
+                        mt5.symbol_select(configured, True)
+                        tick = mt5.symbol_info_tick(configured)
+                        if tick and tick.bid:
+                            quote = f", bid {tick.bid:,.2f}"
+                    except Exception:
+                        pass
+                    checks.append(_check(f"Symbol for {asset}", OK, detail + quote))
             else:
                 candidates = discover_symbols(asset)
                 env_var = f"IP_MT5_SYMBOL_{asset}"

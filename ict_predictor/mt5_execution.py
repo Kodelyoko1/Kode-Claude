@@ -240,6 +240,15 @@ def submit(pred: dict) -> dict:
 
     connected = _connect()
     try:
+        # Select the symbol into Market Watch BEFORE sizing. MT5 returns no
+        # tick data (and unreliable tick value/size) for unselected symbols,
+        # which would silently push _size_position onto its fallback lot.
+        if connected:
+            try:
+                mt5.symbol_select(symbol_for(pred["asset"]), True)
+            except Exception:
+                pass
+
         plan = build_order_plan(pred, connected=connected)
 
         if not LIVE:
