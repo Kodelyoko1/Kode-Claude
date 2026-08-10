@@ -26,7 +26,12 @@ py-clob-client>=0.18.0   # optional — only required for live order placement
 
 # ICT Predictor — MetaTrader 5 order submission
 # Optional — the agent's price analysis and report generation work without it.
-# Only needed to actually submit orders to a running MT5 terminal, and MT5's
-# native API is Windows-only (works under Wine on Linux). Not installable on
-# this dev sandbox; import is guarded so its absence never breaks the agent.
-MetaTrader5>=5.0.45   # optional — only required for MT5 order submission
+# Only needed to actually submit orders to a running MT5 terminal.
+#
+# The environment marker is REQUIRED, not cosmetic: MetaTrader5 publishes
+# Windows wheels only, so an unconditional entry breaks `pip install -r` on
+# every Linux/macOS consumer — including the Netlify build, which installs a
+# root requirements.txt automatically and fails the deploy.
+# The import is guarded in ict_predictor/mt5_execution.py, so on platforms
+# where pip skips this the agent still analyses and reports normally.
+MetaTrader5>=5.0.45; sys_platform == "win32"
