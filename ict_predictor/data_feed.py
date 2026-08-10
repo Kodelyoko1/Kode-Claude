@@ -47,16 +47,48 @@ class FeedError(Exception):
     pass
 
 
+def _http_hint(status: int) -> str:
+    """Turn an HTTP status into an actionable explanation. Yahoo's chart
+    endpoint fails in several distinct ways and they need different fixes."""
+    return {
+        401: "Yahoo requires a consent cookie for this region/IP — commonly "
+             "seen from datacentre IPs; usually works from a home connection.",
+        403: "Blocked (firewall/proxy, or Yahoo rejected the User-Agent).",
+        404: "Symbol not found at Yahoo — check YF_SYMBOLS mapping.",
+        429: "Rate limited by Yahoo — the on-disk cache should cover this; "
+             "retry in a few minutes.",
+    }.get(status, f"HTTP {status} from Yahoo.")
+
+
 def _fetch_from_yahoo(asset: str, interval: str) -> list[dict]:
     symbol = YF_SYMBOLS.get(asset)
     if not symbol:
         raise FeedError(f"Unknown asset '{asset}' — expected GC or CL")
 
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
     params = {"interval": interval, "range": _RANGE_FOR_INTERVAL.get(interval, "5d")}
-    resp = requests.get(url, params=params, headers=YF_HEADERS, timeout=20)
-    resp.raise_for_status()
-    payload = resp.json()
+    payload = None
+    errors: list[str] = []
+
+    # query1 and query2 are mirrors; one is sometimes up when the other isn't.
+    for host in ("query1", "query2"):
+        url = f"https://{host}.finance.yahoo.com/v8/finance/chart/{symbol}"
+        try:
+            resp = requests.get(url, params=params, headers=YF_HEADERS, timeout=20)
+        except requests.RequestException as exc:
+            errors.append(f"{host}: network error ({type(exc).__name__})")
+            continue
+        if resp.status_code != 200:
+            errors.append(f"{host}: {_http_hint(resp.status_code)}")
+            continue
+        try:
+            payload = resp.json()
+            break
+        except ValueError:
+            errors.append(f"{host}: response was not JSON "
+                          f"(got {resp.headers.get('content-type', '?')})")
+
+    if payload is None:
+        raise FeedError(f"{symbol} {interval} — all endpoints failed. " + " | ".join(errors))
 
     result = (payload.get("chart") or {}).get("result") or []
     if not result:
@@ -90,6 +122,12 @@ def _fetch_from_yahoo(asset: str, interval: str) -> list[dict]:
             "c": float(c),
             "v": float(vols[i]) if i < len(vols) and vols[i] is not None else 0.0,
         })
+
+    if not candles:
+        raise FeedError(
+            f"{symbol} {interval}: Yahoo returned {len(timestamps)} timestamps but no "
+            f"usable OHLC bars (all null). Market may be closed, or the JSON shape changed."
+        )
     return candles
 
 
