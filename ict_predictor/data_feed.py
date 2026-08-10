@@ -1,14 +1,31 @@
 """
-Free intraday price feed for Gold (GC) and WTI Crude Oil (CL) futures.
+Intraday price feed for Gold (GC) and WTI Crude Oil (CL).
 
-No API key required — pulls the public Yahoo Finance chart endpoint (the
-same JSON the finance.yahoo.com chart widget itself calls). Results are
-cached to disk so repeated cycles inside the same killzone don't hammer
-the endpoint; a cache entry is reused until it's older than its interval's
-`_MAX_AGE` bucket.
+TWO SOURCES, and which one is used matters enormously:
+
+  1. MT5 (preferred whenever a terminal is connected) — bars for the exact
+     symbol the agent will place orders on.
+  2. Yahoo Finance chart JSON (fallback, no API key) — COMEX futures
+     (GC=F / CL=F).
+
+These are NOT interchangeable. MT5 brokers typically quote *spot* gold
+(XAUUSD) while Yahoo's GC=F is the *futures* contract, and the two differ
+by the cost of carry — observed at ~62 points (1.44%) on a live demo
+account. Computing an entry/stop/target from futures prices and then
+submitting that order against spot produces levels on the wrong side of the
+market: a BUY_LIMIT lands above spot and fills instantly or is rejected.
+
+So: analyse the instrument you trade. When MT5 is connected the candles
+come from MT5 for the configured broker symbol. Yahoo is used only when
+MT5 is unavailable (e.g. analysis-only runs on Linux), and in that mode
+the levels are indicative, not order-ready.
+
+Results are cached to disk so repeated cycles inside a killzone don't
+hammer either source.
 """
 from __future__ import annotations
 
+import os
 import sys
 import time
 from pathlib import Path
@@ -42,9 +59,61 @@ _RANGE_FOR_INTERVAL = {
     "15m": "1mo",
 }
 
+# How many bars to pull from MT5 per interval. The 15M frame needs enough
+# history for swing-point/liquidity mapping; the precision frame less so.
+_MT5_BAR_COUNT = {"1m": 500, "5m": 500, "15m": 400}
+
+# "auto" (default) = MT5 when connected, else Yahoo. "mt5"/"yahoo" force one.
+PRICE_SOURCE = os.getenv("IP_PRICE_SOURCE", "auto").strip().lower()
+
 
 class FeedError(Exception):
     pass
+
+
+def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
+    """
+    Pull bars straight from the MT5 terminal for the symbol we actually
+    trade. Raises FeedError if MT5 isn't usable so callers can fall back.
+    """
+    from ict_predictor import mt5_execution
+
+    if not mt5_execution.MT5_PACKAGE_AVAILABLE:
+        raise FeedError("MetaTrader5 package not installed")
+
+    import MetaTrader5 as mt5
+
+    timeframes = {
+        "1m": mt5.TIMEFRAME_M1,
+        "5m": mt5.TIMEFRAME_M5,
+        "15m": mt5.TIMEFRAME_M15,
+    }
+    if interval not in timeframes:
+        raise FeedError(f"MT5: unsupported interval '{interval}'")
+
+    symbol = mt5_execution.symbol_for(asset)
+    if not mt5_execution._connect():
+        raise FeedError("MT5 terminal not connected")
+
+    try:
+        # Must be in Market Watch before it will return bars.
+        mt5.symbol_select(symbol, True)
+        rates = mt5.copy_rates_from_pos(
+            symbol, timeframes[interval], 0, _MT5_BAR_COUNT.get(interval, 400)
+        )
+        if rates is None or len(rates) == 0:
+            raise FeedError(f"MT5: no bars for {symbol} {interval} "
+                            f"({mt5.last_error()})")
+        return [{
+            "t": int(r["time"]),
+            "o": float(r["open"]),
+            "h": float(r["high"]),
+            "l": float(r["low"]),
+            "c": float(r["close"]),
+            "v": float(r["tick_volume"]),
+        } for r in rates]
+    finally:
+        mt5_execution._disconnect()
 
 
 def _http_hint(status: int) -> str:
@@ -131,36 +200,65 @@ def _fetch_from_yahoo(asset: str, interval: str) -> list[dict]:
     return candles
 
 
+def active_source() -> str:
+    """Which feed will actually be used: 'mt5' or 'yahoo'."""
+    if PRICE_SOURCE in ("mt5", "yahoo"):
+        return PRICE_SOURCE
+    try:
+        from ict_predictor import mt5_execution
+        return "mt5" if mt5_execution.MT5_PACKAGE_AVAILABLE else "yahoo"
+    except Exception:
+        return "yahoo"
+
+
 def get_candles(asset: str, interval: str = "15m", force: bool = False) -> list[dict]:
     """
     Return OHLC candles for `asset` ("GC" or "CL") at `interval`
-    ("1m"/"5m"/"15m"), newest last. Falls back to the last good cache on
-    a fetch failure so a transient Yahoo outage doesn't blank a killzone.
+    ("1m"/"5m"/"15m"), newest last.
+
+    Prefers MT5 (the instrument actually traded); falls back to Yahoo
+    futures only when MT5 is unusable. Cached per source — the two are
+    different instruments and must never be mixed in one series. Serves a
+    stale cache rather than failing a killzone on a transient outage.
     """
-    cached = storage.load(f"ip_candles/{asset}_{interval}.json", {})
+    source = active_source()
+    key = f"ip_candles/{asset}_{interval}_{source}.json"
+    cached = storage.load(key, {})
     age = time.time() - cached.get("fetched_at", 0)
     max_age = _MAX_AGE_SEC.get(interval, 5 * 60)
 
     if not force and cached.get("candles") and age < max_age:
         return cached["candles"]
 
-    try:
-        candles = _fetch_from_yahoo(asset, interval)
+    errors = []
+    # Ordered attempts. "auto" may fall through MT5 -> Yahoo; an explicit
+    # setting never silently switches instruments.
+    if PRICE_SOURCE == "mt5":
+        attempts = [("mt5", _fetch_from_mt5)]
+    elif PRICE_SOURCE == "yahoo":
+        attempts = [("yahoo", _fetch_from_yahoo)]
+    else:
+        attempts = [("mt5", _fetch_from_mt5), ("yahoo", _fetch_from_yahoo)]
+
+    for name, fetch in attempts:
+        try:
+            candles = fetch(asset, interval)
+        except Exception as exc:
+            errors.append(f"{name}: {exc}")
+            continue
         if candles:
-            storage.save(f"ip_candles/{asset}_{interval}.json", {
+            storage.save(f"ip_candles/{asset}_{interval}_{name}.json", {
                 "fetched_at": time.time(),
+                "source": name,
                 "candles": candles,
             })
             return candles
-    except Exception as exc:
-        if cached.get("candles"):
-            # Serve stale cache rather than fail the whole cycle.
-            return cached["candles"]
-        raise FeedError(f"{asset} {interval} fetch failed and no cache available: {exc}") from exc
+        errors.append(f"{name}: returned no candles")
 
     if cached.get("candles"):
-        return cached["candles"]
-    raise FeedError(f"{asset} {interval}: Yahoo returned no candles")
+        return cached["candles"]  # stale beats nothing
+    raise FeedError(f"{asset} {interval} fetch failed and no cache available: "
+                    + " | ".join(errors))
 
 
 def latest_price(asset: str) -> Optional[float]:

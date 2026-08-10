@@ -211,14 +211,30 @@ def run_diagnostics() -> list[dict]:
 
     # --- 6. Price feed ------------------------------------------------------
     try:
-        from ict_predictor.data_feed import get_candles
-        candles = get_candles("GC", "15m")
-        checks.append(_check("Price feed (Yahoo)", OK,
-                             f"{len(candles)} GC 15M candles, last close {candles[-1]['c']:,.2f}"))
+        from ict_predictor.data_feed import get_candles, active_source
+        src = active_source()
+        primary = configured_assets[0] if configured_assets else "GC"
+        candles = get_candles(primary, "15m")
+        last = candles[-1]["c"]
+        label = f"Price feed ({src})"
+        if src == "mt5":
+            checks.append(_check(
+                label, OK,
+                f"{len(candles)} {primary} 15M bars from the traded symbol, "
+                f"last close {last:,.2f}"))
+        else:
+            checks.append(_check(
+                label, WARN,
+                f"{len(candles)} {primary} 15M candles from Yahoo FUTURES, "
+                f"last close {last:,.2f}",
+                "Yahoo quotes the futures contract; your broker quotes spot. They "
+                "differ by the cost of carry, so levels computed here are indicative "
+                "only and must not be submitted as orders. Connect MT5 to analyze the "
+                "instrument you actually trade."))
     except Exception as exc:
         checks.append(_check(
-            "Price feed (Yahoo)", FAIL, f"unreachable: {str(exc)[:90]}",
-            "Check outbound internet access. Without this the agent can't analyze anything."))
+            "Price feed", FAIL, f"unavailable: {str(exc)[:90]}",
+            "Without price data the agent cannot analyze anything."))
 
     # --- 7. Trading mode + session -----------------------------------------
     if mt5_execution.LIVE:

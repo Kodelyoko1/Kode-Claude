@@ -270,6 +270,18 @@ def submit(pred: dict) -> dict:
                         f"IP_MT5_ALLOW_REAL=1 to deliberately override.",
             }
 
+        # Never submit levels derived from a different instrument. Yahoo
+        # quotes COMEX futures; the broker quotes spot. Orders priced off
+        # futures land on the wrong side of the spot market.
+        if pred.get("price_source") == "yahoo":
+            return {
+                "status": "wrong_instrument", "live": True, "plan": plan,
+                "note": "Levels were computed from Yahoo FUTURES data but this "
+                        "order would trade the broker's SPOT symbol. Those prices "
+                        "differ by the cost of carry. Connect MT5 so analysis and "
+                        "execution use the same instrument.",
+            }
+
         allowed, reason = terminal_trade_allowed()
         if not allowed:
             return {

@@ -151,6 +151,7 @@ _STATUS_LABEL = {
     "mt5_unavailable": "⚠️ MT5 PACKAGE NOT INSTALLED",
     "real_account_blocked": "🛑 BLOCKED — not a demo account (demo/test accounts only)",
     "algo_trading_disabled": "⚠️ BLOCKED — 'Allow algorithmic trading' is off in MT5",
+    "wrong_instrument": "🛑 BLOCKED — levels came from futures data, order would trade spot",
     "rejected": "❌ REJECTED by broker",
     "error": "❌ ERROR submitting order",
     "skipped": "— no order (NO TRADE signal)",

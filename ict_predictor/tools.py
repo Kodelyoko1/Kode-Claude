@@ -31,7 +31,7 @@ sys.path.insert(0, str(ROOT))
 from autonomous import storage, mailer, metrics
 
 from ict_predictor import killzone, mt5_execution
-from ict_predictor.data_feed import get_candles, FeedError
+from ict_predictor.data_feed import get_candles, active_source, FeedError
 from ict_predictor.predictor import build_prediction
 from ict_predictor.report import format_report, format_mt5_status, no_trade_report
 
@@ -69,6 +69,7 @@ def analyze_asset(asset: str) -> dict:
         return pred
 
     pred = build_prediction(asset, kz, htf, ltf, ltf_label=LTF_INTERVAL.upper())
+    pred["price_source"] = active_source()
     return pred
 
 
