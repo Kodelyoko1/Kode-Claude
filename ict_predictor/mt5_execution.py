@@ -61,6 +61,11 @@ RISK_PCT = float(os.getenv("IP_MT5_RISK_PCT", "0.5")) / 100.0
 FALLBACK_LOT = float(os.getenv("IP_MT5_LOT_SIZE", "0.01"))
 MAGIC = int(os.getenv("IP_MT5_MAGIC", "990101"))
 DEVIATION = int(os.getenv("IP_MT5_DEVIATION", "20"))
+# Max simultaneous agent-owned orders+positions per symbol. The cycle is meant
+# to be cron'd every few minutes inside a killzone, and an unchanged setup
+# re-qualifies on every pass — without this cap one setup becomes one order
+# per cycle (36x over-exposure across a 3h killzone).
+MAX_EXPOSURE_PER_SYMBOL = int(os.getenv("IP_MT5_MAX_ORDERS_PER_SYMBOL", "1"))
 
 
 def symbol_for(asset: str) -> str:
@@ -113,6 +118,63 @@ def _connect() -> bool:
         return bool(mt5.initialize(**kwargs))
     except Exception:
         return False
+
+
+def existing_exposure(symbol: str) -> tuple[int, str]:
+    """
+    Count this agent's pending orders + open positions on `symbol`, identified
+    by our magic number. Authoritative duplicate guard: it asks the broker
+    what's actually live rather than trusting local bookkeeping, so it stays
+    correct across restarts, crashes, and manual intervention.
+    Returns (count, detail). On any error returns (-1, reason) so callers can
+    fail closed rather than assume zero.
+    """
+    if not MT5_PACKAGE_AVAILABLE:
+        return -1, "MT5 package unavailable"
+    try:
+        n, bits = 0, []
+        orders = mt5.orders_get(symbol=symbol)
+        if orders:
+            mine = [o for o in orders if getattr(o, "magic", None) == MAGIC]
+            n += len(mine)
+            if mine:
+                bits.append(f"{len(mine)} pending order(s)")
+        positions = mt5.positions_get(symbol=symbol)
+        if positions:
+            mine = [p for p in positions if getattr(p, "magic", None) == MAGIC]
+            n += len(mine)
+            if mine:
+                bits.append(f"{len(mine)} open position(s)")
+        return n, ", ".join(bits) if bits else "none"
+    except Exception as exc:
+        return -1, f"exposure check failed: {exc}"
+
+
+def validate_stops(symbol: str, entry: float, sl: float, tp: float) -> tuple[bool, str]:
+    """
+    Brokers reject orders whose SL/TP sit closer to entry than
+    SYMBOL_TRADE_STOPS_LEVEL points. Check before submitting so the failure is
+    explained here rather than as an opaque broker retcode.
+    """
+    if not MT5_PACKAGE_AVAILABLE:
+        return True, ""
+    try:
+        info = mt5.symbol_info(symbol)
+        if info is None:
+            return True, ""
+        point = getattr(info, "point", 0) or 0
+        min_pts = getattr(info, "trade_stops_level", 0) or 0
+        if not point or not min_pts:
+            return True, ""
+        min_dist = min_pts * point
+        for label, level in (("stop-loss", sl), ("take-profit", tp)):
+            if abs(entry - level) < min_dist:
+                return False, (f"{label} is {abs(entry-level):.2f} from entry but this "
+                               f"broker requires at least {min_dist:.2f} "
+                               f"({min_pts} points)")
+        return True, ""
+    except Exception:
+        return True, ""
 
 
 def terminal_trade_allowed() -> tuple[bool, str]:
@@ -296,6 +358,27 @@ def submit(pred: dict) -> dict:
                     "note": f"Symbol '{plan['symbol']}' not found on this broker — "
                             f"check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL."}
 
+        # Duplicate guard. Fails closed: if we cannot determine current
+        # exposure we refuse rather than risk stacking orders.
+        count, detail = existing_exposure(plan["symbol"])
+        if count < 0:
+            return {"status": "exposure_unknown", "live": True, "plan": plan,
+                    "note": f"Could not verify existing exposure ({detail}); "
+                            f"refusing to submit rather than risk a duplicate."}
+        if count >= MAX_EXPOSURE_PER_SYMBOL:
+            return {
+                "status": "duplicate_skipped", "live": True, "plan": plan,
+                "existing": count,
+                "note": f"Already have {detail} on {plan['symbol']} "
+                        f"(cap {MAX_EXPOSURE_PER_SYMBOL}). The same setup re-qualifies "
+                        f"on every cron pass; skipping so one setup stays one trade.",
+            }
+
+        ok, why = validate_stops(plan["symbol"], plan["entry"], plan["sl"], plan["tp"])
+        if not ok:
+            return {"status": "stops_too_close", "live": True, "plan": plan,
+                    "note": f"Broker would reject this order: {why}."}
+
         order_type = _order_type_const(plan["order_type"])
         request = {
             "action": mt5.TRADE_ACTION_PENDING,
@@ -308,7 +391,10 @@ def submit(pred: dict) -> dict:
             "deviation": plan["deviation"],
             "magic": plan["magic"],
             "comment": plan["comment"],
-            "type_time": mt5.ORDER_TIME_GTC,
+            # Day-expiry, not GTC. An ICT setup is valid for the killzone that
+            # produced it; a good-till-cancelled order could fill days later
+            # against structure that no longer exists.
+            "type_time": mt5.ORDER_TIME_DAY,
             "type_filling": mt5.ORDER_FILLING_RETURN,
         }
         result = mt5.order_send(request)

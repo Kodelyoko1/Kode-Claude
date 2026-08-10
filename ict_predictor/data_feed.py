@@ -66,9 +66,31 @@ _MT5_BAR_COUNT = {"1m": 500, "5m": 500, "15m": 400}
 # "auto" (default) = MT5 when connected, else Yahoo. "mt5"/"yahoo" force one.
 PRICE_SOURCE = os.getenv("IP_PRICE_SOURCE", "auto").strip().lower()
 
+# Hard ceiling on how old a cached series may be before we refuse to trade off
+# it. 20 minutes spans a transient outage without letting the agent reason
+# about a market that has since moved.
+MAX_STALE_SEC = int(os.getenv("IP_MAX_STALE_SEC", "1200"))
+
 
 class FeedError(Exception):
     pass
+
+
+_INTERVAL_SEC = {"1m": 60, "5m": 300, "15m": 900}
+
+
+def _server_utc_offset(last_bar_time: int, interval: str) -> int:
+    """
+    Estimate the broker server's offset from UTC, in seconds, by comparing the
+    newest bar's timestamp to real UTC now. Rounded to whole hours because
+    every broker offset is a whole number of hours. Returns 0 if the result
+    looks implausible (>|14h|), so a bad estimate can't corrupt timestamps.
+    """
+    step = _INTERVAL_SEC.get(interval, 900)
+    # The newest bar is the one currently forming, so it opened <= step ago.
+    raw = last_bar_time - (time.time() - step)
+    hours = round(raw / 3600.0)
+    return 0 if abs(hours) > 14 else int(hours * 3600)
 
 
 def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
@@ -104,8 +126,14 @@ def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
         if rates is None or len(rates) == 0:
             raise FeedError(f"MT5: no bars for {symbol} {interval} "
                             f"({mt5.last_error()})")
+        # MT5 stamps bars in BROKER SERVER time, not UTC (MetaQuotes servers
+        # run EET/EEST = UTC+2/+3). Left raw, every time shown in a report is
+        # off by that offset. Estimate the offset from the newest bar: the
+        # last completed bar can't be in the future, so the gap between its
+        # server timestamp and real UTC now is the server's offset.
+        offset = _server_utc_offset(int(rates[-1]["time"]), interval)
         return [{
-            "t": int(r["time"]),
+            "t": int(r["time"]) - offset,
             "o": float(r["open"]),
             "h": float(r["high"]),
             "l": float(r["low"]),
@@ -255,8 +283,16 @@ def get_candles(asset: str, interval: str = "15m", force: bool = False) -> list[
             return candles
         errors.append(f"{name}: returned no candles")
 
+    # A stale cache is better than nothing for a brief outage, but analysing
+    # hours-old bars as if they were live produces confident, wrong levels.
+    # Beyond MAX_STALE_SEC, refuse instead.
     if cached.get("candles"):
-        return cached["candles"]  # stale beats nothing
+        if age <= MAX_STALE_SEC:
+            return cached["candles"]
+        raise FeedError(
+            f"{asset} {interval}: live fetch failed and cache is "
+            f"{age/60:.0f} min old (limit {MAX_STALE_SEC/60:.0f} min) — refusing "
+            f"to analyse stale bars. Sources tried: " + " | ".join(errors))
     raise FeedError(f"{asset} {interval} fetch failed and no cache available: "
                     + " | ".join(errors))
 
