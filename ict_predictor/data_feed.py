@@ -254,9 +254,36 @@ def get_history(asset: str, interval: str, bars: int) -> list[dict]:
         raise FeedError("MT5 terminal not connected")
     try:
         mt5.symbol_select(symbol, True)
+
+        # Clamp to the terminal's own max-bars setting (Tools > Options >
+        # Charts > "Max bars in chart", commonly 100k). Asking for more does
+        # not return fewer bars — copy_rates_from_pos fails outright with
+        # -2 "Invalid params", which reads like a bug in the call rather than
+        # a limit being exceeded.
+        maxbars = 0
+        try:
+            info = mt5.terminal_info()
+            maxbars = int(getattr(info, "maxbars", 0) or 0)
+        except Exception:
+            pass
+        limit = min(bars, maxbars) if maxbars else min(bars, 100_000)
+        requested, bars = bars, max(limit, 100)
+
         rates = mt5.copy_rates_from_pos(symbol, timeframes[interval], 0, bars)
+
+        # Some builds still refuse near the ceiling; back off rather than fail.
+        attempt = bars
+        while (rates is None or len(rates) == 0) and attempt > 1000:
+            attempt //= 2
+            rates = mt5.copy_rates_from_pos(symbol, timeframes[interval], 0, attempt)
+
         if rates is None or len(rates) == 0:
-            raise FeedError(f"no history for {symbol} {interval}: {mt5.last_error()}")
+            raise FeedError(
+                f"no history for {symbol} {interval}: {mt5.last_error()}. "
+                f"Requested {requested:,} bars (clamped to {bars:,}"
+                f"{f', terminal maxbars={maxbars:,}' if maxbars else ''}). "
+                f"The symbol may also simply have no data at this timeframe — "
+                f"open its chart in MT5 once to make the terminal download history.")
         offset = _server_utc_offset(int(rates[-1]["time"]), interval)
         return [{"t": int(r["time"]) - offset, "o": float(r["open"]),
                  "h": float(r["high"]), "l": float(r["low"]),

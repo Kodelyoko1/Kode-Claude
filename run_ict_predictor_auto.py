@@ -136,9 +136,22 @@ def cmd_backtest(asset: str, bars: int):
         console.print(f"[red]Cannot backtest:[/red] {exc}")
         return
 
-    span = (f"{datetime.fromtimestamp(htf[0]['t'], tz=timezone.utc):%Y-%m-%d} → "
-            f"{datetime.fromtimestamp(htf[-1]['t'], tz=timezone.utc):%Y-%m-%d}")
-    console.print(f"[dim]{len(htf):,} 15M bars, {len(ltf):,} 5M bars  ({span})[/dim]")
+    # The precision frame usually holds fewer bars (terminal max-bars cap), and
+    # decision points without 5M data are silently skipped — so the period that
+    # was actually analysed is the OVERLAP, not the 15M span.
+    start = max(htf[0]["t"], ltf[0]["t"])
+    end = min(htf[-1]["t"], ltf[-1]["t"])
+    span = (f"{datetime.fromtimestamp(start, tz=timezone.utc):%Y-%m-%d} → "
+            f"{datetime.fromtimestamp(end, tz=timezone.utc):%Y-%m-%d}")
+    console.print(f"[dim]{len(htf):,} 15M bars, {len(ltf):,} 5M bars[/dim]")
+    if htf[0]["t"] < ltf[0]["t"]:
+        console.print(
+            f"[yellow]Note:[/yellow] 5M history starts later than 15M, so the usable "
+            f"period is the overlap ({span}). "
+            f"15M alone reached back to "
+            f"{datetime.fromtimestamp(htf[0]['t'], tz=timezone.utc):%Y-%m-%d}.")
+    else:
+        console.print(f"[dim]Period: {span}[/dim]")
     console.print("[dim]Replaying bar-by-bar (no look-ahead)…[/dim]\n")
 
     def progress(i, total):
@@ -168,9 +181,22 @@ def cmd_sweep(asset: str, bars: int):
         console.print(f"[red]Cannot sweep:[/red] {exc}")
         return
 
-    span = (f"{datetime.fromtimestamp(htf[0]['t'], tz=timezone.utc):%Y-%m-%d} → "
-            f"{datetime.fromtimestamp(htf[-1]['t'], tz=timezone.utc):%Y-%m-%d}")
-    console.print(f"[dim]{len(htf):,} 15M bars, {len(ltf):,} 5M bars  ({span})[/dim]")
+    # The precision frame usually holds fewer bars (terminal max-bars cap), and
+    # decision points without 5M data are silently skipped — so the period that
+    # was actually analysed is the OVERLAP, not the 15M span.
+    start = max(htf[0]["t"], ltf[0]["t"])
+    end = min(htf[-1]["t"], ltf[-1]["t"])
+    span = (f"{datetime.fromtimestamp(start, tz=timezone.utc):%Y-%m-%d} → "
+            f"{datetime.fromtimestamp(end, tz=timezone.utc):%Y-%m-%d}")
+    console.print(f"[dim]{len(htf):,} 15M bars, {len(ltf):,} 5M bars[/dim]")
+    if htf[0]["t"] < ltf[0]["t"]:
+        console.print(
+            f"[yellow]Note:[/yellow] 5M history starts later than 15M, so the usable "
+            f"period is the overlap ({span}). "
+            f"15M alone reached back to "
+            f"{datetime.fromtimestamp(htf[0]['t'], tz=timezone.utc):%Y-%m-%d}.")
+    else:
+        console.print(f"[dim]Period: {span}[/dim]")
     console.print("[dim]Sweeping the parameter grid — this runs a full backtest per "
                   "combination, twice (in/out of sample). Expect several minutes.[/dim]\n")
 
