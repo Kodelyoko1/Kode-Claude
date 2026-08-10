@@ -150,6 +150,7 @@ _STATUS_LABEL = {
     "symbol_not_found": "⚠️ SYMBOL NOT FOUND — check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL",
     "mt5_unavailable": "⚠️ MT5 PACKAGE NOT INSTALLED",
     "real_account_blocked": "🛑 BLOCKED — not a demo account (demo/test accounts only)",
+    "algo_trading_disabled": "⚠️ BLOCKED — 'Allow algorithmic trading' is off in MT5",
     "rejected": "❌ REJECTED by broker",
     "error": "❌ ERROR submitting order",
     "skipped": "— no order (NO TRADE signal)",

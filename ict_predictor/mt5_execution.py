@@ -96,21 +96,40 @@ def _connect() -> bool:
     any failure — missing package, terminal not running, bad credentials."""
     if not MT5_PACKAGE_AVAILABLE:
         return False
-    path = os.getenv("MT5_PATH") or None
+    # Credentials must go to initialize() directly. Calling a bare
+    # initialize() and then login() separately fails against a terminal that
+    # isn't already authorized, with error -6 "Authorization failed".
+    kwargs = {}
+    if os.getenv("MT5_PATH"):
+        kwargs["path"] = os.getenv("MT5_PATH")
+    login, password, server = (os.getenv("MT5_LOGIN"), os.getenv("MT5_PASSWORD"),
+                               os.getenv("MT5_SERVER"))
+    if login and password and server:
+        try:
+            kwargs.update(login=int(login), password=password, server=server)
+        except ValueError:
+            return False  # non-numeric MT5_LOGIN
     try:
-        initialized = mt5.initialize(path=path) if path else mt5.initialize()
-        if not initialized:
-            return False
-        login = os.getenv("MT5_LOGIN")
-        password = os.getenv("MT5_PASSWORD")
-        server = os.getenv("MT5_SERVER")
-        if login and password and server:
-            if not mt5.login(int(login), password=password, server=server):
-                mt5.shutdown()
-                return False
-        return True
+        return bool(mt5.initialize(**kwargs))
     except Exception:
         return False
+
+
+def terminal_trade_allowed() -> tuple[bool, str]:
+    """Is 'Allow algorithmic trading' enabled in the terminal? Orders are
+    rejected without it, no matter how healthy everything else looks."""
+    if not MT5_PACKAGE_AVAILABLE:
+        return False, "MT5 package unavailable"
+    try:
+        info = mt5.terminal_info()
+        if info is None:
+            return False, "terminal_info() returned None"
+        return bool(info.trade_allowed), (
+            "algorithmic trading enabled" if info.trade_allowed else
+            "algorithmic trading DISABLED in the terminal"
+        )
+    except Exception as exc:
+        return False, f"terminal_info() failed: {exc}"
 
 
 def _disconnect():
@@ -240,6 +259,14 @@ def submit(pred: dict) -> dict:
                 "note": f"Refusing to trade: connected to {label}. This agent is "
                         f"configured for demo/test accounts only. Set "
                         f"IP_MT5_ALLOW_REAL=1 to deliberately override.",
+            }
+
+        allowed, reason = terminal_trade_allowed()
+        if not allowed:
+            return {
+                "status": "algo_trading_disabled", "live": True, "plan": plan,
+                "note": f"{reason}. Enable it in MT5: Tools -> Options -> "
+                        f"Expert Advisors -> 'Allow algorithmic trading'.",
             }
 
         info = mt5.symbol_info(plan["symbol"])

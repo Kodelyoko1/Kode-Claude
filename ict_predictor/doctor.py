@@ -119,6 +119,20 @@ def run_diagnostics() -> list[dict]:
             checks.append(_check("Account type (demo-only guard)", INFO,
                                  "skipped (not connected)"))
 
+        # --- 4b. Algorithmic trading permission ---------------------------
+        if connected:
+            allowed, reason = mt5_execution.terminal_trade_allowed()
+            if allowed:
+                checks.append(_check("Algorithmic trading", OK, reason))
+            else:
+                checks.append(_check(
+                    "Algorithmic trading", WARN,
+                    f"{reason} — live orders will be blocked",
+                    "In MT5: Tools -> Options -> Expert Advisors -> tick "
+                    "'Allow algorithmic trading', then OK. (Dry-run works regardless.)"))
+        else:
+            checks.append(_check("Algorithmic trading", INFO, "skipped (not connected)"))
+
         # --- 5. Symbol resolution -----------------------------------------
         for asset in ("GC", "CL"):
             configured = mt5_execution.symbol_for(asset)
