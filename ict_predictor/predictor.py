@@ -36,13 +36,23 @@ def _nearest_fvg(gaps: list[dict], direction: str, current_price: float) -> Opti
 
 
 def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
-                      ltf_candles: list[dict], ltf_label: str = "5M") -> dict:
+                      ltf_candles: list[dict], ltf_label: str = "5M",
+                      min_rr: Optional[float] = None,
+                      sweep_lookback: Optional[int] = None,
+                      displacement_mult: float = 1.3) -> dict:
     """
     htf_candles: 15M candles, used for bias / draw-on-liquidity.
     ltf_candles: precision-entry candles (5M or 1M), used for the sweep,
                  MSS, and FVG.
+
+    The three thresholds are injectable so the parameter sweep can vary them
+    without mutating module state; passing None keeps the env-configured
+    defaults, so live behaviour is unchanged.
+
     Returns a fully-populated report dict — see report.py for the shape.
     """
+    min_rr = MIN_RR if min_rr is None else min_rr
+    sweep_lookback = SWEEP_LOOKBACK if sweep_lookback is None else sweep_lookback
     out = {
         "asset": asset,
         "timeframe": f"15M / {ltf_label}",
@@ -76,7 +86,7 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
         level = dol[level_key]
         if not level:
             continue
-        candidate = structure.detect_sweep(ltf_candles, level, lookback=SWEEP_LOOKBACK)
+        candidate = structure.detect_sweep(ltf_candles, level, lookback=sweep_lookback)
         if candidate:
             sweep = candidate
             break
@@ -92,7 +102,8 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
     prior_opposite = [s for s in ltf_swings if s["type"] == opposite_type and s["i"] <= sweep_idx]
     opposite_swing = prior_opposite[-1] if prior_opposite else None
 
-    mss = structure.detect_mss(ltf_candles, sweep, opposite_swing)
+    mss = structure.detect_mss(ltf_candles, sweep, opposite_swing,
+                               displacement_mult=displacement_mult)
     if not mss:
         out["reason"] = "Sweep confirmed but no Market Structure Shift followed — awaiting displacement"
         return out
@@ -132,11 +143,11 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
     rr = reward / risk if risk else 0.0
     out["risk_reward"] = round(rr, 2)
 
-    if rr < MIN_RR:
+    if rr < min_rr:
         out["direction"] = "NO TRADE"
         out["reason"] = (
             f"Setup valid but R:R only {rr:.2f}:1 targeting opposing liquidity "
-            f"(minimum {MIN_RR:.0f}:1 required)"
+            f"(minimum {min_rr:.0f}:1 required)"
         )
         return out
 

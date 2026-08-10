@@ -142,7 +142,8 @@ def _resolve_trade(trade: Trade, future_bars: list[dict], spread: float) -> Trad
 
 def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
                  spread: float = DEFAULT_SPREAD,
-                 progress: Optional[Callable[[int, int], None]] = None) -> dict:
+                 progress: Optional[Callable[[int, int], None]] = None,
+                 params: Optional[dict] = None) -> dict:
     """
     Replay history bar-by-bar. `htf_bars` (15M) drive the decision clock;
     `ltf_bars` (5M) supply precision entries and trade resolution.
@@ -185,7 +186,8 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
         if len(ltf_window) < 20:
             continue
 
-        pred = build_prediction(asset, kz, htf_window, ltf_window[-300:], "5M")
+        pred = build_prediction(asset, kz, htf_window, ltf_window[-300:], "5M",
+                                **(params or {}))
         if pred.get("direction") not in ("LONG", "SHORT"):
             reason = (pred.get("reason") or "").lower()
             if "liquidity pool" in reason:

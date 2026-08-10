@@ -155,6 +155,41 @@ def cmd_backtest(asset: str, bars: int):
     console.print(f"\n  Saved: [dim]{out}[/dim]")
 
 
+def cmd_sweep(asset: str, bars: int):
+    from ict_predictor.data_feed import get_history, FeedError
+    from ict_predictor.sweep import run_sweep, format_report
+    from datetime import datetime, timezone
+
+    console.print(f"\n[dim]Loading history for {asset}…[/dim]")
+    try:
+        htf = get_history(asset, "15m", bars)
+        ltf = get_history(asset, "5m", bars * 3)
+    except FeedError as exc:
+        console.print(f"[red]Cannot sweep:[/red] {exc}")
+        return
+
+    span = (f"{datetime.fromtimestamp(htf[0]['t'], tz=timezone.utc):%Y-%m-%d} → "
+            f"{datetime.fromtimestamp(htf[-1]['t'], tz=timezone.utc):%Y-%m-%d}")
+    console.print(f"[dim]{len(htf):,} 15M bars, {len(ltf):,} 5M bars  ({span})[/dim]")
+    console.print("[dim]Sweeping the parameter grid — this runs a full backtest per "
+                  "combination, twice (in/out of sample). Expect several minutes.[/dim]\n")
+
+    def progress(n, total, params):
+        console.print(f"[dim]  {n}/{total}  disp={params['displacement_mult']} "
+                      f"look={params['sweep_lookback']} rr={params['min_rr']}   [/dim]",
+                      end="\r")
+
+    result = run_sweep(htf, ltf, asset=asset, progress=progress)
+    console.print(" " * 70, end="\r")
+    console.print(format_report(result, asset, span))
+
+    out = ROOT / "data" / "ip_reports" / f"sweep_{asset}_{datetime.now(timezone.utc):%Y%m%d}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("```text\n" + format_report(result, asset, span) + "\n```\n",
+                   encoding="utf-8")
+    console.print(f"\n  Saved: [dim]{out}[/dim]")
+
+
 def cmd_scan(asset: str):
     from ict_predictor.tools import analyze_asset
     from ict_predictor.report import format_report, format_mt5_status
@@ -178,6 +213,8 @@ def main():
                         help="Run preflight checks (MT5, credentials, symbols, feed), then exit")
     parser.add_argument("--backtest", action="store_true",
                         help="Replay history through the strategy and report its edge, then exit")
+    parser.add_argument("--sweep", action="store_true",
+                        help="Parameter sensitivity sweep with in/out-of-sample split, then exit")
     parser.add_argument("--bars", type=int, default=5000,
                         help="15M bars of history for --backtest (default 5000, ~2.5 months)")
     args = parser.parse_args()
@@ -191,10 +228,14 @@ def main():
         cmd_doctor()
         return
 
-    if args.backtest:
+    if args.backtest or args.sweep:
         assets = [a.strip().upper() for a in
                   os.getenv("IP_ASSETS", "GC,CL").split(",") if a.strip()]
-        cmd_backtest(args.asset or assets[0], args.bars)
+        target = args.asset or assets[0]
+        if args.sweep:
+            cmd_sweep(target, args.bars)
+        else:
+            cmd_backtest(target, args.bars)
         return
 
     if args.status:
