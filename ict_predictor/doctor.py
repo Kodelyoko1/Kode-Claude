@@ -149,7 +149,12 @@ def run_diagnostics() -> list[dict]:
             checks.append(_check("Algorithmic trading", INFO, "skipped (not connected)"))
 
         # --- 5. Symbol resolution -----------------------------------------
-        for asset in ("GC", "CL"):
+        # Only check assets the agent is actually configured to trade. A broker
+        # that doesn't carry crude oil is not a fault when IP_ASSETS=GC.
+        configured_assets = [a.strip().upper()
+                             for a in os.getenv("IP_ASSETS", "GC,CL").split(",")
+                             if a.strip()]
+        for asset in configured_assets:
             configured = mt5_execution.symbol_for(asset)
             if not connected:
                 checks.append(_check(f"Symbol for {asset}", INFO,
