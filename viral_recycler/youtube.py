@@ -20,7 +20,10 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent.parent / "data"
 CLIENT_SECRETS = DATA_DIR / "yt_client_secrets.json"
 TOKEN_PATH = DATA_DIR / "yt_token.json"
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.force-ssl",  # required for caption upload
+]
 
 
 def _build_service():
