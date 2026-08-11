@@ -268,7 +268,11 @@ AP_BOARD_MAP={"kitchen":"...","fitness":"...","default":"..."}
       "audience": "small-kitchen home bakers",
       "benefit": "actually fits your counter",
       "keywords": ["stand mixer", "compact kitchen appliance"],
-      "image_url": "https://m.media-amazon.com/images/I/EXAMPLE.jpg",
+      "image_urls": [
+        "https://m.media-amazon.com/images/I/EXAMPLE1.jpg",
+        "https://m.media-amazon.com/images/I/EXAMPLE2.jpg",
+        "https://m.media-amazon.com/images/I/EXAMPLE3.jpg"
+      ],
       "collection": "Kitchen Favorites",
       "status": "active"
     }
@@ -281,6 +285,14 @@ python3 run_amazon_pinterest_auto.py --dry-run
 # 5. Go live
 python3 run_amazon_pinterest_auto.py
 ```
+
+`image_urls` accepts up to 10 photos per product (extras beyond 10 are
+ignored). Every re-pin of that ASIN rotates to a never-used image first,
+then cycles back to the least-recently-used one once all 10 have appeared
+— so a single product can be re-pinned repeatedly across its lifetime
+without ever tripping `compliance.py`'s duplicate-image throttle. A
+product with only one photo can still use the legacy singular
+`"image_url": "..."` field instead.
 
 ### This deployment's live account reference
 
