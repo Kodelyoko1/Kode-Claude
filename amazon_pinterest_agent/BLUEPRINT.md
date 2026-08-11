@@ -282,6 +282,20 @@ python3 run_amazon_pinterest_auto.py --dry-run
 python3 run_amazon_pinterest_auto.py
 ```
 
+### This deployment's live account reference
+
+Concrete values for the Star Academy instance of this agent, on record so
+they don't have to get rediscovered next time:
+
+| Item | Value |
+|---|---|
+| Amazon Associates tag | `staracademy06-20` |
+| Amazon Influencer storefront | https://www.amazon.com/shop/star-academy06 |
+| Pinterest board (fallback) | `2613323245505` |
+| Privacy policy (Pinterest API-scoped) | `/star-academy/privacy.html` on the site |
+| Terms of use | `/star-academy/terms.html` on the site |
+| Privacy policy (general, draft) | `/star-academy/privacy-general.html` on the site |
+
 ### Optional no-code layer (n8n / Make.com) on top of this core
 
 The Python core is the source of truth for compliance and dispatch — keep
