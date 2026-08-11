@@ -172,6 +172,12 @@ Multi-platform poster + paid-ads dispatcher. Adapters: Reddit, X, LinkedIn, Pint
 **Data:** `data/social_posts.json`  
 **Setup helpers:** `setup_meta.py`, `setup_pinterest.py`, `setup_reddit.py`
 
+### Amazon Influencer × Pinterest Agent (`amazon_pinterest_agent/`) — $147/mo
+Autonomous storefront curation + compliant Pinterest pin generation for the Amazon Influencer Program. Owner curates a product manifest at `data/ap_storefront.json` (ASIN, category, summary, audience, benefit, keywords, image_url); each cycle picks a batch of products outside their re-pin cooldown, builds a tagged `amazon.com/dp/<asin>/?tag=` affiliate link (never cloaked), generates SEO pin copy (heuristic templates by default, Claude `claude-sonnet-4-6` if `ANTHROPIC_API_KEY` is set), runs every pin through `compliance.py` (Amazon disclosure required, direct-link check, banned-claim scan, hashtag cap, posting-cadence + duplicate-image anti-spam guards), then dispatches passing pins to category-mapped Pinterest boards via API v5. Weekly `--performance` pulls Pinterest analytics and ranks pins by outbound/affiliate clicks so the owner knows which storefront collections to expand. Full architecture + exact copywriting system prompt: `amazon_pinterest_agent/BLUEPRINT.md`.  
+**Run:** `python3 run_amazon_pinterest_auto.py` (`--dry-run`, `--status`, `--history`, `--performance`, `--max-pins N`, `--board <id>`)  
+**Env:** `AMAZON_ASSOCIATE_TAG`, `PINTEREST_ACCESS_TOKEN`, `PINTEREST_BOARD_ID` / `AP_BOARD_MAP` (JSON category→board_id), `AP_MAX_PINS_PER_RUN` (default 5), `AP_PRODUCT_REPIN_DAYS` (default 21), `AP_MIN_SECONDS_BETWEEN_PINS` (default 1200), `AP_IMAGE_REUSE_COOLDOWN_DAYS` (default 14)  
+**Data:** `data/ap_storefront.json` (owner-maintained manifest), `data/ap_pins.json` (dispatch log), `data/ap_performance.json` (cached analytics)
+
 ---
 
 ## Local & Niche Media
