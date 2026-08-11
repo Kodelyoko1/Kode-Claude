@@ -4,9 +4,14 @@ generation, compliant dispatch, and performance tracking.
 
 Owner workflow:
   1. Maintain data/ap_storefront.json — the curated product manifest (ASIN,
-     category, summary, audience, benefit, keywords, image_url, collection).
+     category, summary, audience, benefit, keywords, image_urls, collection).
      This mirrors the "Idea Lists" / storefront collections you'd build by
-     hand in Amazon's Influencer dashboard.
+     hand in Amazon's Influencer dashboard. `image_urls` is a list of up to
+     10 listing photos per product — every re-pin of the same ASIN (after
+     its cooldown) rotates to a never-used-yet image before repeating any,
+     so the same product can be pinned many times without ever looking like
+     a duplicate-image spam pattern. A single legacy `image_url` string is
+     still accepted for products with only one photo.
   2. Set AMAZON_ASSOCIATE_TAG (or associate_tag in the manifest) +
      PINTEREST_ACCESS_TOKEN. Optionally AP_BOARD_MAP as a JSON string mapping
      product category -> Pinterest board_id (falls back to PINTEREST_BOARD_ID
@@ -65,6 +70,39 @@ def curate_batch(max_pins: int) -> list:
     eligible = [p for p in products if now - last_pinned.get(p["asin"], 0) >= cooldown_seconds]
     eligible.sort(key=lambda p: last_pinned.get(p["asin"], 0))
     return eligible[:max_pins]
+
+
+MAX_IMAGES_PER_PRODUCT = 10
+
+
+def _pick_image_url(product: dict, pins_log: list) -> str:
+    """Pick which of this product's (up to 10) images to use for this pin.
+
+    Prefers an image that's never been posted for this ASIN yet; once every
+    image has been used at least once, cycles back to whichever was used
+    longest ago. This is what lets the same product get re-pinned many
+    times across its lifetime without compliance.check_pin()'s duplicate-
+    image throttle ever seeing back-to-back repeats of one photo."""
+    images = product.get("image_urls") or []
+    if not images and product.get("image_url"):
+        images = [product["image_url"]]  # legacy single-image field
+    images = images[:MAX_IMAGES_PER_PRODUCT]
+
+    if not images:
+        return ""
+    if len(images) == 1:
+        return images[0]
+
+    last_used = {}
+    for entry in pins_log:
+        if entry.get("asin") == product.get("asin") and entry.get("image_url"):
+            last_used[entry["image_url"]] = max(
+                last_used.get(entry["image_url"], 0), entry.get("dispatched_at_epoch", 0)
+            )
+
+    # get(url, -1): an image never used sorts before any real timestamp,
+    # so unused images are exhausted before anything repeats.
+    return min(images, key=lambda url: last_used.get(url, -1))
 
 
 # ============================================================================
@@ -158,7 +196,7 @@ def run_full_cycle(max_pins: int = None, board_override: str = None, dry_run: bo
             "title": copy["title"],
             "description": copy["description"],
             "link": link,
-            "image_url": product.get("image_url", ""),
+            "image_url": _pick_image_url(product, pins_log),
             "board_category": product.get("category", "default"),
         }
 
