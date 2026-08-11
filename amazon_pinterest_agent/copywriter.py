@@ -11,8 +11,20 @@ ship a pin missing its Amazon Associates disclosure.
 """
 import os
 import random
+import re
 
 from .compliance import disclosure_for
+
+# Splits a product title into its leading "primary noun phrase" for keyword/
+# hashtag use — cuts at the first comma/colon/dash/pipe so a long, punctuated
+# title (e.g. "Widget: Learn About Passing X") doesn't get treated as one
+# giant keyword.
+_TITLE_SPLIT_RE = re.compile(r"[,:\-|]")
+
+# Hashtags can't contain spaces, punctuation, or apostrophes — strip
+# everything but letters/digits so a keyword like "Driver's Permit Test"
+# becomes "#DriversPermitTest" instead of a malformed tag.
+_HASHTAG_STRIP_RE = re.compile(r"[^A-Za-z0-9]")
 
 # The exact system prompt fed to Claude for the copywriting step. Keep this
 # in sync with the persona documented in BLUEPRINT.md §2 — that file is the
@@ -70,7 +82,8 @@ CTA_TEMPLATES = [
 
 
 def _keyword_bank(product: dict) -> list:
-    base = [product.get("title", "").split(",")[0]]
+    primary = _TITLE_SPLIT_RE.split(product.get("title", ""), 1)[0]
+    base = [primary]
     base += product.get("keywords", [])
     base += [product.get("category", "")]
     seen, out = set(), []
@@ -80,6 +93,14 @@ def _keyword_bank(product: dict) -> list:
             seen.add(k.lower())
             out.append(k)
     return out
+
+
+def _to_hashtag(keyword: str) -> str:
+    """Strip everything but letters/digits so punctuation in a product title
+    or keyword (colons, apostrophes, dashes) can't leak into a malformed
+    hashtag."""
+    cleaned = _HASHTAG_STRIP_RE.sub("", keyword)
+    return f"#{cleaned}" if cleaned else ""
 
 
 def generate_title(product: dict) -> str:
@@ -99,7 +120,7 @@ def _heuristic_body(product: dict) -> str:
     cta = random.choice(CTA_TEMPLATES).format(audience=product.get("audience", "shoppers"))
     audience = product.get("audience") or f"anyone shopping for {product.get('category', 'this')}"
     body = f"{product.get('title', '')}. {product.get('summary', '')} Great for {audience}. {cta}".strip()
-    hashtags = " ".join(f"#{k.replace(' ', '')}" for k in keywords[:6] if k)
+    hashtags = " ".join(tag for tag in (_to_hashtag(k) for k in keywords[:6]) if tag)
     return f"{body} {hashtags}".strip()
 
 
