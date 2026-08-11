@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Privacy policy for the Star Academy Shopify store, including Meta Conversions API data sharing.">
+  <title>Privacy Policy — Star Academy Shopify Store</title>
+  <link rel="icon" type="image/png" href="../../assets/logo.png">
+  <style>
+  :root {
+    --bg: #faf7f1; --surface: #ffffff; --surface-raised: #fffdf9;
+    --ink: #1e2430; --ink-muted: #5b6472; --ink-faint: #8b93a1;
+    --accent: #93701a; --accent-soft: #f2e6c8; --border: #e4dfd3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161c; --surface: #1b1e27; --surface-raised: #20242f;
+      --ink: #ede9de; --ink-muted: #9ca3b0; --ink-faint: #6e7684;
+      --accent: #d9ae55; --accent-soft: #382d18; --border: #2a2e3a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161c; --surface: #1b1e27; --surface-raised: #20242f;
+    --ink: #ede9de; --ink-muted: #9ca3b0; --ink-faint: #6e7684;
+    --accent: #d9ae55; --accent-soft: #382d18; --border: #2a2e3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65; margin: 0; padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  .page { max-width: 700px; margin: 0 auto; }
+  header { padding: 72px 0 40px; border-bottom: 1px solid var(--border); }
+  .eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    font-family: Georgia, "Iowan Old Style", serif; font-style: italic;
+    font-size: 15px; color: var(--accent); margin: 0 0 18px;
+  }
+  .eyebrow .mark { width: 22px; height: 22px; flex: none; }
+  h1 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", serif;
+    font-weight: 600; font-size: clamp(30px, 4.2vw, 40px);
+    line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .subtitle { color: var(--ink-muted); font-size: 16px; max-width: 46ch; margin: 0 0 22px; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 10px 24px;
+    font-size: 13px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  }
+  .meta-row dt { display: inline; font-weight: 600; color: var(--ink-muted); }
+  .meta-row dt::after { content: " "; }
+  .meta-row dd { display: inline; margin: 0; }
+  .scope-note {
+    margin: 32px 0 0; padding: 18px 20px; background: var(--surface-raised);
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; font-size: 14.5px; color: var(--ink-muted);
+  }
+  .scope-note strong { color: var(--ink); }
+  nav.toc { margin: 40px 0 0; }
+  nav.toc .toc-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 12px;
+  }
+  nav.toc ol {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px; counter-reset: toc;
+  }
+  nav.toc li { counter-increment: toc; font-size: 14.5px; }
+  nav.toc a { color: var(--ink-muted); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  nav.toc li::before {
+    content: counter(toc) "."; font-variant-numeric: tabular-nums;
+    color: var(--ink-faint); margin-right: 8px;
+  }
+  @media (max-width: 560px) { nav.toc ol { grid-template-columns: 1fr; } }
+  main { margin-top: 48px; }
+  section { padding: 36px 0; border-bottom: 1px solid var(--border); scroll-margin-top: 24px; }
+  section:last-of-type { border-bottom: none; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 16px; }
+  .section-num {
+    font-family: ui-serif, Georgia, serif; font-size: 15px;
+    color: var(--accent); font-variant-numeric: tabular-nums; flex: none;
+  }
+  h2 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", serif;
+    font-weight: 600; font-size: 22px; margin: 0; text-wrap: balance;
+  }
+  section p { margin: 0 0 14px; max-width: 62ch; }
+  section p:last-child { margin-bottom: 0; }
+  section ul { margin: 0 0 14px; padding-left: 22px; max-width: 60ch; }
+  section ul:last-child { margin-bottom: 0; }
+  section li { margin-bottom: 8px; }
+  section li:last-child { margin-bottom: 0; }
+  code {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.9em;
+    background: var(--surface-raised); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  footer {
+    margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border);
+    font-size: 13.5px; color: var(--ink-faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px;
+  }
+  footer a { color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2.5l2.47 6.62 7.03.53-5.4 4.53 1.72 6.82L12 17.3l-5.82 3.7 1.72-6.82-5.4-4.53 7.03-.53z"
+              stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      Star Academy
+    </p>
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">
+      Covering the Star Academy Shopify store — checkout, cookies, and ad
+      measurement — maintained under Wholesale Omniverse LLC.
+    </p>
+    <dl class="meta-row">
+      <div><dt>Effective</dt><dd>August 11, 2026</dd></div>
+      <div><dt>Store</dt><dd><a href="http://1iyduv-11.myshopify.com" target="_blank" rel="noopener">1iyduv-11.myshopify.com</a></dd></div>
+      <div><dt>Contact</dt><dd><a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a></dd></div>
+    </dl>
+
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-label">On this page</p>
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#collect">Information we collect</a></li>
+        <li><a href="#cookies">Cookies &amp; tracking</a></li>
+        <li><a href="#use">How we use information</a></li>
+        <li><a href="#sharing">Sharing with third parties</a></li>
+        <li><a href="#children">Children&rsquo;s privacy</a></li>
+        <li><a href="#retention">Data retention</a></li>
+        <li><a href="#rights">Your rights &amp; choices</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#changes">Changes to this policy</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main>
+    <section id="overview">
+      <div class="section-head"><span class="section-num">01</span><h2>Overview</h2></div>
+      <p>
+        This policy explains how we collect, use, and share information when
+        you visit or purchase from the Star Academy store at
+        <a href="http://1iyduv-11.myshopify.com" target="_blank" rel="noopener">1iyduv-11.myshopify.com</a>,
+        operated by Wholesale Omniverse LLC.
+      </p>
+    </section>
+
+    <section id="collect">
+      <div class="section-head"><span class="section-num">02</span><h2>Information we collect</h2></div>
+      <ul>
+        <li><strong>Contact &amp; account information</strong> you provide at checkout or account creation: name, email, phone number, shipping and billing address.</li>
+        <li><strong>Order information</strong>: items purchased, order value, order history.</li>
+        <li><strong>Payment information</strong>: processed directly by Shopify's payment system (or another connected provider) — we do not receive or store your full card number.</li>
+        <li><strong>Device &amp; browsing information</strong>: collected via cookies, including pages viewed, cart activity, and general device/browser information.</li>
+      </ul>
+    </section>
+
+    <section id="cookies">
+      <div class="section-head"><span class="section-num">03</span><h2>Cookies &amp; tracking</h2></div>
+      <p>
+        <strong>Essential cookies</strong> — Shopify sets cookies required for
+        cart and checkout to function; these can't be disabled without
+        breaking the ability to purchase.
+      </p>
+      <p>
+        <strong>Advertising cookies (Meta Pixel)</strong> — we use the Meta
+        (Facebook/Instagram) Pixel to measure ad performance and improve ad
+        targeting. Opt out via your
+        <a href="https://www.facebook.com/adpreferences/ad_settings/" target="_blank" rel="noopener">Meta ad preferences</a>
+        or your browser's tracking-protection settings.
+      </p>
+    </section>
+
+    <section id="use">
+      <div class="section-head"><span class="section-num">04</span><h2>How we use information</h2></div>
+      <ul>
+        <li>Process and fulfill your orders</li>
+        <li>Communicate about orders, shipping, and customer service</li>
+        <li>Measure and improve the performance of our advertising</li>
+        <li>Improve our store and product offering</li>
+      </ul>
+      <p>We do not sell your personal information.</p>
+    </section>
+
+    <section id="sharing">
+      <div class="section-head"><span class="section-num">05</span><h2>Sharing with third parties</h2></div>
+      <ul>
+        <li><strong>Shopify</strong> — our e-commerce platform, which processes orders and payments on our behalf. See <a href="https://www.shopify.com/legal/privacy" target="_blank" rel="noopener">Shopify's privacy policy</a>.</li>
+        <li><strong>Payment processor</strong> — handles payment data directly; we don't store full payment details ourselves.</li>
+        <li><strong>Meta (Facebook/Instagram)</strong> — when you complete a purchase, we send Meta a record of that conversion to measure ad performance. Your email and phone number are <strong>SHA-256 hashed before being sent</strong> — Meta never receives them in plain text. Order value, currency, the product(s) purchased, your IP address, and browser user-agent are sent unhashed as part of this event, used only for ad measurement and attribution.</li>
+      </ul>
+    </section>
+
+    <section id="children">
+      <div class="section-head"><span class="section-num">06</span><h2>Children&rsquo;s privacy</h2></div>
+      <p>
+        This store is not directed to children under 13, and we do not
+        knowingly collect personal information from children under 13. If
+        you believe a child has provided us information, contact us and
+        we will delete it.
+      </p>
+    </section>
+
+    <section id="retention">
+      <div class="section-head"><span class="section-num">07</span><h2>Data retention</h2></div>
+      <p>
+        We retain order and account information for as long as needed to
+        fulfill orders, meet tax/accounting obligations, and support
+        customer service, after which it is deleted or anonymized.
+      </p>
+    </section>
+
+    <section id="rights">
+      <div class="section-head"><span class="section-num">08</span><h2>Your rights &amp; choices</h2></div>
+      <p>
+        Request access to, correction of, or deletion of your personal
+        information by contacting
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>.
+        Opt out of Meta ad tracking through the Meta ad preference controls
+        linked in Section 3.
+      </p>
+    </section>
+
+    <section id="security">
+      <div class="section-head"><span class="section-num">09</span><h2>Security</h2></div>
+      <p>
+        We rely on Shopify's PCI-compliant checkout for payment data and take
+        reasonable measures to protect your information. No method of
+        transmission or storage is completely secure.
+      </p>
+    </section>
+
+    <section id="changes">
+      <div class="section-head"><span class="section-num">10</span><h2>Changes to this policy</h2></div>
+      <p>
+        We may update this policy as our practices change. The effective
+        date above will be updated when we do.
+      </p>
+    </section>
+
+    <section id="contact">
+      <div class="section-head"><span class="section-num">11</span><h2>Contact</h2></div>
+      <p>
+        Questions about this policy:
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Wholesale Omniverse LLC — Star Academy Shopify store</span>
+    <span>Last updated August 11, 2026</span>
+  </footer>
+</div>
+</body>
+</html>

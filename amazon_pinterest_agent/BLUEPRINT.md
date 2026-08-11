@@ -307,6 +307,9 @@ they don't have to get rediscovered next time:
 | Privacy policy (Pinterest API-scoped) | `/star-academy/privacy.html` on the site |
 | Terms of use | `/star-academy/terms.html` on the site |
 | Privacy policy (general, draft) | `/star-academy/privacy-general.html` on the site |
+| Shopify store | http://1iyduv-11.myshopify.com (dev domain, no custom domain yet) |
+| Shopify privacy policy | `/star-academy/shopify/privacy.html` on the site, or paste into Shopify Admin → Settings → Policies |
+| Shopify terms of service | `/star-academy/shopify/terms.html` on the site, or paste into Shopify Admin → Settings → Policies |
 
 ### Optional no-code layer (n8n / Make.com) on top of this core
 
