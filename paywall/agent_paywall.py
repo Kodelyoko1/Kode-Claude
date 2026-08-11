@@ -58,6 +58,7 @@ AGENT_NAMES = {
     "batman":               "Batman — Self-Healing Agent Fleet Manager",
     "polymarket_weather":   "PolyMarket Weather — Prediction Market Trading Agent",
     "ict_predictor":        "ICT Predictor — Gold & Crude ICT Killzone Signal Feed",
+    "amazon_pinterest":     "Amazon Influencer x Pinterest Agent — Storefront Curation + Pin Automation",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -105,6 +106,7 @@ DEFAULT_PRICES = {
     "dropship_scout":   47,
     "batman":           147,
     "ict_predictor":    147,
+    "amazon_pinterest": 147,
 }
 
 
