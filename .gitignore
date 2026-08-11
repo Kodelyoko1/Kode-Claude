@@ -106,6 +106,9 @@ data/facebook_drafts/
 data/instagram_drafts/
 data/pinterest_drafts/
 data/social_posts.json
+data/ap_storefront.json
+data/ap_pins.json
+data/ap_performance.json
 
 # Node + Netlify
 website/node_modules/
