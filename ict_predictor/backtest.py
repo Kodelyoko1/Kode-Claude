@@ -307,18 +307,37 @@ def _summarize(trades: list[Trade], signals: int, kz_bars: int, spread: float,
     }
 
 
+def significance(expectancy: float, stdev: float, n: int) -> dict:
+    """
+    Is the measured expectancy distinguishable from zero?
+
+    Trade count alone is a poor guide — an earlier version of this report
+    called 124 trades "a usable sample" while the result sat well inside its
+    own error bars. What matters is the effect size relative to variance, so
+    that is what gets reported.
+    """
+    import math
+    if n < 2 or stdev <= 0:
+        return {"n": n, "t": 0.0, "p": 1.0, "lo": 0.0, "hi": 0.0,
+                "significant": False, "needed": 0}
+    se = stdev / math.sqrt(n)
+    t = expectancy / se
+    p = 2 * (1 - 0.5 * (1 + math.erf(abs(t) / math.sqrt(2))))
+    needed = (1.96 * stdev / expectancy) ** 2 if expectancy else float("inf")
+    return {"n": n, "t": t, "p": p,
+            "lo": expectancy - 1.96 * se, "hi": expectancy + 1.96 * se,
+            "significant": abs(t) >= 1.96,
+            "needed": needed}
+
+
 def confidence_note(n: int) -> str:
-    """Blunt statement of what a sample this size can and cannot support."""
+    """Kept for callers that only have a trade count; significance() is better."""
     if n == 0:
         return "NO TRADES — nothing can be concluded."
     if n < 30:
         return (f"{n} trades is FAR too few to conclude anything. Noise dominates; "
                 f"treat any edge shown here as unproven.")
-    if n < 100:
-        return (f"{n} trades is a weak sample. Direction may be suggestive, but the "
-                f"error bars are wide.")
-    return (f"{n} trades is a usable sample, though still short of what a "
-            f"confident edge claim needs (300+).")
+    return f"{n} resolved trades."
 
 
 def format_report(result: dict, asset: str, period: str) -> str:
@@ -364,12 +383,49 @@ def format_report(result: dict, asset: str, period: str) -> str:
     lines += [
         "",
         "--- HONEST READING ---",
-        f"{confidence_note(n)}",
     ]
+    sig = significance(result["expectancy_r"], result.get("stdev_r", 0.0), n)
+    if n == 0:
+        lines.append(confidence_note(n))
+    elif n < 30:
+        lines.append(confidence_note(n))
+    else:
+        lines += [
+            f"Expectancy {result['expectancy_r']:+.3f} R, 95% CI "
+            f"[{sig['lo']:+.3f}, {sig['hi']:+.3f}] over {n} trades "
+            f"(t={sig['t']:.2f}, p={sig['p']:.2f}).",
+        ]
+        if sig["significant"]:
+            lines.append("This IS statistically distinguishable from zero on this sample.")
+        else:
+            lines += [
+                "This is NOT statistically distinguishable from zero — the confidence",
+                "interval spans both losing and winning outcomes. A strategy with no",
+                f"edge at all produces a result at least this good about {sig['p']*100:.0f}% of",
+                "the time, so the sign of the expectancy carries little information.",
+            ]
+            if sig["needed"] and sig["needed"] != float("inf"):
+                lines.append(f"Establishing significance at this effect size would need "
+                             f"~{sig['needed']:,.0f} trades.")
+        rec = (result["total_r"] / result["max_drawdown_r"]) if result["max_drawdown_r"] else 0.0
+        if result["max_drawdown_r"] > 0:
+            lines.append(
+                f"Recovery factor {rec:.2f} (return {result['total_r']:+.2f} R vs worst "
+                f"drawdown {result['max_drawdown_r']:.2f} R)"
+                + ("  — the drawdown exceeded the entire profit." if rec < 1 else "."))
+    lines += []
     if n:
-        verdict = ("POSITIVE expectancy on this sample" if result["expectancy_r"] > 0
-                   else "NEGATIVE expectancy on this sample")
-        lines.append(f"Result: {verdict} ({result['expectancy_r']:+.3f} R/trade).")
+        # Only state a directional verdict when the result actually supports
+        # one. Announcing "POSITIVE expectancy" directly beneath "not
+        # distinguishable from zero" invites reading the sign as the finding.
+        if sig["significant"]:
+            verdict = ("POSITIVE expectancy on this sample" if result["expectancy_r"] > 0
+                       else "NEGATIVE expectancy on this sample")
+            lines.append(f"Result: {verdict} ({result['expectancy_r']:+.3f} R/trade).")
+        else:
+            lines.append("Result: NO MEASURABLE EDGE on this sample. The point estimate "
+                         f"is {result['expectancy_r']:+.3f} R/trade, but it cannot be "
+                         "separated from zero.")
         lines.append("")
         lines.append("Caveats that apply regardless of the numbers above:")
         lines.append("  - Bar-resolution fills; intrabar sequence is assumed pessimistically.")
