@@ -135,7 +135,6 @@ def _save_buyer(name: str, email: str, phone: str, markets: str, source: str, no
 def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "") -> dict:
     if _is_bounced(to_email):
         return {"status": "skipped_bounced"}
-
     smtp_host = os.environ.get("SMTP_HOST", "")
     smtp_user = os.environ.get("SMTP_USER", "")
     smtp_pass = os.environ.get("SMTP_PASS", "")
@@ -190,8 +189,7 @@ def _send_smtp(to_email: str, subject: str, body_text: str, body_html: str = "")
     except Exception as e:
         release_send()
         err = str(e)
-        # 550/551/553 = permanent failure — mark bounced so we never retry
-        if any(code in err for code in ["550", "551", "553", "4.4.4", "5.1.1", "5.1.2"]):
+        if any(c in err for c in ["550", "551", "553", "4.4.4", "5.1.1", "5.1.2"]):
             _mark_bounced(to_email)
         return {"status": "failed", "error": err}
 
