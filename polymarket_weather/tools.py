@@ -5,12 +5,13 @@ Exposes run_full_cycle() called by run_polymarket_weather_auto.py.
 Revenue tiers: $97/mo signal feed, $297/mo with live trading, $997/yr white-label.
 
 Full cycle:
-  1. Refresh data pipeline (weather + market prices)   [hourly rate-limited]
-  2. Retrain models if stale (> 7 days)                [weekly]
-  3. Run the trading agent cycle (scan + trade)
-  4. Write a performance digest to pw_reports/
-  5. Email digest to owner if SMTP configured
-  6. Update agent_metrics.json for the ecosystem dashboard
+  1. Collect resolved market data                      [every cycle]
+  2. Refresh data pipeline (weather + market prices)   [hourly rate-limited]
+  3. Retrain models if stale (> 7 days)                [weekly]
+  4. Run the trading agent cycle (scan + trade)
+  5. Write a performance digest to pw_reports/
+  6. Email digest to owner if SMTP configured
+  7. Update agent_metrics.json for the ecosystem dashboard
 """
 from __future__ import annotations
 
@@ -78,6 +79,14 @@ def _mark_data_fresh():
     marker.write_text(datetime.now(timezone.utc).isoformat())
 
 
+def collect_resolutions() -> dict:
+    """Step 1: collect recently resolved weather market outcomes for training."""
+    try:
+        return collect_new_resolutions(days_back=60)
+    except Exception as exc:
+        return {"error": str(exc), "new_records": 0, "total_records": resolved_count()}
+
+
 def _model_is_stale(days: int = RETRAIN_DAYS) -> bool:
     marker = DATA_DIR / "pw_models" / "last_trained.txt"
     if not marker.exists():
@@ -103,14 +112,6 @@ def refresh_data(force: bool = False) -> dict:
     return result
 
 
-def collect_resolutions() -> dict:
-    """Fetch newly resolved PolyMarket weather markets and save labeled records."""
-    try:
-        return collect_new_resolutions(days_back=60)
-    except Exception as exc:
-        return {"error": str(exc), "new_records": 0}
-
-
 def retrain_models(force: bool = False) -> dict:
     if not force and not _model_is_stale():
         return {"skipped": True, "reason": "models fresh"}
@@ -124,7 +125,7 @@ def retrain_models(force: bool = False) -> dict:
     if not weather_by_city:
         return {"error": "no weather data; run refresh first"}
 
-    # Blend in real resolved market records when available
+    # Blend in real resolved market records (prepend so they have higher recency weight)
     real_records = load_resolved_for_training()
     real_count   = len(real_records)
     if real_records:
@@ -132,8 +133,8 @@ def retrain_models(force: bool = False) -> dict:
         for r in real_records:
             city = r.get("city", "new_york")
             by_city.setdefault(city, []).append(r)
-        # Merge real records into weather_by_city (prepend so they're weighted equally)
         for city, recs in by_city.items():
+            # Real records first so they influence the model more
             weather_by_city[city] = recs + weather_by_city.get(city, [])
 
     result = train_all_models(weather_by_city)
@@ -266,19 +267,19 @@ def run_full_cycle() -> dict:
     """
     step_results: dict = {}
 
-    # 1. Collect newly resolved markets (every cycle — fast, network-gated)
+    # 1. Collect resolved market outcomes for model improvement
     try:
         step_results["resolutions"] = collect_resolutions()
     except Exception as exc:
-        step_results["resolutions"] = {"error": str(exc), "new_records": 0}
+        step_results["resolutions"] = {"error": str(exc), "new_records": 0, "total_records": 0}
 
-    # 2. Refresh weather data if stale
+    # 2. Refresh data if stale
     try:
         step_results["data_refresh"] = refresh_data()
     except Exception as exc:
         step_results["data_refresh"] = {"error": str(exc)}
 
-    # 3. Retrain if stale (now blends real resolved records when available)
+    # 3. Retrain if stale
     try:
         step_results["retrain"] = retrain_models()
     except Exception as exc:
@@ -336,15 +337,16 @@ def run_full_cycle() -> dict:
     except Exception:
         pass
 
+    res_step = step_results.get("resolutions", {})
     return {
         "opportunities":    cycle_result.get("opportunities", 0),
         "trades_placed":    cycle_result.get("trades_placed", 0),
         "data_refreshed":   not step_results["data_refresh"].get("skipped"),
         "models_retrained": not step_results["retrain"].get("skipped"),
-        "new_resolutions":  step_results["resolutions"].get("new_records", 0),
-        "total_resolutions":step_results["resolutions"].get("total_records", 0),
         "digest_path":      str(digest_path),
         "live_trading":     agent.trader.live,
         "risk":             agent.risk.status_dict(),
         "backtest":         backtest_result,
+        "new_resolutions":  res_step.get("new_records", 0),
+        "total_resolutions": res_step.get("total_records", 0),
     }
