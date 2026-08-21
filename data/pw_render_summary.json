@@ -1,0 +1,17 @@
+{
+  "cycles": 1,
+  "boot_done": true,
+  "last_cycle": "2026-08-21T22:53:34.962653+00:00",
+  "live_trading": true,
+  "opportunities": 0,
+  "trades_placed": 0,
+  "new_resolutions": 0,
+  "total_resolutions": 0,
+  "bankroll": 1000.0,
+  "total_pnl": 0.0,
+  "daily_pnl": 0.0,
+  "open_positions": 10,
+  "trade_count": 10,
+  "halted": false,
+  "halt_reason": ""
+}
