@@ -3,6 +3,9 @@ name: Fetch Render Status
 on:
   workflow_dispatch:   # trigger manually on demand
 
+permissions:
+  contents: write
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
