@@ -152,6 +152,7 @@ def index():
     <p style="margin-top:8px">Mode: {mode_badge} &nbsp;|&nbsp; Model quality: {model_quality}</p>
 
     <nav class="nav">
+      <a href="/trades">Live positions</a>
       <a href="/status">JSON status</a>
       <a href="/backtest">Run backtest</a>
       <a href="/report">Latest report</a>
@@ -252,6 +253,67 @@ def collect_route():
       </table>
     </div>"""
     return _page("Collect — PolyMarket Weather", body)
+
+
+# ---------------------------------------------------------------------------
+# /trades  — show full trade log
+# ---------------------------------------------------------------------------
+
+@app.route("/trades")
+def trades_route():
+    import json as _json
+    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
+    trades = []
+    if trade_log_path.exists():
+        try:
+            trades = _json.loads(trade_log_path.read_text()) or []
+        except Exception:
+            pass
+
+    if not trades:
+        body = """
+        <h1>⛅ Trade Log</h1>
+        <nav class="nav"><a href="/">← Dashboard</a></nav>
+        <p style="color:#aaa;margin-top:12px">No trades recorded yet.</p>"""
+        return _page("Trades — PolyMarket Weather", body)
+
+    rows = ""
+    for t in reversed(trades):
+        approved = "✅" if t.get("approved") else "❌"
+        pnl = t.get("pnl", None)
+        pnl_str = f"${pnl:+.2f}" if pnl is not None else "—"
+        pnl_cls = "pos" if (pnl or 0) >= 0 else "neg"
+        side_cls = "pos" if t.get("side") == "YES" else "neg"
+        rows += (
+            f"<tr>"
+            f"<td>{t.get('timestamp','')[:19].replace('T',' ')}</td>"
+            f"<td><span class='{side_cls}'>{t.get('side','')}</span></td>"
+            f"<td>{t.get('edge',0):.3f}</td>"
+            f"<td>{t.get('model_prob',0):.3f}</td>"
+            f"<td>{t.get('market_price',0):.3f}</td>"
+            f"<td>${t.get('size',0):.2f}</td>"
+            f"<td class='{pnl_cls}'>{pnl_str}</td>"
+            f"<td>{approved}</td>"
+            f"<td class='dim'>{t.get('question','')[:55]}</td>"
+            f"</tr>"
+        )
+
+    body = f"""
+    <h1>⛅ Trade Log <span class="dim">({len(trades)} total)</span></h1>
+    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <div class="card" style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Time (UTC)</th><th>Side</th><th>Edge</th>
+            <th>Model P</th><th>Mkt P</th><th>Size</th>
+            <th>P&L</th><th>Placed</th><th>Question</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>"""
+    return _page("Trades — PolyMarket Weather", body)
 
 
 # ---------------------------------------------------------------------------
