@@ -13,5 +13,6 @@
   "open_positions": 10,
   "trade_count": 10,
   "halted": false,
-  "halt_reason": ""
+  "halt_reason": "",
+  "trade_log_count": 0
 }
