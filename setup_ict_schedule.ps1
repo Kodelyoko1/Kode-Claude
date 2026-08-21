@@ -10,25 +10,34 @@
 #   when you are logged on, and you should set MT5 to start with Windows.
 #
 # TIMING
-#   09:00 local sits inside the NY AM killzone (12:00-15:00 UTC) year-round:
-#   09:00 EDT = 13:00 UTC, 09:00 EST = 14:00 UTC. Outside a killzone the agent
-#   deliberately returns NO TRADE, so the schedule is aligned on purpose.
+#   The NY AM killzone is DEFINED as 07:00-10:00 New York local time, and a
+#   Task Scheduler trigger is also expressed in local time. Starting at 07:00
+#   with 3 hours of repetition therefore tracks the window EXACTLY, in both
+#   seasons, with no DST arithmetic on either side:
 #
-#   By default the task also REPEATS every 15 minutes for 3 hours. A single
-#   daily fire samples one instant of a three-hour window - a liquidity sweep
-#   that forms at 09:40 is invisible to a job that only runs at 09:00. Use
-#   -Once if you genuinely want a single daily run.
+#     winter (EST)  07:00-10:00 local = 12:00-15:00 UTC = the killzone
+#     summer (EDT)  07:00-10:00 local = 11:00-14:00 UTC = the killzone
+#
+#   (An earlier default of 09:00 caught only the final hour of the window.)
+#
+#   The task REPEATS every 15 minutes across those 3 hours. A single daily
+#   fire samples one instant - a liquidity sweep forming at 07:40 is invisible
+#   to a job that only runs at 07:00. Use -Once if you want the single run.
+#
+#   NOTE: this alignment assumes the machine's clock is set to US Eastern. On
+#   a VPS in another timezone, set -At to whatever local time corresponds to
+#   07:00 New York, or set the VPS clock to Eastern.
 #
 # USAGE
-#   .\setup_ict_schedule.ps1                 # weekdays 09:00, repeating to 12:00
-#   .\setup_ict_schedule.ps1 -Once           # weekdays 09:00, single run
-#   .\setup_ict_schedule.ps1 -At 08:30       # different start time
+#   .\setup_ict_schedule.ps1                 # weekdays 07:00-10:00 local (the NY AM killzone)
+#   .\setup_ict_schedule.ps1 -Once           # weekdays 07:00, single run
+#   .\setup_ict_schedule.ps1 -At 02:00       # London killzone instead (02:00-05:00 NY)
 #   .\setup_ict_schedule.ps1 -Remove         # unregister the task
 #
 # Safe to re-run: an existing task with the same name is replaced.
 
 param(
-    [string]$At = "09:00",
+    [string]$At = "07:00",
     [int]$EveryMinutes = 15,
     [int]$ForHours = 3,
     [switch]$Once,
@@ -107,7 +116,8 @@ if ($Once) {
     Write-Host "  Repeat    : none - single run per day"
     Write-Host "              NOTE: this samples ONE instant of the 3-hour killzone."
 } else {
-    Write-Host "  Repeat    : every $EveryMinutes min for $ForHours h (covers the NY AM killzone)"
+    Write-Host "  Repeat    : every $EveryMinutes min for $ForHours h"
+    Write-Host "              07:00-10:00 local == the NY AM killzone in both seasons."
 }
 Write-Host "  Runs as   : $env:USERNAME, only while logged on (MT5 must be running)"
 Write-Host "  Logs      : $LogDir\ict_YYYYMMDD.log"
