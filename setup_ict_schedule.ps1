@@ -87,6 +87,10 @@ New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 $Runner = Join-Path $InstallDir "run_ict_scheduled.ps1"
 @"
 Set-Location -LiteralPath '$InstallDir'
+# Belt and braces with the reconfigure() in run_ict_predictor_auto.py: Windows
+# defaults redirected stdout to cp1252, which cannot encode the report emoji.
+`$env:PYTHONIOENCODING = 'utf-8'
+`$env:PYTHONUTF8 = '1'
 `$stamp = Get-Date -Format 'yyyyMMdd'
 `$log = Join-Path '$LogDir' ("ict_" + `$stamp + ".log")
 "=== run started {0} ===" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
