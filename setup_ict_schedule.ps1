@@ -97,8 +97,16 @@ Set-Location -LiteralPath '$InstallDir'
     Out-File -FilePath `$log -Append -Encoding utf8
 & '$Python' '$Script' 2>&1 |
     Out-File -FilePath `$log -Append -Encoding utf8
-"=== run finished {0} (exit {1}) ===" -f (Get-Date -Format 'HH:mm:ss'), `$LASTEXITCODE |
+`$code = `$LASTEXITCODE
+if (`$null -eq `$code) { `$code = 1 }   # launch failed before Python set one
+"=== run finished {0} (exit {1}) ===" -f (Get-Date -Format 'HH:mm:ss'), `$code |
     Out-File -FilePath `$log -Append -Encoding utf8
+# Propagate Python's exit code to Task Scheduler. Without this the wrapper
+# always returns 0, so LastTaskResult reads "success" for a run that crashed -
+# which is exactly how a dead agent goes unnoticed for a week. Checking the
+# task's own result should be enough to know the agent is healthy; before this
+# it told you only that powershell.exe started.
+exit `$code
 "@ | Out-File -Encoding ascii $Runner
 
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
