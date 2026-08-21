@@ -241,6 +241,29 @@ def cmd_scan(asset: str):
         console.print(format_mt5_status(mt5_execution.submit(pred)))
 
 
+def cmd_forward():
+    """Score the agent's own past predictions against what price actually did."""
+    from datetime import datetime, timezone
+
+    from ict_predictor.forward_test import run_forward_test
+
+    console.print("[dim]Resolving logged predictions against subsequent "
+                  "price...[/dim]")
+    try:
+        summary = run_forward_test()
+    except Exception as exc:
+        console.print(f"[red]Forward test failed:[/red] {exc}")
+        return
+
+    console.print()
+    console.print(summary["report"])
+
+    out = ROOT / "data" / "ip_reports" / f"forward_{datetime.now(timezone.utc):%Y%m%d}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(summary["report"], encoding="utf-8")
+    console.print(f"\n[dim]Saved to {out}[/dim]")
+
+
 def main():
     parser = argparse.ArgumentParser(description="ICT Gold & Crude Prediction Agent")
     parser.add_argument("--asset", choices=["GC", "CL"],
@@ -253,6 +276,9 @@ def main():
                         help="Replay history through the strategy and report its edge, then exit")
     parser.add_argument("--sweep", action="store_true",
                         help="Parameter sensitivity sweep with in/out-of-sample split, then exit")
+    parser.add_argument("--forward", action="store_true",
+                        help="Score the agent's own logged predictions against what "
+                             "price did (out-of-sample by construction), then exit")
     parser.add_argument("--bars", type=int, default=5000,
                         help="15M bars of history for --backtest (default 5000, ~2.5 months)")
     args = parser.parse_args()
@@ -264,6 +290,10 @@ def main():
 
     if args.doctor:
         cmd_doctor()
+        return
+
+    if args.forward:
+        cmd_forward()
         return
 
     if args.backtest or args.sweep:
