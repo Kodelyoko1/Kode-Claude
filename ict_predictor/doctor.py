@@ -76,6 +76,7 @@ def discover_symbols(asset: str) -> list[str]:
 
 def run_diagnostics() -> list[dict]:
     checks: list[dict] = []
+    live_bids: dict[str, float] = {}
 
     # --- 1. MetaTrader5 package -------------------------------------------
     if mt5_execution.MT5_PACKAGE_AVAILABLE:
@@ -189,6 +190,7 @@ def run_diagnostics() -> list[dict]:
                         tick = mt5.symbol_info_tick(configured)
                         if tick and tick.bid:
                             quote = f", bid {tick.bid:,.2f}"
+                            live_bids[asset] = float(tick.bid)
                     except Exception:
                         pass
                     checks.append(_check(f"Symbol for {asset}", OK, detail + quote))
@@ -222,6 +224,30 @@ def run_diagnostics() -> list[dict]:
                 label, OK,
                 f"{len(candles)} {primary} 15M bars from the traded symbol, "
                 f"last close {last:,.2f}"))
+            # The bars and the live tick come from the same terminal and the
+            # same symbol, so they should agree to within a bar's range. When
+            # they do not, the terminal is serving history it has not finished
+            # downloading - which reads as a perfectly healthy feed while every
+            # level computed from it is stale.
+            bid = live_bids.get(primary)
+            if bid:
+                gap = abs(bid - last)
+                pct = gap / bid if bid else 0.0
+                if pct > 0.005:
+                    checks.append(_check(
+                        "Bars vs live price", FAIL,
+                        f"newest 15M close {last:,.2f} is {gap:,.2f} "
+                        f"({pct:.1%}) away from the live bid {bid:,.2f}",
+                        f"The terminal is returning stale history for {primary}. "
+                        f"Open its chart in MT5, scroll back to force the "
+                        f"download, wait for it to finish, then re-run --doctor. "
+                        f"Signals computed from these bars would be priced "
+                        f"against a market that has already moved."))
+                else:
+                    checks.append(_check(
+                        "Bars vs live price", OK,
+                        f"newest close {last:,.2f} vs live bid {bid:,.2f} "
+                        f"({pct:.2%} apart)"))
         else:
             checks.append(_check(
                 label, WARN,
