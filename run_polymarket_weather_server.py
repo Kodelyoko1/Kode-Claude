@@ -12,6 +12,7 @@ import sys
 import threading
 import time
 import logging
+import json as _json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,6 +43,16 @@ _state = {
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def _load_trades() -> list:
+    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
+    if trade_log_path.exists():
+        try:
+            return _json.loads(trade_log_path.read_text()) or []
+        except Exception:
+            pass
+    return []
+
 
 _DARK_CSS = """
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -100,7 +111,10 @@ def health():
 
 @app.route("/status")
 def status():
-    return jsonify(_state), 200
+    """Full status including trade log — single fetch captures everything."""
+    payload = dict(_state)
+    payload["trades"] = _load_trades()
+    return jsonify(payload), 200
 
 
 # ---------------------------------------------------------------------------
@@ -257,33 +271,18 @@ def collect_route():
 
 
 # ---------------------------------------------------------------------------
-# /trades.json  — raw JSON trade log (for automated fetching)
+# /trades.json  — raw JSON trade log
 # /trades       — HTML trade log table
 # ---------------------------------------------------------------------------
 
 @app.route("/trades.json")
 def trades_json():
-    import json as _json
-    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
-    trades = []
-    if trade_log_path.exists():
-        try:
-            trades = _json.loads(trade_log_path.read_text()) or []
-        except Exception:
-            pass
-    return jsonify(trades), 200
+    return jsonify(_load_trades()), 200
 
 
 @app.route("/trades")
 def trades_route():
-    import json as _json
-    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
-    trades = []
-    if trade_log_path.exists():
-        try:
-            trades = _json.loads(trade_log_path.read_text()) or []
-        except Exception:
-            pass
+    trades = _load_trades()
 
     if not trades:
         body = """
