@@ -12,15 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch /status and /trades from Render
+      - name: Fetch /status and /trades.json from Render
         run: |
-          mkdir -p data
-          curl -s --max-time 20 \
-            "https://polymarket-weather-agent.onrender.com/status" \
-            -o data/pw_render_status.json || echo '{"error":"unreachable"}' > data/pw_render_status.json
+          BASE="https://polymarket-weather-agent.onrender.com"
+          mkdir -p data/pw_trades
 
-          curl -s --max-time 20 \
-            "https://polymarket-weather-agent.onrender.com/status" \
+          # Full status blob
+          curl -s --max-time 20 "$BASE/status" \
+            -o data/pw_render_status.json \
+            || echo '{"error":"unreachable"}' > data/pw_render_status.json
+
+          # Parsed summary
+          curl -s --max-time 20 "$BASE/status" \
             | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
@@ -42,12 +45,18 @@ jobs:
             'halted':          risk.get('halted'),
             'halt_reason':     risk.get('halt_reason'),
           }, indent=2))
-          " > data/pw_render_summary.json 2>/dev/null || echo '{"error":"parse failed"}' > data/pw_render_summary.json
+          " > data/pw_render_summary.json 2>/dev/null \
+            || echo '{"error":"parse failed"}' > data/pw_render_summary.json
+
+          # Trade log
+          curl -s --max-time 20 "$BASE/trades.json" \
+            -o data/pw_trades/trade_log.json \
+            || echo '[]' > data/pw_trades/trade_log.json
 
       - name: Commit snapshot
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/pw_render_status.json data/pw_render_summary.json
+          git add data/pw_render_status.json data/pw_render_summary.json data/pw_trades/trade_log.json
           git diff --cached --quiet || git commit -m "chore: render status snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push
