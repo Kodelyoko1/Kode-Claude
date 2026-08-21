@@ -174,6 +174,11 @@ def format_mt5_status(order_result: dict) -> str:
             f"• Order: {plan['order_type']} {plan['volume']} lot(s) {plan['symbol']} "
             f"@ {_fmt(plan['entry'])} | SL {_fmt(plan['sl'])} | TP {_fmt(plan['tp'])}"
         )
+    if plan and plan.get("spread_applied"):
+        lines.append(
+            f"• Spread adj: entry moved {plan['structural_entry']:,.2f} -> "
+            f"{plan['entry']:,.2f} (+{plan['spread_applied']:.2f} spread; a BUY "
+            f"fills on the ASK)")
     if order_result.get("ticket"):
         lines.append(f"• Ticket: {order_result['ticket']}")
     if order_result.get("note"):

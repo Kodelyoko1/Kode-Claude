@@ -66,6 +66,14 @@ DEVIATION = int(os.getenv("IP_MT5_DEVIATION", "20"))
 # re-qualifies on every pass — without this cap one setup becomes one order
 # per cycle (36x over-exposure across a 3h killzone).
 MAX_EXPOSURE_PER_SYMBOL = int(os.getenv("IP_MT5_MAX_ORDERS_PER_SYMBOL", "1"))
+# Adjust BUY entries for the bid/ask spread. MT5 rates are BID prices, so every
+# level the strategy derives (FVG midpoint, invalidation, target) is a bid-side
+# price. A BUY_LIMIT, however, triggers on the ASK. Submitting the raw midpoint
+# means the order only fills once the BID has fallen a full spread BELOW the
+# intended entry - a deeper fill than the setup called for, or no fill at all.
+# SELL_LIMIT triggers on the BID and needs no adjustment.
+# Set IP_MT5_SPREAD_ADJUST=0 if your broker feeds ask-based rates.
+SPREAD_ADJUST = os.getenv("IP_MT5_SPREAD_ADJUST", "1") == "1"
 
 
 def symbol_for(asset: str) -> str:
@@ -118,6 +126,19 @@ def _connect() -> bool:
         return bool(mt5.initialize(**kwargs))
     except Exception:
         return False
+
+
+def current_spread(symbol: str) -> float:
+    """Live ask-bid for `symbol`, or 0.0 when unavailable."""
+    if not MT5_PACKAGE_AVAILABLE:
+        return 0.0
+    try:
+        tick = mt5.symbol_info_tick(symbol)
+        if tick and tick.ask and tick.bid:
+            return max(0.0, float(tick.ask) - float(tick.bid))
+    except Exception:
+        pass
+    return 0.0
 
 
 def existing_exposure(symbol: str) -> tuple[int, str]:
@@ -264,6 +285,18 @@ def build_order_plan(pred: dict, connected: bool = False) -> dict:
     volume = _size_position(symbol, entry, invalidation, connected)
     order_type_name = _order_type_name(direction, entry, current_price)
 
+    # Spread adjustment on BUYs only (see SPREAD_ADJUST above). Keep the
+    # unadjusted level in the plan so reports show the structural entry the
+    # strategy actually identified, not just the broker-facing price.
+    structural_entry = entry
+    measured = current_spread(symbol) if (connected and SPREAD_ADJUST) else 0.0
+    # Only BUYs are adjusted, so only BUYs record an applied spread — recording
+    # the measured value on a SELL would make the report claim an adjustment
+    # that never happened.
+    spread = measured if direction == "LONG" else 0.0
+    if spread:
+        entry = round(entry + spread, 5)
+
     return {
         "symbol": symbol,
         "direction": direction,
@@ -275,6 +308,8 @@ def build_order_plan(pred: dict, connected: bool = False) -> dict:
         "magic": MAGIC,
         "deviation": DEVIATION,
         "comment": f"ICT {asset} {direction} auto",
+        "structural_entry": structural_entry,
+        "spread_applied": round(spread, 5),
     }
 
 

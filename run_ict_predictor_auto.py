@@ -34,6 +34,18 @@ from rich.text import Text
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
+# Force UTF-8 on stdout/stderr before anything prints. Windows picks the
+# locale encoding (cp1252) when output is REDIRECTED, which is exactly what
+# Task Scheduler does — so the report template's emoji crashed the scheduled
+# run with UnicodeEncodeError while the same command worked fine typed into a
+# terminal. errors="replace" means an exotic glyph degrades to '?' rather than
+# taking down a whole cycle.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass  # already-wrapped or non-reconfigurable stream
+
 # Load .env before anything reads os.environ. The rest of the fleet relies on
 # the shell doing this (`export $(grep -v '^#' .env | xargs) && python3 ...`),
 # but this agent has to run on Windows for MetaTrader5, where that idiom does
