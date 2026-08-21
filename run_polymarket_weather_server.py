@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Minimal Flask web server for Render free-tier deployment.
-Runs the trading loop in a background thread; exposes /health and /status
-so Render's health checks keep the dyno alive.
+Flask web server for Render free-tier deployment.
+Runs the trading loop in a background thread; exposes /health, /status,
+/backtest, /report, and /collect so the owner can monitor the agent.
 
 Use UptimeRobot (free) to ping /health every 5 min to prevent sleep.
 """
@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +38,55 @@ _state = {
     "boot_done":     False,
 }
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_DARK_CSS = """
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d0d0d; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 24px; }
+h1 { color: #00c8ff; font-size: 1.5rem; margin-bottom: 6px; }
+h2 { color: #aaa; font-size: 1rem; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: .8rem; font-weight: 600; }
+.live  { background: #00c853; color: #000; }
+.dry   { background: #ff6d00; color: #000; }
+.halted{ background: #d32f2f; color: #fff; }
+.ok    { background: #1b5e20; color: #a5d6a7; }
+.nav   { margin: 16px 0; display: flex; gap: 12px; flex-wrap: wrap; }
+.nav a { color: #00c8ff; text-decoration: none; padding: 6px 14px; border: 1px solid #00c8ff; border-radius: 6px; font-size: .85rem; }
+.nav a:hover { background: #00c8ff22; }
+table  { border-collapse: collapse; width: 100%; margin-top: 8px; }
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #1e1e1e; font-size: .88rem; }
+th     { color: #888; font-weight: 600; }
+.pos   { color: #69f0ae; }
+.neg   { color: #ff5252; }
+.dim   { color: #666; font-size: .8rem; }
+.card  { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.stat  { background: #181818; border: 1px solid #2a2a2a; border-radius: 8px; padding: 14px; }
+.stat .val { font-size: 1.4rem; font-weight: 700; color: #00c8ff; }
+.stat .lbl { font-size: .75rem; color: #666; margin-top: 4px; }
+pre    { background: #111; border: 1px solid #222; border-radius: 6px; padding: 14px;
+         overflow-x: auto; font-size: .82rem; line-height: 1.5; white-space: pre-wrap; }
+"""
+
+
+def _page(title: str, body: str, refresh: int = 0) -> str:
+    refresh_tag = f'<meta http-equiv="refresh" content="{refresh}">' if refresh else ""
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {refresh_tag}
+  <title>{title}</title>
+  <style>{_DARK_CSS}</style>
+</head>
+<body>
+{body}
+</body>
+</html>"""
+
 
 # ---------------------------------------------------------------------------
 # Health / status endpoints
@@ -53,18 +102,156 @@ def status():
     return jsonify(_state), 200
 
 
+# ---------------------------------------------------------------------------
+# Main dashboard
+# ---------------------------------------------------------------------------
+
 @app.route("/")
 def index():
-    risk = _state.get("last_result", {}).get("risk", {})
-    return (
-        f"<h2>PolyMarket Weather Agent</h2>"
-        f"<p>Cycles run: {_state['cycles']}</p>"
-        f"<p>Last cycle: {_state['last_cycle']}</p>"
-        f"<p>Bankroll: ${risk.get('bankroll', 0):.2f}</p>"
-        f"<p>Total P&L: ${risk.get('total_pnl', 0):+.2f}</p>"
-        f"<p>Halted: {risk.get('halted', False)}</p>"
-        f"<p>Live trading: {_state.get('last_result', {}).get('live_trading', False)}</p>"
+    r    = _state.get("last_result", {})
+    risk = r.get("risk", {})
+
+    live    = r.get("live_trading", False)
+    halted  = risk.get("halted", False)
+    bankroll = risk.get("bankroll", 0)
+    daily_pnl = risk.get("daily_pnl", 0)
+    total_pnl = risk.get("total_pnl", 0)
+    open_pos  = risk.get("open_positions", 0)
+
+    total_res = r.get("total_resolutions", 0)
+    model_quality = (
+        f"<span class='badge ok'>improving ({total_res} resolved markets)</span>"
+        if total_res >= 50
+        else f"<span style='color:#aaa'>collecting ({total_res}/50 resolved markets)</span>"
     )
+
+    mode_badge = (
+        "<span class='badge halted'>HALTED</span>" if halted
+        else ("<span class='badge live'>LIVE</span>" if live
+              else "<span class='badge dry'>DRY-RUN</span>")
+    )
+
+    pnl_cls = "pos" if total_pnl >= 0 else "neg"
+    dpnl_cls = "pos" if daily_pnl >= 0 else "neg"
+
+    stats_html = f"""
+    <div class="grid">
+      <div class="stat"><div class="val">${bankroll:.2f}</div><div class="lbl">Bankroll</div></div>
+      <div class="stat"><div class="val {pnl_cls}">${total_pnl:+.2f}</div><div class="lbl">Total P&L</div></div>
+      <div class="stat"><div class="val {dpnl_cls}">${daily_pnl:+.2f}</div><div class="lbl">Daily P&L</div></div>
+      <div class="stat"><div class="val">{open_pos}</div><div class="lbl">Open Positions</div></div>
+      <div class="stat"><div class="val">{r.get('trades_placed', 0)}</div><div class="lbl">Trades (this cycle)</div></div>
+      <div class="stat"><div class="val">{r.get('opportunities', 0)}</div><div class="lbl">Opportunities found</div></div>
+      <div class="stat"><div class="val">{_state['cycles']}</div><div class="lbl">Total cycles</div></div>
+      <div class="stat"><div class="val">{r.get('new_resolutions', 0)}</div><div class="lbl">New resolutions</div></div>
+    </div>"""
+
+    body = f"""
+    <h1>⛅ PolyMarket Weather Agent</h1>
+    <p class="dim">Started: {_state['started']} · Last cycle: {_state['last_cycle'] or '—'}</p>
+    <p style="margin-top:8px">Mode: {mode_badge} &nbsp;|&nbsp; Model quality: {model_quality}</p>
+
+    <nav class="nav">
+      <a href="/status">JSON status</a>
+      <a href="/backtest">Run backtest</a>
+      <a href="/report">Latest report</a>
+      <a href="/collect">Collect resolutions</a>
+    </nav>
+
+    <div class="card">
+      <h2>Portfolio</h2>
+      {stats_html}
+    </div>
+
+    <p class="dim" style="margin-top:16px">Auto-refreshes every 60 s</p>
+    """
+    return _page("PolyMarket Weather Agent", body, refresh=60)
+
+
+# ---------------------------------------------------------------------------
+# /backtest  — run quick backtest on-demand
+# ---------------------------------------------------------------------------
+
+@app.route("/backtest")
+def backtest_route():
+    from polymarket_weather.tools import run_backtest_quick
+    try:
+        result = run_backtest_quick()
+    except Exception as exc:
+        result = {"error": str(exc)}
+
+    if "error" in result:
+        rows = f"<tr><td colspan='2' style='color:#ff5252'>{result['error']}</td></tr>"
+    else:
+        skip = {"report_path"}
+        rows = "".join(
+            f"<tr><td>{k}</td><td>{v}</td></tr>"
+            for k, v in result.items() if k not in skip
+        )
+        if result.get("report_path"):
+            rows += f"<tr><td>report_path</td><td><span class='dim'>{result['report_path']}</span></td></tr>"
+
+    body = f"""
+    <h1>⛅ Backtest Results</h1>
+    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <div class="card">
+      <table>
+        <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>"""
+    return _page("Backtest — PolyMarket Weather", body)
+
+
+# ---------------------------------------------------------------------------
+# /report  — serve latest digest
+# ---------------------------------------------------------------------------
+
+@app.route("/report")
+def report_route():
+    reports_dir = ROOT / "data" / "pw_reports"
+    reports = sorted(reports_dir.glob("*.md"), reverse=True) if reports_dir.exists() else []
+    if not reports:
+        body = """
+        <h1>⛅ Latest Report</h1>
+        <nav class="nav"><a href="/">← Dashboard</a></nav>
+        <p style="color:#aaa;margin-top:12px">No reports yet — run a full cycle first.</p>"""
+        return _page("Report — PolyMarket Weather", body)
+
+    content = reports[0].read_text()
+    body = f"""
+    <h1>⛅ Latest Report <span class="dim">({reports[0].name})</span></h1>
+    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <pre>{content}</pre>"""
+    return _page("Report — PolyMarket Weather", body)
+
+
+# ---------------------------------------------------------------------------
+# /collect  — trigger resolution collection on-demand
+# ---------------------------------------------------------------------------
+
+@app.route("/collect")
+def collect_route():
+    from polymarket_weather.tools import collect_resolutions
+    try:
+        result = collect_resolutions()
+    except Exception as exc:
+        result = {"error": str(exc)}
+
+    rows = "".join(
+        f"<tr><td>{k}</td><td>{v}</td></tr>"
+        for k, v in result.items()
+    )
+    body = f"""
+    <h1>⛅ Collect Resolutions</h1>
+    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <div class="card">
+      <table>
+        <thead><tr><th>Key</th><th>Value</th></tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>"""
+    return _page("Collect — PolyMarket Weather", body)
 
 
 # ---------------------------------------------------------------------------
@@ -98,11 +285,13 @@ def _trading_loop():
             _state["last_result"]  = result
             _state["running"]      = False
             log.info(
-                "Cycle done | opps=%d trades=%d bankroll=$%.2f pnl=$%+.2f",
+                "Cycle done | opps=%d trades=%d bankroll=$%.2f pnl=$%+.2f new_res=%d total_res=%d",
                 result.get("opportunities", 0),
                 result.get("trades_placed", 0),
                 result.get("risk", {}).get("bankroll", 0),
                 result.get("risk", {}).get("total_pnl", 0),
+                result.get("new_resolutions", 0),
+                result.get("total_resolutions", 0),
             )
         except Exception as exc:
             log.error("Cycle failed: %s", exc, exc_info=True)

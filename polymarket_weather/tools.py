@@ -5,12 +5,13 @@ Exposes run_full_cycle() called by run_polymarket_weather_auto.py.
 Revenue tiers: $97/mo signal feed, $297/mo with live trading, $997/yr white-label.
 
 Full cycle:
-  1. Refresh data pipeline (weather + market prices)   [hourly rate-limited]
-  2. Retrain models if stale (> 7 days)                [weekly]
-  3. Run the trading agent cycle (scan + trade)
-  4. Write a performance digest to pw_reports/
-  5. Email digest to owner if SMTP configured
-  6. Update agent_metrics.json for the ecosystem dashboard
+  1. Collect resolved market data                      [every cycle]
+  2. Refresh data pipeline (weather + market prices)   [hourly rate-limited]
+  3. Retrain models if stale (> 7 days)                [weekly]
+  4. Run the trading agent cycle (scan + trade)
+  5. Write a performance digest to pw_reports/
+  6. Email digest to owner if SMTP configured
+  7. Update agent_metrics.json for the ecosystem dashboard
 """
 from __future__ import annotations
 
@@ -39,6 +40,11 @@ from polymarket_weather.model import (
 from polymarket_weather.agent import WeatherTradingAgent, load_trade_log
 from polymarket_weather.backtest import BacktestEngine, threshold_signal
 from polymarket_weather.risk import RiskManager
+from polymarket_weather.resolver import (
+    collect_new_resolutions,
+    load_resolved_for_training,
+    resolved_count,
+)
 
 AGENT_KEY  = "polymarket_weather"
 DATA_DIR   = ROOT / "data"
@@ -71,6 +77,14 @@ def _data_is_stale(hours: int = DATA_REFRESH_HOURS) -> bool:
 def _mark_data_fresh():
     marker = DATA_DIR / "pw_historical" / "last_refresh.txt"
     marker.write_text(datetime.now(timezone.utc).isoformat())
+
+
+def collect_resolutions() -> dict:
+    """Step 1: collect recently resolved weather market outcomes for training."""
+    try:
+        return collect_new_resolutions(days_back=60)
+    except Exception as exc:
+        return {"error": str(exc), "new_records": 0, "total_records": resolved_count()}
 
 
 def _model_is_stale(days: int = RETRAIN_DAYS) -> bool:
@@ -111,7 +125,20 @@ def retrain_models(force: bool = False) -> dict:
     if not weather_by_city:
         return {"error": "no weather data; run refresh first"}
 
+    # Blend in real resolved market records (prepend so they have higher recency weight)
+    real_records = load_resolved_for_training()
+    real_count   = len(real_records)
+    if real_records:
+        by_city: dict[str, list[dict]] = {}
+        for r in real_records:
+            city = r.get("city", "new_york")
+            by_city.setdefault(city, []).append(r)
+        for city, recs in by_city.items():
+            # Real records first so they influence the model more
+            weather_by_city[city] = recs + weather_by_city.get(city, [])
+
     result = train_all_models(weather_by_city)
+    result["real_records_used"] = real_count
     _mark_model_fresh()
     return result
 
@@ -240,19 +267,25 @@ def run_full_cycle() -> dict:
     """
     step_results: dict = {}
 
-    # 1. Refresh data if stale
+    # 1. Collect resolved market outcomes for model improvement
+    try:
+        step_results["resolutions"] = collect_resolutions()
+    except Exception as exc:
+        step_results["resolutions"] = {"error": str(exc), "new_records": 0, "total_records": 0}
+
+    # 2. Refresh data if stale
     try:
         step_results["data_refresh"] = refresh_data()
     except Exception as exc:
         step_results["data_refresh"] = {"error": str(exc)}
 
-    # 2. Retrain if stale
+    # 3. Retrain if stale
     try:
         step_results["retrain"] = retrain_models()
     except Exception as exc:
         step_results["retrain"] = {"error": str(exc)}
 
-    # 3. Trading agent cycle
+    # 4. Trading agent cycle
     agent = WeatherTradingAgent(
         min_edge         = MIN_EDGE,
         min_liquidity    = MIN_LIQUIDITY,
@@ -263,7 +296,7 @@ def run_full_cycle() -> dict:
     cycle_result = agent.run_cycle()
     step_results["cycle"] = cycle_result
 
-    # 4. Quick backtest (weekly; skip if models weren't retrained recently)
+    # 5. Quick backtest (weekly; skip if models weren't retrained recently)
     backtest_result = None
     if not step_results["retrain"].get("skipped"):
         try:
@@ -272,11 +305,11 @@ def run_full_cycle() -> dict:
         except Exception as exc:
             step_results["backtest"] = {"error": str(exc)}
 
-    # 5. Write digest
+    # 6. Write digest
     digest_path = _write_digest(cycle_result, backtest_result)
     step_results["digest_path"] = str(digest_path)
 
-    # 6. Email digest to owner
+    # 7. Email digest to owner
     owner_email = os.getenv("PW_OWNER_EMAIL") or os.getenv("SMTP_USER", "")
     if owner_email:
         try:
@@ -291,7 +324,7 @@ def run_full_cycle() -> dict:
             step_results["email_sent"] = False
             step_results["email_error"] = str(exc)
 
-    # 7. Agent metrics
+    # 8. Agent metrics
     try:
         risk_state = agent.risk.status_dict()
         metrics.record(AGENT_KEY, {
@@ -304,13 +337,16 @@ def run_full_cycle() -> dict:
     except Exception:
         pass
 
+    res_step = step_results.get("resolutions", {})
     return {
-        "opportunities":  cycle_result.get("opportunities", 0),
-        "trades_placed":  cycle_result.get("trades_placed", 0),
-        "data_refreshed": not step_results["data_refresh"].get("skipped"),
+        "opportunities":    cycle_result.get("opportunities", 0),
+        "trades_placed":    cycle_result.get("trades_placed", 0),
+        "data_refreshed":   not step_results["data_refresh"].get("skipped"),
         "models_retrained": not step_results["retrain"].get("skipped"),
-        "digest_path":    str(digest_path),
-        "live_trading":   agent.trader.live,
-        "risk":           agent.risk.status_dict(),
-        "backtest":       backtest_result,
+        "digest_path":      str(digest_path),
+        "live_trading":     agent.trader.live,
+        "risk":             agent.risk.status_dict(),
+        "backtest":         backtest_result,
+        "new_resolutions":  res_step.get("new_records", 0),
+        "total_resolutions": res_step.get("total_records", 0),
     }
