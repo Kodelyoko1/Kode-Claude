@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Transcribe — bulk audio and video to text + SRT captions. CPU Whisper, no API fees. $19/episode, $79/mo (10 hrs), $297 bulk pack.">
+  <meta property="og:title" content="Transcribe — Bulk Audio/Video to Text + SRT Captions">
+  <meta property="og:description" content="Drop raw audio or video files, get .txt transcripts and .srt caption files back. No API fees — local faster-whisper on CPU. $19/episode.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/transcribe.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/transcribe.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Transcribe",
+    "applicationCategory": "UtilitiesApplication",
+    "description": "Bulk audio and video transcription to .txt + .srt using local faster-whisper. No API fees.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/transcribe.html",
+    "offers": [
+      {"@type":"Offer","name":"Per Episode","price":"19","priceCurrency":"USD"},
+      {"@type":"Offer","name":"Monthly 10 Hours","price":"79","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Bulk Pack","price":"297","priceCurrency":"USD"}
+    ],
+    "operatingSystem": "Linux, macOS, Windows",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>Transcribe — Audio/Video to Text + SRT | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .tr-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .tr-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .tr-hero .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .tr-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .tr-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline:hover{border-color:#94a3b8;text-decoration:none}
+    .terminal-box{background:#0d1117;border:1px solid #30363d;border-radius:14px;padding:28px;max-width:680px;margin:40px auto 0;text-align:left;font-family:'Courier New',monospace}
+    .term-bar{display:flex;gap:6px;margin-bottom:18px}
+    .term-dot{width:12px;height:12px;border-radius:50%}
+    .term-line{font-size:13px;margin-bottom:6px;line-height:1.7}
+    .term-comment{color:#6a737d}
+    .term-cmd{color:#79c0ff}
+    .term-path{color:#a5d6ff}
+    .term-output{color:#56d364}
+    .term-warn{color:#d29922}
+    .term-white{color:#c9d1d9}
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+    .formats-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 24px 48px;max-width:700px;margin:0 auto}
+    .fmt-tag{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;color:var(--navy);font-family:monospace}
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber);margin-top:10px}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+    .steps-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px;counter-reset:step}
+    .step{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px 24px 24px 20px;position:relative;padding-left:60px;counter-increment:step}
+    .step::before{content:counter(step);position:absolute;left:16px;top:22px;width:30px;height:30px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+    .step h3{color:var(--navy);font-size:16px;margin-bottom:6px}
+    .step p{color:var(--slate-6);font-size:14px;line-height:1.6}
+    .section-label{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+    .section-h2{text-align:center;font-size:clamp(22px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);max-width:560px;margin:0 auto 40px;font-size:16px}
+    .faq-wrap{max-width:700px;margin:0 auto;padding:0 24px 60px}
+    .faq-item{border-bottom:1px solid var(--slate-3);padding:20px 0}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{font-weight:700;color:var(--navy);font-size:16px;margin-bottom:8px}
+    .faq-a{color:var(--slate-6);font-size:15px;line-height:1.65}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+  </div>
+</header>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────── -->
+<section class="tr-hero">
+  <p style="color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Drop files. Get transcripts.</p>
+  <h1>Audio &amp; video to text + <span style="color:var(--amber)">SRT captions</span> — no API fees</h1>
+  <p class="lede">Transcribe uses local faster-whisper (CPU int8) to turn any podcast, recording, or video into a clean .txt transcript and .srt caption file. No cloud API charges. Runs on your own machine overnight.</p>
+  <div class="tr-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Transcribe Episode — $19 →</a>
+    <a class="btn-outline" href="https://paypal.me/wholesaleomniverse/79" target="_blank" rel="noopener">Monthly 10 hrs — $79/mo</a>
+    <a class="btn-outline" href="https://paypal.me/wholesaleomniverse/297" target="_blank" rel="noopener">Bulk Pack — $297</a>
+  </div>
+
+  <!-- Terminal Preview -->
+  <div class="terminal-box">
+    <div class="term-bar">
+      <div class="term-dot" style="background:#ff5f57"></div>
+      <div class="term-dot" style="background:#febc2e"></div>
+      <div class="term-dot" style="background:#28c840"></div>
+    </div>
+    <div class="term-line term-comment"># Drop your audio/video into data/tr_inputs/</div>
+    <div class="term-line term-cmd">$ python3 run_transcribe_auto.py</div>
+    <div class="term-line term-white">&nbsp;</div>
+    <div class="term-line term-output">✔ Found 3 new files in data/tr_inputs/</div>
+    <div class="term-line term-output">  Processing ep-47.mp3 (44:12) ...</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/ep-47.txt  (11,432 words)</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/ep-47.srt  (384 cues)</div>
+    <div class="term-line term-output">  Processing interview-raw.m4a (28:05) ...</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/interview-raw.txt  (7,218 words)</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/interview-raw.srt  (241 cues)</div>
+    <div class="term-line term-warn">  Processing webinar-4k.mp4 (1:12:33) ...</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/webinar-4k.txt  (19,041 words)</div>
+    <div class="term-line term-output">  ✓ data/tr_outputs/webinar-4k.srt  (634 cues)</div>
+    <div class="term-line term-white">&nbsp;</div>
+    <div class="term-line term-output">Done. 3 files → 2 hrs 4 min transcribed. 0 errors.</div>
+  </div>
+</section>
+
+<!-- ── Supported Formats ─────────────────────────────────────────────── -->
+<section style="padding:60px 24px 0;text-align:center">
+  <p class="section-label">Input Formats</p>
+  <h2 class="section-h2">Accepts anything ffmpeg can read</h2>
+  <p class="section-sub">Drop audio or video — the agent strips the audio track automatically via ffmpeg before passing to Whisper.</p>
+</section>
+<div class="formats-row">
+  <span class="fmt-tag">.mp3</span>
+  <span class="fmt-tag">.wav</span>
+  <span class="fmt-tag">.m4a</span>
+  <span class="fmt-tag">.flac</span>
+  <span class="fmt-tag">.ogg</span>
+  <span class="fmt-tag">.mp4</span>
+  <span class="fmt-tag">.mov</span>
+  <span class="fmt-tag">.mkv</span>
+  <span class="fmt-tag">.webm</span>
+  <span class="fmt-tag">.avi</span>
+</div>
+
+<!-- ── Features ────────────────────────────────────────────────────── -->
+<section>
+  <div style="text-align:center;padding:20px 24px 0">
+    <p class="section-label">What You Get</p>
+    <h2 class="section-h2">Two outputs. Zero API fees.</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">📄</div>
+      <h3>Plain Text Transcript (.txt)</h3>
+      <p>Word-for-word transcript with speaker-pause line breaks. Ready to paste into a blog post, ShowNotes, or AI summarizer.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎬</div>
+      <h3>SRT Caption File (.srt)</h3>
+      <p>SubRip format with timecodes — upload directly to YouTube, Vimeo, or a podcast host that accepts captions. The ShowNotes agent reads these SRT files for chapter timestamps.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">💻</div>
+      <h3>Local CPU Processing</h3>
+      <p>Runs faster-whisper int8 on CPU — no GPU required, no cloud API calls, no per-minute fees. Overnight batch mode handles multiple hours of audio unattended.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⚡</div>
+      <h3>ShowNotes Auto-Hand-Off</h3>
+      <p>Outputs drop into <code>data/tr_outputs/</code>. The ShowNotes agent watches that folder and auto-ingests new transcripts — no manual step needed between the two agents.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:60px 24px 0">
+  <p class="section-label">3 Steps</p>
+  <h2 class="section-h2">How it works</h2>
+  <p class="section-sub">No configuration needed. Drop files, run the script, collect outputs.</p>
+</section>
+<div class="steps-grid" style="padding-top:40px">
+  <div class="step">
+    <h3>Drop files</h3>
+    <p>Copy your audio or video files into <code>data/tr_inputs/</code>. Any format ffmpeg supports is fine — it extracts the audio track automatically.</p>
+  </div>
+  <div class="step">
+    <h3>Run the agent</h3>
+    <p>Execute <code>python3 run_transcribe_auto.py</code>. The agent queues every unprocessed file, runs faster-whisper on each, and writes .txt + .srt to <code>data/tr_outputs/</code>.</p>
+  </div>
+  <div class="step">
+    <h3>Use your transcripts</h3>
+    <p>Plain text ready for pasting anywhere. SRT ready for upload to YouTube or your podcast host. Or let ShowNotes auto-ingest for structured show notes in one more command.</p>
+  </div>
+</div>
+
+<!-- ── Pricing ──────────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 20px;text-align:center">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">Pay per episode or subscribe</h2>
+  <p class="section-sub">Send payment via PayPal. Your access key arrives within 2 hours.</p>
+</section>
+<div class="plans">
+  <div class="plan-card">
+    <div class="plan-price">$19</div>
+    <div class="plan-name">Per Episode</div>
+    <div class="plan-desc">One-off transcription. Perfect for infrequent needs or trying the agent before subscribing.</div>
+    <ul class="plan-features">
+      <li>1 audio or video file</li>
+      <li>.txt transcript + .srt captions</li>
+      <li>Any length — no per-minute cap</li>
+      <li>ffmpeg audio extraction included</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Transcribe Episode — $19 →</a>
+  </div>
+  <div class="plan-card featured">
+    <div class="plan-badge">Best Value</div>
+    <div class="plan-price">$79<span>/mo</span></div>
+    <div class="plan-name">Monthly · 10 Hours</div>
+    <div class="plan-desc">For podcasters publishing weekly. Up to 10 hours of audio per month, batch-processed each cycle.</div>
+    <ul class="plan-features">
+      <li>Up to 10 hours/month</li>
+      <li>Unlimited files within the hour cap</li>
+      <li>.txt + .srt for every file</li>
+      <li>ShowNotes auto-hand-off enabled</li>
+      <li>WPM stats in meta if SRT matches</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/79" target="_blank" rel="noopener">Subscribe — $79/mo →</a>
+  </div>
+  <div class="plan-card">
+    <div class="plan-price">$297</div>
+    <div class="plan-name">Bulk Pack</div>
+    <div class="plan-desc">One-time bulk project: full podcast back-catalog, training recordings, or conference archive.</div>
+    <ul class="plan-features">
+      <li>Up to 30 hours of audio</li>
+      <li>No time limit — run at your pace</li>
+      <li>.txt + .srt for every file</li>
+      <li>Priority processing</li>
+      <li>Back-catalog SEO recapture strategy guide</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/297" target="_blank" rel="noopener">Buy Bulk Pack — $297 →</a>
+  </div>
+</div>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:60px 24px 0">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:40px">
+  <div class="faq-item">
+    <div class="faq-q">How accurate is the transcription?</div>
+    <div class="faq-a">faster-whisper's "base" model gets 85–92% word accuracy on clear speech with minimal background noise. For interviews with two people talking cleanly, expect 90%+. Heavy accents or noisy recordings may dip lower — a light proofread pass fixes most errors quickly.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How long does it take to transcribe an hour of audio?</div>
+    <div class="faq-a">On a modern CPU (no GPU), faster-whisper processes roughly 1 hour of audio in 20–35 minutes using the int8 quantized model. Batch runs overnight so you wake up to finished files.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do I need a GPU or cloud account?</div>
+    <div class="faq-a">No. The agent runs on CPU using the int8-quantized model — no GPU, no CUDA, no cloud API. The only dependencies are Python, faster-whisper, and ffmpeg, all installable with pip and apt/brew.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I use the transcripts with the ShowNotes agent?</div>
+    <div class="faq-a">Yes — that's exactly what they're designed for. Transcribe writes to <code>data/tr_outputs/</code> and ShowNotes auto-ingests from that same folder. Run Transcribe first, then run ShowNotes to get a full show-notes package from your episode in two commands.</div>
+  </div>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Podcasting Tools</h4>
+        <a href="transcribe.html">Transcribe ($19/ep)</a>
+        <a href="shownotes.html">ShowNotes ($29/ep)</a>
+        <a href="pricing.html">All Agents &amp; Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

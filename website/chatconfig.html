@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ChatConfig — Build an importable FAQ chatbot for any small business from a JSON manifest. Generates Voiceflow, Botpress, Drift/Intercom, and custom widget bundles. $99 one-time setup.">
+  <meta property="og:title" content="ChatConfig — Deployable FAQ Chatbot in 3 Minutes">
+  <meta property="og:description" content="Drop a FAQ list. Get a 4-file chatbot bundle importable into Voiceflow, Botpress, Drift, Intercom, or any custom widget. $99 one-time, $49/mo maintenance.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/chatconfig.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/chatconfig.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ChatConfig",
+    "applicationCategory": "BusinessApplication",
+    "description": "Builds an importable FAQ chatbot for any small business from a JSON manifest. Generates voiceflow_flow.json, botpress_flow.json, simple_responses.json, and setup_guide.md in one automated run.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/chatconfig.html",
+    "offers": [
+      {"@type":"Offer","name":"One-Time Setup","price":"99","priceCurrency":"USD"},
+      {"@type":"Offer","name":"Monthly Maintenance","price":"49","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Multi-Bot","price":"297","priceCurrency":"USD"}
+    ],
+    "operatingSystem": "Linux, macOS, Windows",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>ChatConfig — Deployable FAQ Chatbot in 3 Minutes | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    /* ── Hero ─────────────────────────────────────────────────────────── */
+    .cc-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .cc-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .cc-hero .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .cc-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .cc-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline-light{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline-light:hover{border-color:#94a3b8;text-decoration:none}
+
+    /* ── Chat Mockup ──────────────────────────────────────────────────── */
+    .chat-mockup-wrap{max-width:480px;margin:44px auto 0}
+    .chat-mockup{background:#1e293b;border:1px solid #334155;border-radius:16px;overflow:hidden}
+    .chat-mockup-header{background:#0f172a;border-bottom:1px solid #334155;padding:14px 18px;display:flex;align-items:center;gap:10px}
+    .chat-avatar{width:32px;height:32px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .chat-mockup-header .chat-name{color:#f1f5f9;font-size:14px;font-weight:700}
+    .chat-mockup-header .chat-status{color:#22c55e;font-size:11px;font-weight:600}
+    .chat-body{padding:18px;display:flex;flex-direction:column;gap:12px}
+    .chat-msg{max-width:78%;font-size:13px;line-height:1.55;padding:10px 14px;border-radius:12px}
+    .chat-msg.bot{background:#273548;color:#e2e8f0;border-bottom-left-radius:4px;align-self:flex-start}
+    .chat-msg.user{background:var(--amber);color:var(--navy);font-weight:600;border-bottom-right-radius:4px;align-self:flex-end}
+    .output-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:20px}
+    .output-badge{background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:11px;font-family:'Courier New',monospace;font-weight:600;padding:5px 12px;border-radius:6px}
+
+    /* ── Platform badges ──────────────────────────────────────────────── */
+    .platforms-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 24px 48px;max-width:700px;margin:0 auto}
+    .platform-tag{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:600;color:var(--navy)}
+
+    /* ── Features ─────────────────────────────────────────────────────── */
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    /* ── How it works ─────────────────────────────────────────────────── */
+    .steps{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .step{text-align:center;padding:28px 20px}
+    .step-num{width:48px;height:48px;border-radius:50%;background:var(--amber);color:var(--navy);font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .step h3{color:var(--navy);font-size:16px;margin-bottom:8px}
+    .step p{color:var(--slate-6);font-size:14px;line-height:1.65}
+    .steps-connector{display:none}
+
+    /* ── Pricing ──────────────────────────────────────────────────────── */
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:860px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+
+    /* ── Shared section helpers ───────────────────────────────────────── */
+    .section-label{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+    .section-h2{text-align:center;font-size:clamp(22px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);max-width:560px;margin:0 auto 40px;font-size:16px}
+
+    /* ── FAQ ──────────────────────────────────────────────────────────── */
+    .faq-wrap{max-width:700px;margin:0 auto;padding:0 24px 60px}
+    .faq-item{border-bottom:1px solid var(--slate-3);padding:20px 0}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{font-weight:700;color:var(--navy);font-size:16px;margin-bottom:8px}
+    .faq-a{color:var(--slate-6);font-size:15px;line-height:1.65}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav style="margin-left:auto">
+      <a href="tools.html" style="color:var(--slate-5);font-size:14px;font-weight:600;text-decoration:none">← Back to Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────── -->
+<section class="cc-hero">
+  <p style="color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">No coding. No chatbot builder. No waiting.</p>
+  <h1>ChatConfig</h1>
+  <p style="color:var(--amber);font-size:20px;font-weight:700;margin-bottom:16px">Drop a FAQ List. Get a Deployable Chatbot in 3 Minutes.</p>
+  <p class="lede">ChatConfig builds a fully importable FAQ chatbot for any small business from a simple JSON manifest — business name, hours, contact info, and your FAQ list. One run generates a 4-file bundle ready to install on Voiceflow, Botpress, Drift, Intercom, or your own custom widget.</p>
+  <div class="cc-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener">Build My Bot — $99 →</a>
+    <a class="btn-outline-light" href="#pricing">See Pricing</a>
+  </div>
+
+  <!-- Chat Mockup -->
+  <div class="chat-mockup-wrap">
+    <div class="chat-mockup">
+      <div class="chat-mockup-header">
+        <div class="chat-avatar">🍞</div>
+        <div>
+          <div class="chat-name">Sunrise Bakery Assistant</div>
+          <div class="chat-status">● Online</div>
+        </div>
+      </div>
+      <div class="chat-body">
+        <div class="chat-msg bot">Hi! I'm the Sunrise Bakery assistant 🍞 How can I help?</div>
+        <div class="chat-msg user">What are your hours?</div>
+        <div class="chat-msg bot">We're open Mon–Sat 7am–6pm and Sun 8am–3pm. Want directions?</div>
+      </div>
+    </div>
+    <div class="output-badges">
+      <span class="output-badge">voiceflow_flow.json</span>
+      <span class="output-badge">botpress_flow.json</span>
+      <span class="output-badge">simple_responses.json</span>
+      <span class="output-badge">setup_guide.md</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Platform Badges ───────────────────────────────────────────────── -->
+<section style="padding:52px 24px 0;text-align:center">
+  <p class="section-label">Works With Your Platform</p>
+  <h2 class="section-h2">Exports for every major chatbot tool</h2>
+  <p class="section-sub">One manifest. Four export formats. Install in minutes on whichever platform your business already uses.</p>
+</section>
+<div class="platforms-row">
+  <span class="platform-tag">Voiceflow</span>
+  <span class="platform-tag">Botpress</span>
+  <span class="platform-tag">Drift</span>
+  <span class="platform-tag">Intercom</span>
+  <span class="platform-tag">Custom Widget</span>
+</div>
+
+<!-- ── Features ─────────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
+  <div style="text-align:center;padding:60px 24px 0">
+    <p class="section-label">Features</p>
+    <h2 class="section-h2">Everything a small-business chatbot needs.</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">📦</div>
+      <h3>4 Platform Exports</h3>
+      <p>Every run outputs <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">voiceflow_flow.json</code>, <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">botpress_flow.json</code>, <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">simple_responses.json</code> for Drift/Intercom/custom widgets, and a full <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">setup_guide.md</code>. Import-ready from the start.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔁</div>
+      <h3>Auto FAQ Expansion</h3>
+      <p>Each FAQ you provide automatically becomes multiple trigger phrases. "What are your hours?" also catches "When do you open?", "Are you open Sunday?", and a dozen variants — so the bot actually handles real customer questions.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🕐</div>
+      <h3>Hours &amp; Contact Intents</h3>
+      <p>Greetings, hours inquiries, phone/email/address requests, and escalation-to-human flows are auto-generated from your business manifest. No extra config needed — fill in the manifest once and they work out of the box.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📋</div>
+      <h3>3-Minute Install Guide</h3>
+      <p>The bundled <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">setup_guide.md</code> walks through install steps per platform with screenshots and copy-paste steps. No developer required — if you can follow a recipe, you can install this bot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ──────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 20px;text-align:center">
+  <p class="section-label">How It Works</p>
+  <h2 class="section-h2">Three steps from FAQ list to live bot</h2>
+  <p class="section-sub">No chatbot builder logins. No drag-and-drop flow editors. Just a JSON file and a script run.</p>
+</section>
+<div class="steps">
+  <div class="step">
+    <div class="step-num">1</div>
+    <h3>Drop Your FAQ Manifest</h3>
+    <p>Create a <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">data/cc_inputs/{slug}.json</code> with your business name, hours, contact info, and an array of FAQ objects — each with a question and answer.</p>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <h3>Agent Generates 4-File Bundle</h3>
+    <p>ChatConfig auto-expands trigger phrases, generates greeting and hours intents, and outputs all four files to <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">data/cc_outputs/{slug}/</code> in one run.</p>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <h3>Install on Your Platform in 3 Minutes</h3>
+    <p>Open <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">setup_guide.md</code> and follow the steps for your platform. Import the flow file, add your widget snippet, and your chatbot is live.</p>
+  </div>
+</div>
+
+<!-- ── Pricing ──────────────────────────────────────────────────────── -->
+<section id="pricing" style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:60px 24px 20px;text-align:center">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">Pay once. Or stay covered every month.</h2>
+  <p class="section-sub">Send payment via PayPal. Your 4-file bundle arrives within 2 hours.</p>
+</section>
+<div class="plans" style="padding-top:20px;background:#f8fafc;border-bottom:1px solid #e2e8f0">
+  <div class="plan-card">
+    <div class="plan-price">$99</div>
+    <div class="plan-name">One-Time Setup</div>
+    <div class="plan-desc">Everything you need to get a chatbot live on day one. Perfect for businesses that rarely change their FAQ list.</div>
+    <ul class="plan-features">
+      <li>1 chatbot build</li>
+      <li>4-file export bundle</li>
+      <li>Up to 20 FAQs</li>
+      <li>Auto-expanded trigger phrases</li>
+      <li>Hours, contact &amp; greeting intents</li>
+      <li>Step-by-step setup guide</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener">Build My Bot — $99 →</a>
+  </div>
+  <div class="plan-card featured">
+    <div class="plan-badge">Most Popular</div>
+    <div class="plan-price">$49<span>/mo</span></div>
+    <div class="plan-name">Monthly Maintenance</div>
+    <div class="plan-desc">For businesses that update their FAQ, hours, or promotions regularly. Your bot stays accurate without any manual re-work.</div>
+    <ul class="plan-features">
+      <li>1 chatbot, refreshed monthly</li>
+      <li>Monthly FAQ updates</li>
+      <li>New trigger phrase expansion</li>
+      <li>Hours &amp; contact intent refresh</li>
+      <li>Monthly performance summary report</li>
+      <li>Priority turnaround (same day)</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">Subscribe — $49/mo →</a>
+  </div>
+  <div class="plan-card">
+    <div class="plan-price">$297</div>
+    <div class="plan-name">Multi-Bot</div>
+    <div class="plan-desc">For agencies, franchises, or businesses with multiple locations or brands that each need their own trained chatbot.</div>
+    <ul class="plan-features">
+      <li>3 chatbot builds</li>
+      <li>All 4 platform exports per bot</li>
+      <li>Custom branding &amp; greeting per bot</li>
+      <li>Up to 30 FAQs per bot</li>
+      <li>Dedicated 30-minute setup call</li>
+      <li>Priority support</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/297" target="_blank" rel="noopener">Get Multi-Bot — $297 →</a>
+  </div>
+</div>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 0;text-align:center">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:40px">
+  <div class="faq-item">
+    <div class="faq-q">Do I need a Voiceflow or Botpress account?</div>
+    <div class="faq-a">Only if you want to use those platforms — and they both have free tiers that are more than enough for a small-business FAQ bot. The <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">simple_responses.json</code> export works with Drift, Intercom, or any custom widget without any third-party account at all.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How many FAQs can I include?</div>
+    <div class="faq-a">The One-Time Setup supports up to 20 FAQ pairs. The Multi-Bot plan supports up to 30 per bot. Each FAQ is auto-expanded into multiple trigger phrases, so 20 FAQs typically covers 100+ real-world question variations your customers might type.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can the bot handle questions outside the FAQ list?</div>
+    <div class="faq-a">The bot is trained only on what you provide — it does not hallucinate answers. For questions it does not recognize, it falls back to a configurable escalation response (e.g. "Let me connect you with a team member") using the <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">escalation</code> field in your manifest.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How do I update the FAQ later?</div>
+    <div class="faq-a">Edit your manifest JSON, drop it back into <code style="background:#f1f5f9;padding:2px 5px;border-radius:3px">data/cc_inputs/</code>, and run the agent again. The full 4-file bundle is regenerated in seconds. Monthly Maintenance subscribers send their updated manifest and we handle the re-run and re-import for them.</div>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="tools.html">All Tools</a>
+        <a href="speedaudit.html">SpeedAudit</a>
+        <a href="salespage_doctor.html">SalesPage Doctor</a>
+        <a href="mao-calculator.html">MAO Calculator</a>
+        <a href="dropship_scout_trends.html">DropshipScout</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

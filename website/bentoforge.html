@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BentoForge — beautiful link-in-bio landing page built from a JSON manifest. 6 themes, custom handle and avatar. $19 one-time.">
+  <meta property="og:title" content="BentoForge — Link-in-Bio Page Generator">
+  <meta property="og:description" content="Turn a JSON manifest into a deployable HTML link-in-bio page. 6 themes, avatar, handle, link list. $19 one-time, no recurring fees.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/bentoforge.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/bentoforge.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BentoForge",
+    "applicationCategory": "WebApplication",
+    "description": "Generates a deployable HTML link-in-bio page from a JSON manifest. 6 themes, custom handle, avatar, and link list.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/bentoforge.html",
+    "offers": [
+      {"@type":"Offer","name":"One-Time","price":"19","priceCurrency":"USD"},
+      {"@type":"Offer","name":"3 Pages","price":"49","priceCurrency":"USD"},
+      {"@type":"Offer","name":"Unlimited","price":"99","priceCurrency":"USD"}
+    ],
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>BentoForge — Link-in-Bio Page Generator | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .hero-dark{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .hero-dark h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .hero-dark .lede{color:#94a3b8;font-size:18px;max-width:580px;margin:0 auto 36px}
+    .hero-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .hero-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline-light{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline-light:hover{border-color:#94a3b8;text-decoration:none}
+    /* Bento page mockup */
+    .bento-mockup{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:28px;max-width:320px;margin:40px auto 0;text-align:center}
+    .bento-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--amber),#ef4444);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px}
+    .bento-name{color:#fff;font-weight:900;font-size:18px;margin-bottom:2px}
+    .bento-handle{color:#64748b;font-size:13px;margin-bottom:16px}
+    .bento-bio{color:#94a3b8;font-size:13px;line-height:1.5;margin-bottom:20px}
+    .bento-link{display:block;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px 16px;color:#e2e8f0;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:10px;text-align:left}
+    .bento-link:hover{border-color:var(--amber);text-decoration:none}
+    .bento-link-icon{margin-right:10px}
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));max-width:860px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+    .themes-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:0 24px 48px;max-width:700px;margin:0 auto}
+    .theme-tag{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600}
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:760px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .section-label{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+    .section-h2{text-align:center;font-size:clamp(22px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);max-width:560px;margin:0 auto 40px;font-size:16px}
+    .faq-wrap{max-width:700px;margin:0 auto;padding:0 24px 60px}
+    .faq-item{border-bottom:1px solid var(--slate-3);padding:20px 0}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{font-weight:700;color:var(--navy);font-size:16px;margin-bottom:8px}
+    .faq-a{color:var(--slate-6);font-size:15px;line-height:1.65}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+  </div>
+</header>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────── -->
+<section class="hero-dark">
+  <p style="color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">No Linktree subscription. No monthly fee.</p>
+  <h1>Your link-in-bio page. <span style="color:var(--amber)">Yours forever.</span></h1>
+  <p class="lede">BentoForge generates a single deployable HTML file from a JSON manifest — your handle, avatar emoji, bio, and link list. Host it anywhere for free. 6 themes. No recurring subscription.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Build My Page — $19 →</a>
+    <a class="btn-outline-light" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">3 Pages — $49</a>
+    <a class="btn-outline-light" href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener">Unlimited — $99</a>
+  </div>
+
+  <!-- Mockup -->
+  <div class="bento-mockup">
+    <div class="bento-avatar">🏆</div>
+    <div class="bento-name">Wholesale Omniverse</div>
+    <div class="bento-handle">@wholesaleomniverse</div>
+    <div class="bento-bio">Autonomous revenue agents for real estate, content, and e-commerce.</div>
+    <a class="bento-link" href="#">🏠 <span class="bento-link-icon"></span>Deal Analyzer — $197/mo</a>
+    <a class="bento-link" href="#">📊 <span class="bento-link-icon"></span>Pricing — All 35+ Agents</a>
+    <a class="bento-link" href="#">✍️ <span class="bento-link-icon"></span>SEOWriter — $39/article</a>
+    <a class="bento-link" href="#">💰 <span class="bento-link-icon"></span>Pay via PayPal →</a>
+  </div>
+</section>
+
+<!-- ── Themes ─────────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 20px;text-align:center">
+  <p class="section-label">6 Themes</p>
+  <h2 class="section-h2">Pick your aesthetic</h2>
+  <p class="section-sub">Set <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">"theme": "dark"</code> in your manifest — or swap it any time and regenerate instantly.</p>
+</section>
+<div class="themes-row">
+  <span class="theme-tag" style="background:#0f172a;color:#f59e0b">Dark</span>
+  <span class="theme-tag" style="background:#fff;color:#0f172a;border:1px solid #e2e8f0">Light</span>
+  <span class="theme-tag" style="background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff">Gradient</span>
+  <span class="theme-tag" style="background:#f1f5f9;color:#0f172a;border:1px solid #e2e8f0">Minimal</span>
+  <span class="theme-tag" style="background:#064e3b;color:#d1fae5">Forest</span>
+  <span class="theme-tag" style="background:#1e1b4b;color:#c7d2fe">Midnight</span>
+</div>
+
+<!-- ── Features ─────────────────────────────────────────────────────── -->
+<div class="features-grid">
+  <div class="feat">
+    <div class="feat-icon">📄</div>
+    <h3>Single HTML Output</h3>
+    <p>One self-contained HTML file with inline CSS. Upload to GitHub Pages, Netlify, Cloudflare Pages, or any static host for free. No database, no server, no Linktree cut.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🔗</div>
+    <h3>Unlimited Links</h3>
+    <p>Add as many links as you want in the manifest — products, social profiles, courses, newsletter signup, PayPal, anything with a URL. Each renders as a styled CTA row.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🎨</div>
+    <h3>6 Built-In Themes</h3>
+    <p>Dark, Light, Gradient, Minimal, Forest, Midnight. Change the theme key and regenerate — the same manifest, a different look.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">⚡</div>
+    <h3>Instant Regeneration</h3>
+    <p>Update a link, change your bio, add a new product — re-run the agent and get a fresh HTML file in seconds. No CMS to log into.</p>
+  </div>
+</div>
+
+<!-- ── Pricing ──────────────────────────────────────────────────────── -->
+<section style="padding:20px 24px 20px;text-align:center">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">Pay once. Host forever.</h2>
+  <p class="section-sub">No monthly subscription. Pay via PayPal, receive your HTML file within 2 hours.</p>
+</section>
+<div class="plans">
+  <div class="plan-card">
+    <div class="plan-price">$19</div>
+    <div class="plan-name">Single Page</div>
+    <div class="plan-desc">One link-in-bio page for one brand or creator handle.</div>
+    <ul class="plan-features">
+      <li>1 deployable HTML file</li>
+      <li>All 6 themes available</li>
+      <li>Unlimited links in manifest</li>
+      <li>Avatar, handle, bio, CTA footer</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Build My Page — $19 →</a>
+  </div>
+  <div class="plan-card featured">
+    <div class="plan-badge">Team Pack</div>
+    <div class="plan-price">$49</div>
+    <div class="plan-name">3 Pages</div>
+    <div class="plan-desc">3 separate handles or brands — clients, team members, or multiple projects.</div>
+    <ul class="plan-features">
+      <li>3 separate HTML pages</li>
+      <li>Different themes per page</li>
+      <li>All features included</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener">Buy 3-Pack — $49 →</a>
+  </div>
+  <div class="plan-card">
+    <div class="plan-price">$99</div>
+    <div class="plan-name">Unlimited</div>
+    <div class="plan-desc">Agencies building link pages for multiple clients. No per-page fee.</div>
+    <ul class="plan-features">
+      <li>Unlimited pages</li>
+      <li>All themes + custom accent color</li>
+      <li>Batch generate from folder of manifests</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/99" target="_blank" rel="noopener">Unlimited Pack — $99 →</a>
+  </div>
+</div>
+
+<!-- ── FAQ ────────────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:60px 24px 0">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:40px">
+  <div class="faq-item">
+    <div class="faq-q">Where do I host the HTML file?</div>
+    <div class="faq-a">Anywhere that serves static HTML — GitHub Pages, Netlify, Cloudflare Pages, and Vercel all have free tiers that deploy in under a minute. Point your Instagram bio link to that URL and you're live.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I update the page later?</div>
+    <div class="faq-a">Yes. Edit your manifest JSON and re-run the agent to get a new HTML file. Re-deploy it to your host (usually a git push or drag-and-drop). The URL stays the same.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Does it track clicks?</div>
+    <div class="faq-a">The default output has no tracking — clean HTML, no scripts. Add a <code>"analytics_id"</code> key to the manifest to inject a Google Analytics or Plausible snippet into the output automatically.</div>
+  </div>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Quick Wins</h4>
+        <a href="bentoforge.html" style="color:var(--amber);font-weight:700">BentoForge ($19)</a>
+        <a href="deckforge.html">DeckForge ($49/deck)</a>
+        <a href="careerforge.html">CareerForge ($29)</a>
+        <a href="pricing.html">All Agents &amp; Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

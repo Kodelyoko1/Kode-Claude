@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Terms of Use for Star Academy's Pinterest storefront integration and digital tools.">
+  <title>Terms of Use — Star Academy</title>
+  <link rel="icon" type="image/png" href="../assets/logo.png">
+  <style>
+  :root {
+    --bg: #faf7f1;
+    --surface: #ffffff;
+    --surface-raised: #fffdf9;
+    --ink: #1e2430;
+    --ink-muted: #5b6472;
+    --ink-faint: #8b93a1;
+    --accent: #93701a;
+    --accent-soft: #f2e6c8;
+    --border: #e4dfd3;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161c; --surface: #1b1e27; --surface-raised: #20242f;
+      --ink: #ede9de; --ink-muted: #9ca3b0; --ink-faint: #6e7684;
+      --accent: #d9ae55; --accent-soft: #382d18; --border: #2a2e3a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161c; --surface: #1b1e27; --surface-raised: #20242f;
+    --ink: #ede9de; --ink-muted: #9ca3b0; --ink-faint: #6e7684;
+    --accent: #d9ae55; --accent-soft: #382d18; --border: #2a2e3a;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65; margin: 0; padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .page { max-width: 700px; margin: 0 auto; }
+
+  header { padding: 72px 0 40px; border-bottom: 1px solid var(--border); }
+
+  .eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    font-family: Georgia, "Iowan Old Style", serif; font-style: italic;
+    font-size: 15px; color: var(--accent); margin: 0 0 18px;
+  }
+  .eyebrow .mark { width: 22px; height: 22px; flex: none; }
+
+  h1 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", serif;
+    font-weight: 600; font-size: clamp(30px, 4.2vw, 40px);
+    line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .subtitle { color: var(--ink-muted); font-size: 16px; max-width: 46ch; margin: 0 0 22px; }
+
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 10px 24px;
+    font-size: 13px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  }
+  .meta-row dt { display: inline; font-weight: 600; color: var(--ink-muted); }
+  .meta-row dt::after { content: " "; }
+  .meta-row dd { display: inline; margin: 0; }
+
+  .scope-note {
+    margin: 32px 0 0; padding: 18px 20px; background: var(--surface-raised);
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 6px; font-size: 14.5px; color: var(--ink-muted);
+  }
+  .scope-note strong { color: var(--ink); }
+
+  nav.toc { margin: 40px 0 0; }
+  nav.toc .toc-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 12px;
+  }
+  nav.toc ol {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px; counter-reset: toc;
+  }
+  nav.toc li { counter-increment: toc; font-size: 14.5px; }
+  nav.toc a { color: var(--ink-muted); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  nav.toc li::before {
+    content: counter(toc) "."; font-variant-numeric: tabular-nums;
+    color: var(--ink-faint); margin-right: 8px;
+  }
+  @media (max-width: 560px) { nav.toc ol { grid-template-columns: 1fr; } }
+
+  main { margin-top: 48px; }
+  section { padding: 36px 0; border-bottom: 1px solid var(--border); scroll-margin-top: 24px; }
+  section:last-of-type { border-bottom: none; }
+
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 16px; }
+  .section-num {
+    font-family: ui-serif, Georgia, serif; font-size: 15px;
+    color: var(--accent); font-variant-numeric: tabular-nums; flex: none;
+  }
+  h2 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", serif;
+    font-weight: 600; font-size: 22px; margin: 0; text-wrap: balance;
+  }
+
+  section p { margin: 0 0 14px; max-width: 62ch; }
+  section p:last-child { margin-bottom: 0; }
+  section ul { margin: 0 0 14px; padding-left: 22px; max-width: 60ch; }
+  section ul:last-child { margin-bottom: 0; }
+  section li { margin-bottom: 8px; }
+  section li:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.9em;
+    background: var(--surface-raised); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 4px;
+  }
+
+  .fill-in {
+    background: var(--accent-soft); color: var(--accent);
+    padding: 1px 7px; border-radius: 4px; font-size: 0.92em; font-weight: 600;
+  }
+
+  footer {
+    margin-top: 56px; padding-top: 28px; border-top: 1px solid var(--border);
+    font-size: 13.5px; color: var(--ink-faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px;
+  }
+  footer a { color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="eyebrow">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2.5l2.47 6.62 7.03.53-5.4 4.53 1.72 6.82L12 17.3l-5.82 3.7 1.72-6.82-5.4-4.53 7.03-.53z"
+              stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      Star Academy
+    </p>
+    <h1>Terms of Use</h1>
+    <p class="subtitle">
+      Terms governing use of Star Academy&rsquo;s digital tools and
+      properties &mdash; including the Pinterest storefront integration
+      &mdash; maintained under Wholesale Omniverse LLC.
+    </p>
+    <dl class="meta-row">
+      <div><dt>Effective</dt><dd>August 11, 2026</dd></div>
+      <div><dt>Applies to</dt><dd>Star Academy digital tools &amp; Pinterest API app</dd></div>
+      <div><dt>Contact</dt><dd><a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a></dd></div>
+    </dl>
+
+    <div class="scope-note">
+      <strong>Scope of these terms:</strong> this document covers use of
+      Star Academy&rsquo;s digital tools &mdash; the Pinterest/Amazon
+      storefront integration and any Star Academy website or app that
+      references it. It does not cover class enrollment, program fees,
+      liability waivers for in-person activities, or other physical-program
+      agreements &mdash; those belong in a separate enrollment agreement,
+      which this document does not attempt to provide.
+    </div>
+
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-label">On this page</p>
+      <ol>
+        <li><a href="#acceptance">Acceptance of terms</a></li>
+        <li><a href="#the-service">What the service does</a></li>
+        <li><a href="#acceptable-use">Acceptable use</a></li>
+        <li><a href="#amazon">Amazon Associates compliance</a></li>
+        <li><a href="#pinterest">Pinterest API compliance</a></li>
+        <li><a href="#ip">Intellectual property</a></li>
+        <li><a href="#disclaimer">No warranty</a></li>
+        <li><a href="#liability">Limitation of liability</a></li>
+        <li><a href="#termination">Termination</a></li>
+        <li><a href="#law">Governing law</a></li>
+        <li><a href="#changes">Changes to these terms</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main>
+
+    <section id="acceptance">
+      <div class="section-head"><span class="section-num">01</span><h2>Acceptance of terms</h2></div>
+      <p>
+        By accessing or using Star Academy&rsquo;s Pinterest storefront
+        integration, or any Star Academy digital property that links here,
+        you agree to these Terms of Use. If you&rsquo;re reviewing this as
+        part of a Pinterest or Amazon developer application, this document
+        describes the tool being registered.
+      </p>
+    </section>
+
+    <section id="the-service">
+      <div class="section-head"><span class="section-num">02</span><h2>What the service does</h2></div>
+      <p>
+        The integration curates products from Star Academy&rsquo;s Amazon
+        storefront, generates Pinterest pin copy for them, checks each pin
+        against Amazon and Pinterest compliance rules, and publishes
+        approved pins to Star Academy&rsquo;s own Pinterest boards. It is
+        operated internally by Wholesale Omniverse LLC on behalf of a single
+        account &mdash; it is not offered as a service to other businesses
+        or the public.
+      </p>
+    </section>
+
+    <section id="acceptable-use">
+      <div class="section-head"><span class="section-num">03</span><h2>Acceptable use</h2></div>
+      <p>The integration may only be used to:</p>
+      <ul>
+        <li>Post pins that link directly to genuine Amazon product listings using a properly tagged affiliate link.</li>
+        <li>Post content that carries the required Amazon Associates disclosure.</li>
+        <li>Operate within Pinterest&rsquo;s posting-cadence and content guidelines.</li>
+      </ul>
+      <p>
+        It may not be used to cloak or mask affiliate links, misrepresent
+        product claims, spam boards, or otherwise violate Amazon&rsquo;s or
+        Pinterest&rsquo;s own terms of service &mdash; both of which take
+        precedence over this document where they impose stricter rules.
+      </p>
+    </section>
+
+    <section id="amazon">
+      <div class="section-head"><span class="section-num">04</span><h2>Amazon Associates compliance</h2></div>
+      <p>
+        Star Academy participates in the Amazon Associates Program and earns
+        a commission on qualifying purchases made through links posted by
+        this integration, at no additional cost to the buyer. Use of Amazon
+        product content and links is subject to the
+        <a href="https://affiliate-program.amazon.com/help/operating/agreement" target="_blank" rel="noopener">Amazon Associates Operating Agreement</a>,
+        which governs in the event of any conflict with this document.
+      </p>
+    </section>
+
+    <section id="pinterest">
+      <div class="section-head"><span class="section-num">05</span><h2>Pinterest API compliance</h2></div>
+      <p>
+        Use of the Pinterest API through this integration is subject to
+        Pinterest&rsquo;s
+        <a href="https://developers.pinterest.com/terms/" target="_blank" rel="noopener">Developer Terms of Service</a>
+        and <a href="https://policy.pinterest.com/en/developer-guidelines" target="_blank" rel="noopener">Developer Guidelines</a>,
+        which govern in the event of any conflict with this document.
+      </p>
+    </section>
+
+    <section id="ip">
+      <div class="section-head"><span class="section-num">06</span><h2>Intellectual property</h2></div>
+      <p>
+        Product names, images, and descriptions pulled from Amazon listings
+        remain the property of their respective owners (Amazon and/or the
+        product manufacturer). Pin titles and descriptions generated for
+        Star Academy&rsquo;s own boards are Star Academy&rsquo;s content.
+        The Star Academy name and mark belong to Wholesale Omniverse LLC.
+      </p>
+    </section>
+
+    <section id="disclaimer">
+      <div class="section-head"><span class="section-num">07</span><h2>No warranty</h2></div>
+      <p>
+        This integration is provided on an &ldquo;as is&rdquo; basis.
+        Star Academy makes no guarantee about pin performance, click-through
+        rates, sales, or Pinterest account standing resulting from its use.
+        Pinterest and Amazon may change their APIs, policies, or algorithms
+        at any time in ways that affect how this integration performs.
+      </p>
+    </section>
+
+    <section id="liability">
+      <div class="section-head"><span class="section-num">08</span><h2>Limitation of liability</h2></div>
+      <p>
+        To the fullest extent permitted by law, Wholesale Omniverse LLC is
+        not liable for any indirect, incidental, or consequential damages
+        arising from use of this integration, including lost revenue,
+        lost data, or Pinterest/Amazon account action taken against the
+        connected accounts.
+      </p>
+    </section>
+
+    <section id="termination">
+      <div class="section-head"><span class="section-num">09</span><h2>Termination</h2></div>
+      <p>
+        Access can be revoked at any time by removing the app&rsquo;s
+        authorization from Pinterest&rsquo;s
+        <a href="https://www.pinterest.com/settings/apps" target="_blank" rel="noopener">Apps settings</a>,
+        which immediately stops all API access.
+      </p>
+    </section>
+
+    <section id="law">
+      <div class="section-head"><span class="section-num">10</span><h2>Governing law</h2></div>
+      <p>
+        These terms are governed by the laws of
+        <span class="fill-in">[state/jurisdiction &mdash; fill in]</span>,
+        without regard to conflict-of-law principles.
+      </p>
+    </section>
+
+    <section id="changes">
+      <div class="section-head"><span class="section-num">11</span><h2>Changes to these terms</h2></div>
+      <p>
+        These terms may be updated as the integration changes. Material
+        changes will be reflected here with an updated effective date.
+      </p>
+    </section>
+
+    <section id="contact">
+      <div class="section-head"><span class="section-num">12</span><h2>Contact</h2></div>
+      <p>
+        Questions about these terms can be sent to
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Wholesale Omniverse LLC &mdash; Star Academy storefront integration</span>
+    <span>Last updated August 11, 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Privacy Policy for Star Academy's Pinterest API integration and Amazon Associates storefront links.">
+  <title>Privacy Policy — Star Academy Pinterest &amp; Amazon Integration</title>
+  <link rel="icon" type="image/png" href="../assets/logo.png">
+  <style>
+  :root {
+    --bg: #faf7f1;
+    --surface: #ffffff;
+    --surface-raised: #fffdf9;
+    --ink: #1e2430;
+    --ink-muted: #5b6472;
+    --ink-faint: #8b93a1;
+    --accent: #93701a;
+    --accent-soft: #f2e6c8;
+    --border: #e4dfd3;
+    --border-strong: #d3ccbb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161c;
+      --surface: #1b1e27;
+      --surface-raised: #20242f;
+      --ink: #ede9de;
+      --ink-muted: #9ca3b0;
+      --ink-faint: #6e7684;
+      --accent: #d9ae55;
+      --accent-soft: #382d18;
+      --border: #2a2e3a;
+      --border-strong: #383e4d;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14161c;
+    --surface: #1b1e27;
+    --surface-raised: #20242f;
+    --ink: #ede9de;
+    --ink-muted: #9ca3b0;
+    --ink-faint: #6e7684;
+    --accent: #d9ae55;
+    --accent-soft: #382d18;
+    --border: #2a2e3a;
+    --border-strong: #383e4d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0 24px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  .page {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+
+  header {
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    margin: 0 0 18px;
+  }
+
+  .eyebrow .mark {
+    width: 22px;
+    height: 22px;
+    flex: none;
+  }
+
+  h1 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: clamp(30px, 4.2vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    color: var(--ink-muted);
+    font-size: 16px;
+    max-width: 46ch;
+    margin: 0 0 22px;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    font-size: 13px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meta-row dt {
+    display: inline;
+    font-weight: 600;
+    color: var(--ink-muted);
+  }
+  .meta-row dt::after { content: " "; }
+  .meta-row dd { display: inline; margin: 0; }
+
+  /* ---------- Scope note ---------- */
+
+  .scope-note {
+    margin: 32px 0 0;
+    padding: 18px 20px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    font-size: 14.5px;
+    color: var(--ink-muted);
+  }
+  .scope-note strong { color: var(--ink); }
+
+  /* ---------- Table of contents ---------- */
+
+  nav.toc {
+    margin: 40px 0 0;
+  }
+
+  nav.toc .toc-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 12px;
+  }
+
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px;
+    counter-reset: toc;
+  }
+
+  nav.toc li {
+    counter-increment: toc;
+    font-size: 14.5px;
+  }
+
+  nav.toc a {
+    color: var(--ink-muted);
+    text-decoration: none;
+  }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+  nav.toc li::before {
+    content: counter(toc) ".";
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-faint);
+    margin-right: 8px;
+  }
+
+  @media (max-width: 560px) {
+    nav.toc ol { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Body sections ---------- */
+
+  main { margin-top: 48px; }
+
+  section {
+    padding: 36px 0;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 24px;
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 0 16px;
+  }
+
+  .section-num {
+    font-family: ui-serif, Georgia, serif;
+    font-size: 15px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  h2 {
+    font-family: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  section p { margin: 0 0 14px; max-width: 62ch; }
+  section p:last-child { margin-bottom: 0; }
+
+  section ul {
+    margin: 0 0 14px;
+    padding-left: 22px;
+    max-width: 60ch;
+  }
+  section ul:last-child { margin-bottom: 0; }
+  section li { margin-bottom: 8px; }
+  section li:last-child { margin-bottom: 0; }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 4px;
+    font-size: 14.5px;
+  }
+  .data-table-wrap { overflow-x: auto; }
+
+  .data-table th, .data-table td {
+    text-align: left;
+    padding: 10px 14px 10px 0;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .data-table th {
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    margin-top: 56px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+  }
+
+  footer a { color: var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="eyebrow">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2.5l2.47 6.62 7.03.53-5.4 4.53 1.72 6.82L12 17.3l-5.82 3.7 1.72-6.82-5.4-4.53 7.03-.53z"
+              stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+      </svg>
+      Star Academy
+    </p>
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">
+      Covering the Star Academy Pinterest integration and Amazon Associates
+      storefront links maintained under Wholesale Omniverse LLC.
+    </p>
+    <dl class="meta-row">
+      <div><dt>Effective</dt><dd>August 11, 2026</dd></div>
+      <div><dt>Applies to</dt><dd>Pinterest API app &amp; amazon.com/dp affiliate links</dd></div>
+      <div><dt>Storefront</dt><dd><a href="https://www.amazon.com/shop/star-academy06" target="_blank" rel="noopener">amazon.com/shop/star-academy06</a></dd></div>
+      <div><dt>Alt. link</dt><dd><a href="https://www.amazon.com/shop/influencer-62d56ca7?ccs_id=a4924ec9-dabd-45a4-a385-ba0f05e6328f" target="_blank" rel="noopener">amazon.com/shop/influencer-62d56ca7</a></dd></div>
+      <div><dt>Contact</dt><dd><a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a></dd></div>
+    </dl>
+
+    <div class="scope-note">
+      <strong>Scope of this policy:</strong> Star Academy does not run a public
+      website, app, or account-creation flow of its own. This policy exists to
+      describe how the Pinterest API is used by a single, internally operated
+      tool that posts to Star Academy&rsquo;s own Pinterest boards — the
+      access Pinterest requires disclosed before granting an API app approval.
+      It does not collect data from Pinterest users, site visitors, or the
+      public.
+    </div>
+
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-label">On this page</p>
+      <ol>
+        <li><a href="#who-we-are">Who this covers</a></li>
+        <li><a href="#pinterest-data">Pinterest data we access</a></li>
+        <li><a href="#how-used">How that data is used</a></li>
+        <li><a href="#amazon-links">Amazon affiliate links</a></li>
+        <li><a href="#storage">Storage &amp; retention</a></li>
+        <li><a href="#sharing">Sharing with third parties</a></li>
+        <li><a href="#your-controls">Your controls</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#changes">Changes to this policy</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <main>
+
+    <section id="who-we-are">
+      <div class="section-head">
+        <span class="section-num">01</span>
+        <h2>Who this covers</h2>
+      </div>
+      <p>
+        This policy is published by Wholesale Omniverse LLC for the Pinterest
+        account and Amazon Influencer storefront operated under the name
+        <strong>Star Academy</strong> — live at
+        <a href="https://www.amazon.com/shop/star-academy06" target="_blank" rel="noopener">amazon.com/shop/star-academy06</a>
+        (also reachable at Amazon&rsquo;s raw storefront link,
+        <a href="https://www.amazon.com/shop/influencer-62d56ca7?ccs_id=a4924ec9-dabd-45a4-a385-ba0f05e6328f" target="_blank" rel="noopener">amazon.com/shop/influencer-62d56ca7</a>
+        — both point to the same storefront). It governs one system: an
+        automation tool that curates products for that storefront, drafts
+        Pinterest pin copy, and posts to Star Academy&rsquo;s own Pinterest
+        boards on the account holder&rsquo;s behalf.
+      </p>
+      <p>
+        There is no separate Star Academy website, login system, or
+        user-facing app that this policy needs to cover — if that changes,
+        this policy will be expanded and re-dated accordingly.
+      </p>
+    </section>
+
+    <section id="pinterest-data">
+      <div class="section-head">
+        <span class="section-num">02</span>
+        <h2>Pinterest data we access</h2>
+      </div>
+      <p>
+        The integration authenticates once via Pinterest&rsquo;s OAuth flow
+        and is granted the following scopes, used only against the Star
+        Academy account that authorized them:
+      </p>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr><th>Scope</th><th>What it&rsquo;s used for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="pill">boards:read</span></td><td>Listing existing boards to route new pins by product category.</td></tr>
+            <tr><td><span class="pill">boards:write</span></td><td>Creating a new board when a product category has none yet.</td></tr>
+            <tr><td><span class="pill">pins:read</span></td><td>Checking recent pin history to avoid re-posting the same product too soon.</td></tr>
+            <tr><td><span class="pill">pins:write</span></td><td>Publishing new pins to Star Academy&rsquo;s boards.</td></tr>
+            <tr><td><span class="pill">user_accounts:read</span></td><td>Confirming the token belongs to the correct Star Academy account.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="how-used">
+      <div class="section-head">
+        <span class="section-num">03</span>
+        <h2>How that data is used</h2>
+      </div>
+      <p>Board and pin data retrieved through the API is used only to:</p>
+      <ul>
+        <li>Decide which board a new pin should post to, based on product category.</li>
+        <li>Avoid duplicate or overly frequent posting to the same board or image.</li>
+        <li>Generate a weekly performance summary (impressions, saves, outbound clicks) so the storefront curation can prioritize what&rsquo;s working.</li>
+      </ul>
+      <p>
+        None of this data is used to build advertising profiles, is sold, or
+        is used for any purpose beyond operating Star Academy&rsquo;s own
+        storefront presence on Pinterest.
+      </p>
+    </section>
+
+    <section id="amazon-links">
+      <div class="section-head">
+        <span class="section-num">04</span>
+        <h2>Amazon affiliate links</h2>
+      </div>
+      <p>
+        Products featured in pins are drawn from the Star Academy Amazon
+        Influencer storefront at
+        <a href="https://www.amazon.com/shop/star-academy06" target="_blank" rel="noopener">amazon.com/shop/star-academy06</a>.
+        Pins link to those product listings on amazon.com using standard
+        Amazon Associates tracking links (a <code>tag=</code> parameter
+        appended to a direct, unmodified Amazon URL). Clicking a pin sends
+        you to Amazon directly — the link is never cloaked, shortened
+        through a third party, or routed anywhere other than
+        Amazon&rsquo;s own domain. Amazon&rsquo;s handling of any data
+        collected once you land on amazon.com is governed by
+        <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=468496" target="_blank" rel="noopener">Amazon&rsquo;s own Privacy Notice</a>,
+        not this one.
+      </p>
+      <p>
+        As required by the Amazon Associates Program, every pin using an
+        affiliate link is disclosed as such (&ldquo;As an Amazon Associate I
+        earn from qualifying purchases&rdquo; or the short-form
+        <code>#CommissionsEarned</code>).
+      </p>
+    </section>
+
+    <section id="storage">
+      <div class="section-head">
+        <span class="section-num">05</span>
+        <h2>Storage &amp; retention</h2>
+      </div>
+      <p>
+        The Pinterest access token and a log of posted pins (title,
+        description, destination link, and post time) are stored in a
+        private data store operated by Wholesale Omniverse LLC — not in any
+        public-facing database, and not accessible to anyone outside the
+        account operator. Pin logs are retained to support the duplicate and
+        cadence checks described in Section 3 and are periodically pruned.
+      </p>
+    </section>
+
+    <section id="sharing">
+      <div class="section-head">
+        <span class="section-num">06</span>
+        <h2>Sharing with third parties</h2>
+      </div>
+      <p>
+        Pinterest data accessed through this integration is not sold, rented,
+        or shared with any third party. The only outbound calls this system
+        makes are to Pinterest&rsquo;s own API (to post pins and read
+        analytics) and, optionally, to Anthropic&rsquo;s Claude API to draft
+        pin copy — no Pinterest account data is included in that copy-drafting
+        call beyond the product details Star Academy itself curated.
+      </p>
+    </section>
+
+    <section id="your-controls">
+      <div class="section-head">
+        <span class="section-num">07</span>
+        <h2>Your controls</h2>
+      </div>
+      <p>
+        Because this integration operates a single business account rather
+        than end users, controls sit with the Star Academy account holder:
+      </p>
+      <ul>
+        <li>Revoke API access at any time from Pinterest&rsquo;s <a href="https://www.pinterest.com/settings/apps" target="_blank" rel="noopener">Apps settings</a> — this immediately invalidates the token.</li>
+        <li>Any pin can be deleted directly from Pinterest, the same as any manually created pin.</li>
+        <li>Request deletion of the stored pin log by contacting us (Section 10).</li>
+      </ul>
+    </section>
+
+    <section id="security">
+      <div class="section-head">
+        <span class="section-num">08</span>
+        <h2>Security</h2>
+      </div>
+      <p>
+        The Pinterest access token is stored as an environment variable, not
+        committed to source control, and is never logged in plaintext. Only
+        the account operator has access to the systems running this
+        integration.
+      </p>
+    </section>
+
+    <section id="changes">
+      <div class="section-head">
+        <span class="section-num">09</span>
+        <h2>Changes to this policy</h2>
+      </div>
+      <p>
+        If Star Academy adds a public-facing website, app, or any flow that
+        collects data from visitors, this policy will be revised to cover it
+        and the effective date at the top will be updated. Material changes
+        will be reflected here before they take effect.
+      </p>
+    </section>
+
+    <section id="contact">
+      <div class="section-head">
+        <span class="section-num">10</span>
+        <h2>Contact</h2>
+      </div>
+      <p>
+        Questions about this policy or the data it describes can be sent to
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Wholesale Omniverse LLC — Star Academy storefront integration</span>
+    <span>Last updated August 11, 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

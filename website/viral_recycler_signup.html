@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Start your free trial — Omni Portal</title>
+<title>Start Your Free Trial — ViralRecycler | Wholesale Omniverse</title>
+<meta name="description" content="Start your 30-day free trial of ViralRecycler. No credit card required. You'll receive your access key by email within 24 hours.">
+<link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/viral_recycler_signup.html">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
@@ -26,35 +28,31 @@
           padding:16px;border-radius:8px;width:100%;font-size:16px;font-weight:700;
           cursor:pointer;font-family:inherit;letter-spacing:.3px}
   .submit:hover{filter:brightness(1.1)}
-  .trust{color:#64748b;font-size:12px;text-align:center;margin-top:18px}
-  .trust span{color:#f59e0b}
+  .trust{color:#64748b;font-size:12px;text-align:center;margin-top:18px;line-height:1.6}
+  .trust a{color:#f59e0b}
   .back{display:inline-block;color:#64748b;text-decoration:none;font-size:13px;
         margin-bottom:24px}
   .back:hover{color:#f59e0b}
-  .success{background:#0f172a;border-left:4px solid #10b981;padding:24px;border-radius:8px;
-           margin-top:20px;display:none}
-  .success.show{display:block}
-  .success h3{color:#10b981;margin-bottom:10px}
-  .key{background:#0a0f1a;padding:14px;border-radius:6px;font-family:'JetBrains Mono',monospace;
-       font-size:13px;color:#f59e0b;margin:14px 0;word-break:break-all}
 </style>
 </head>
 <body>
 
 <div class="card">
-  <a href="/viral-recycler" class="back">← Back</a>
-  <div class="badge">30-day free trial · No card required</div>
+  <a href="viral_recycler.html" class="back">&#8592; Back to ViralRecycler</a>
+  <div class="badge">30-day free trial &middot; No card required</div>
   <h1>Start your free trial.</h1>
-  <p class="sub">Your access key is generated instantly. Drop URLs in your dashboard the moment it's done.</p>
+  <p class="sub">Fill out the form below. You&#8217;ll receive your access key and setup instructions by email within 24 hours.</p>
 
-  <form id="signup-form" method="POST" action="/api/trial/start">
-    <input type="hidden" name="agent" value="viral_recycler">
+  <form name="viral-recycler-trial" method="POST" action="thank-you.html"
+        data-netlify="true" netlify-honeypot="bot-field">
+    <input type="hidden" name="form-name" value="viral-recycler-trial">
+    <p style="display:none;"><label>Skip: <input name="bot-field"></label></p>
 
     <label>Tier</label>
-    <select name="tier" required>
-      <option value="basic">Basic — 1 Short/day</option>
-      <option value="pro" selected>Pro — 2 Shorts/day + AI captions + color grading</option>
-      <option value="studio">Studio — 3 Shorts/day + stabilization + variants + multi-aspect</option>
+    <select name="tier" id="tier-select" required>
+      <option value="basic">Basic &#8212; 1 Short/day &middot; $29/mo</option>
+      <option value="pro" selected>Pro &#8212; 2 Shorts/day + AI captions + color grading &middot; $79/mo</option>
+      <option value="studio">Studio &#8212; 3 Shorts/day + stabilization + variants &middot; $149/mo</option>
     </select>
 
     <label>Your name</label>
@@ -67,43 +65,27 @@
     <select name="niche" required>
       <option value="motivational">Motivational</option>
       <option value="comedy">Comedy Skits</option>
-      <option value="wellness">Men's Wellness</option>
+      <option value="wellness">Men&#8217;s Wellness</option>
     </select>
 
-    <button type="submit" class="submit">Start free trial →</button>
+    <button type="submit" class="submit">Start free trial &#8594;</button>
 
-    <p class="trust">By starting your trial, you agree to our <a href="/privacy.html" style="color:#f59e0b">privacy policy</a>. We <span>never</span> ask for a card during the trial.</p>
+    <p class="trust">
+      By starting your trial, you agree to our <a href="privacy.html">privacy policy</a>.<br>
+      We <strong style="color:#f59e0b">never</strong> ask for a card during the 30-day trial.
+    </p>
   </form>
-
-  <div class="success" id="success">
-    <h3>You're in. 30-day trial started.</h3>
-    <p>Your access key — save this:</p>
-    <div class="key" id="access-key"></div>
-    <p>Open your dashboard: <a id="dash-link" href="#" style="color:#f59e0b">View dashboard →</a></p>
-  </div>
 </div>
 
 <script>
-document.getElementById('signup-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const data = new FormData(form);
-  const body = Object.fromEntries(data.entries());
-  const res = await fetch('/api/trial/start', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body),
-  });
-  const result = await res.json();
-  if (result.access_key) {
-    form.style.display = 'none';
-    document.getElementById('access-key').textContent = result.access_key;
-    document.getElementById('dash-link').href = '/viral-recycler/dashboard?key=' + result.access_key;
-    document.getElementById('success').classList.add('show');
-  } else {
-    alert(result.error || 'Signup failed');
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tier = params.get('tier');
+  if (tier) {
+    const sel = document.getElementById('tier-select');
+    if (sel) sel.value = tier;
   }
-});
+})();
 </script>
 
 </body>

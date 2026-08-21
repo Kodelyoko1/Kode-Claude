@@ -11,6 +11,8 @@ __pycache__/
 !.env.example
 data/yt_client_secrets.json
 data/yt_token.json
+data/.yt_oauth_pending.json
+data/gdrive_service_account.json
 *.pem
 *_secret.json
 
@@ -56,6 +58,10 @@ data/.batman_quarantine/
 data/media_buyer/
 data/mb_cron_logs/
 data/ds_cron_logs/
+data/ip_reports/
+data/ip_candles/
+data/ip_predictions.json
+data/ip_forward_results.json
 
 # Per-agent runtime data (auto-generated; never commit)
 # Lead lists, delivery logs, prospect drafts, queue state, owner inputs/outputs
@@ -103,6 +109,9 @@ data/facebook_drafts/
 data/instagram_drafts/
 data/pinterest_drafts/
 data/social_posts.json
+data/ap_storefront.json
+data/ap_pins.json
+data/ap_performance.json
 
 # Node + Netlify
 website/node_modules/

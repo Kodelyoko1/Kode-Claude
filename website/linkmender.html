@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LinkMender finds broken links on high-traffic resource pages in your niche, then gives you ready-to-send outreach emails. $97 one-time audit, $47/mo monitoring, $197 agency lead list.">
+  <meta property="og:title" content="LinkMender — SEO Dead-Link Audit &amp; Outreach | Wholesale Omniverse">
+  <meta property="og:description" content="Find broken links on resource pages in your niche. Get a full audit report + outreach email drafts ready to send. $97 one-time, $47/mo monitoring.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/linkmender.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/linkmender.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LinkMender",
+    "description": "SEO dead-link audit service. Discovers high-density resource pages via search dorks, scans them for broken links, and delivers outreach email drafts so you can claim the replacement link.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/linkmender.html",
+    "applicationCategory": "BusinessApplication",
+    "offers": [
+      {"@type":"Offer","name":"One-Time Audit","price":"97","priceCurrency":"USD"},
+      {"@type":"Offer","name":"Monthly Monitoring","price":"47","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Agency Lead List","price":"197","priceCurrency":"USD"}
+    ]
+  }
+  </script>
+  <title>LinkMender — SEO Dead-Link Audit &amp; Outreach | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .lm-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .lm-hero h1{color:#fff;font-size:clamp(28px,4vw,48px);margin-bottom:16px}
+    .lm-hero .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .cta-group{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:0}
+
+    /* Audit report mockup */
+    .audit-preview{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:0;max-width:700px;margin:0 auto;text-align:left;overflow:hidden}
+    .preview-header{background:#1e293b;padding:14px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #334155}
+    .preview-dot{width:12px;height:12px;border-radius:50%}
+    .dot-red{background:#ef4444}
+    .dot-yellow{background:#f59e0b}
+    .dot-green{background:#22c55e}
+    .preview-title{color:#94a3b8;font-size:13px;margin-left:8px}
+    .audit-body{padding:24px 28px}
+    .audit-section-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px}
+    .audit-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px}
+    .audit-table th{color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:700;padding:6px 10px;border-bottom:1px solid #334155;text-align:left}
+    .audit-table td{padding:9px 10px;border-bottom:1px solid #1e293b;color:#94a3b8}
+    .audit-table tr:last-child td{border-bottom:none}
+    .audit-table .url-cell{color:#e2e8f0;font-family:monospace;font-size:12px}
+    .status-ok{color:#22c55e;font-weight:700}
+    .status-dead{color:#ef4444;font-weight:700}
+    .action-keep{color:#22c55e}
+    .action-replace{color:#f59e0b;font-weight:700}
+    .outreach-block{background:#1e293b;border-radius:8px;padding:16px 18px}
+    .outreach-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:10px}
+    .outreach-subject{font-size:13px;color:#f59e0b;font-weight:700;margin-bottom:8px}
+    .outreach-body{font-size:13px;color:#94a3b8;line-height:1.65}
+
+    /* Features */
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    /* How it works */
+    .steps-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));max-width:900px;margin:0 auto;padding:0 24px}
+    .step-card{text-align:center;padding:24px}
+    .step-number{width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px}
+    .step-card h3{color:var(--navy);font-size:16px;margin-bottom:8px}
+    .step-card p{color:var(--slate-6);font-size:14px}
+
+    /* Pricing */
+    .plans-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:860px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge-amber{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber)}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+
+    /* FAQ */
+    .section-narrow{max-width:720px;margin:0 auto;padding:60px 24px}
+
+    /* Footer */
+    footer.site .container .row .col a{display:block;color:var(--slate-5);font-size:14px;margin-bottom:8px}
+    footer.site .container .row .col a:hover{color:var(--amber);text-decoration:none}
+    footer.site .container .row .col h4{color:#fff;margin-bottom:16px}
+    footer.site{background:var(--navy);padding:48px 0 24px}
+    .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid #1e293b;margin-top:40px;padding-top:24px;font-size:13px;color:var(--slate-5)}
+    .footer-bottom a{color:var(--slate-5)}
+    .footer-bottom a:hover{color:var(--amber)}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav class="site-nav">
+      <a href="tools.html">← Back to Tools</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="deal-analyzer.html">Real Estate</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="lm-hero">
+  <p class="eyebrow" style="color:var(--amber);margin-bottom:12px">SEO · Dead-link detection · Outreach-ready</p>
+  <h1>Find Broken Links on Resource Pages. <span style="color:var(--amber)">Get Listed.</span></h1>
+  <p class="lede">LinkMender discovers high-density "useful links / helpful resources" pages in your niche, scans every link for 404s, and hands you pre-written outreach emails so you can claim the dead link's spot.</p>
+  <div class="cta-group">
+    <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener">Order Audit — $97 →</a>
+    <a class="btn btn-secondary" href="#pricing">See Pricing</a>
+  </div>
+</section>
+
+<!-- ── Sample audit report mockup ─────────────────────────────── -->
+<section style="padding:64px 24px;text-align:center;background:var(--slate-1)">
+  <h2 style="color:var(--navy);margin-bottom:8px">What your audit report looks like</h2>
+  <p style="color:var(--slate-6);font-size:15px;max-width:540px;margin:0 auto 36px">Every audit comes with a link-status table and a set of ready-to-send outreach emails — one per dead link opportunity.</p>
+
+  <div class="audit-preview">
+    <div class="preview-header">
+      <div class="preview-dot dot-red"></div>
+      <div class="preview-dot dot-yellow"></div>
+      <div class="preview-dot dot-green"></div>
+      <span class="preview-title">data/lm_reports/realestate-resources-2026-06-20.md</span>
+    </div>
+    <div class="audit-body">
+      <div class="audit-section-label">Link Scan — realestate-investing.org/resources</div>
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>URL</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="url-cell">wholesaleguide.com/how-to-flip-houses</td>
+            <td><span class="status-ok">200 OK</span></td>
+            <td class="action-keep">Keep</td>
+          </tr>
+          <tr>
+            <td class="url-cell">reipro.net/wholesaling-101</td>
+            <td><span class="status-dead">404 Not Found</span></td>
+            <td class="action-replace">Replace →</td>
+          </tr>
+          <tr>
+            <td class="url-cell">flipcoach.io/deal-analysis-spreadsheet</td>
+            <td><span class="status-dead">404 Not Found</span></td>
+            <td class="action-replace">Replace →</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="outreach-block">
+        <div class="outreach-label">Replacement Outreach — Draft 1 of 2</div>
+        <div class="outreach-subject">Subject: Found a broken link on your resources page</div>
+        <div class="outreach-body">
+          Hi [Name],<br><br>
+          I was browsing your resources page and noticed the link to <em>reipro.net/wholesaling-101</em> is returning a 404. Looks like it went down some time this year.<br><br>
+          I have a free guide on the same topic at [your-url] that your readers might find useful as a replacement. Happy to send over a preview if you'd like to take a look.<br><br>
+          Thanks for maintaining such a helpful page — it's a great resource for the community.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ───────────────────────────────────────────── -->
+<section style="padding:64px 24px">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:48px">How LinkMender works</h2>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Discover resource pages via search dorks</h3>
+      <p>The agent runs targeted search dorks like <code>inurl:resources "useful links" [your niche]</code> to surface high-density link pages that curators actively maintain.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Scan every link for 404s and dead links</h3>
+      <p>Each URL on the resource page is fetched and its HTTP status code captured. Redirects, soft 404s, and connection timeouts are all flagged separately in the report.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Get a report + outreach email drafts</h3>
+      <p>You receive a full markdown audit table plus one personalized outreach email draft per dead link — ready to copy, paste, and send. No writing required on your end.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────── -->
+<section style="background:var(--slate-1)">
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🔍</div>
+      <h3>Search Dork Discovery</h3>
+      <p>Automatically surfaces "useful links," "helpful resources," and "recommended tools" pages in your niche using precise search operators — no manual hunting required.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔗</div>
+      <h3>Automated Link Scanning</h3>
+      <p>Every link on every discovered page is fetched and its HTTP status code recorded. 200s, 301s, 404s, 410s, and timeouts are all captured and sorted for you.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✉️</div>
+      <h3>Outreach Email Drafts</h3>
+      <p>Each dead link opportunity ships with a pre-written, niche-matched outreach email addressed to the page curator — personalized enough to send as-is.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📋</div>
+      <h3>Agency Lead List</h3>
+      <p>The $197 tier delivers 100+ resource page owners in your niche with contact info and dead links pre-identified — the full prospecting list your team can work in bulk.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────────── -->
+<section id="pricing" style="padding:64px 24px">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="color:var(--navy)">Pricing</h2>
+    <p style="color:var(--slate-6);max-width:480px;margin:8px auto 0">Pay via PayPal, then email WholesaleOmniverse@gmail.com with your domain and niche. Your audit report ships within 24 hours.</p>
+  </div>
+  <div class="plans-grid">
+
+    <div class="plan-card">
+      <div class="plan-name">One-Time Audit</div>
+      <div class="plan-price">$97<span> once</span></div>
+      <p class="plan-desc">Full dead-link scan of one resource page in your niche, plus three ready-to-send outreach email drafts.</p>
+      <ul class="plan-features">
+        <li>1 resource page scanned</li>
+        <li>Full link-status report (200 / 404 / timeout)</li>
+        <li>3 outreach email drafts</li>
+        <li>Markdown report delivered via email</li>
+        <li>Delivered within 24 hours</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener" class="plan-cta outline">Order Audit — $97 →</a>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-badge-amber">Most Popular</div>
+      <div class="plan-name">Monthly Monitoring</div>
+      <div class="plan-price">$47<span>/mo</span></div>
+      <p class="plan-desc">Weekly re-scans of your target resource pages so you're the first to know when a link goes dead and the opportunity opens up.</p>
+      <ul class="plan-features">
+        <li>Weekly re-scan of up to 10 resource pages</li>
+        <li>New dead-link alerts via email</li>
+        <li>Unlimited outreach email drafts</li>
+        <li>Running audit history (markdown)</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/47" target="_blank" rel="noopener" class="plan-cta">Start Monitoring — $47/mo →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Agency Lead List</div>
+      <div class="plan-price">$197<span> once</span></div>
+      <p class="plan-desc">Bulk report of 100+ resource page owners in your niche, with contact info and pre-identified dead links. Hand it to your outreach team and work the whole list.</p>
+      <ul class="plan-features">
+        <li>100+ resource page owners</li>
+        <li>Contact info for each curator</li>
+        <li>Dead links pre-identified per page</li>
+        <li>Outreach email template set</li>
+        <li>CSV + markdown deliverable</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/197" target="_blank" rel="noopener" class="plan-cta outline">Get Lead List — $197 →</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────────────── -->
+<div class="section-narrow">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:36px">Questions</h2>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What is a "resource page"?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">A resource page is a curated list of links that a blogger, educator, or organization maintains to help their audience find useful tools, guides, and references. They typically have titles like "Recommended Resources," "Helpful Links," or "Best Tools for [Niche]." Because they're maintained by humans and link to third-party sites, they accumulate dead links over time — which is exactly the opportunity LinkMender exploits for your SEO strategy.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How many links get scanned in an audit?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">A single-page audit typically scans 20–150 links depending on how densely the resource page is populated. The $47/mo monitoring tier covers up to 10 resource pages per weekly cycle, which means up to 1,500 link checks per week. The $197 Agency Lead List surfaces 100+ resource pages and pre-identifies the dead links across all of them — so you're not starting from scratch.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Do I need to do any technical SEO myself?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">No. The entire discovery-and-scan pipeline runs automatically. Your only job is to send the outreach emails we draft for you and make sure your replacement page exists and is live before you reach out. If you're on the monthly monitoring plan, you'll receive an email alert each time a new dead link is found — with the outreach draft already attached.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What niche can I target?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Any niche with a meaningful web presence works well — real estate, personal finance, health &amp; wellness, SaaS tools, digital marketing, education, travel, and more. When you order, simply tell us your niche and your target URL (the page you want curators to link to). The search dorks are customized to your vertical before the scan runs.</p>
+  </details>
+</div>
+
+<!-- ── CTA Banner ─────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">Your next backlink is someone else's broken link.</h2>
+  <p style="color:rgba(15,23,42,.7);margin-bottom:24px">Pay, send us your niche and target URL, and your audit report lands in your inbox within 24 hours — outreach emails included.</p>
+  <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/97" target="_blank" rel="noopener" style="background:var(--navy);color:#fff;margin-right:12px">Order Audit — $97 →</a>
+  <a class="btn" href="mailto:WholesaleOmniverse@gmail.com?subject=LinkMender%20Question" style="background:#fff;color:var(--navy)">Ask a Question</a>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="mao-calculator.html">MAO Calculator</a>
+        <a href="speedaudit.html">SpeedAudit</a>
+        <a href="salespage_doctor.html">SalesPage Doctor</a>
+        <a href="dropship_scout_trends.html">DropshipScout</a>
+        <a href="trendscout.html">TrendScout</a>
+        <a href="pricing.html">All Pricing</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+        <a href="buyer-finder.html">Cash Buyer Finder</a>
+        <a href="followup.html">Seller Follow-Up</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">PayPal.me/wholesaleomniverse</a>
+        <a href="index.html">Back to Home</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a> &nbsp;&middot;&nbsp; <a href="tools.html">All Tools</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ReputationGuard — automated review monitoring and reply management for local businesses. Catch negative reviews before they go viral. $79/mo per location.">
+  <meta property="og:title" content="ReputationGuard — Review Management for Local Businesses | Wholesale Omniverse">
+  <meta property="og:description" content="Drop Google/Yelp snapshots. Get negative review alerts, AI-drafted replies, and acquisition targeting. $79/mo per location or $497 deep audit.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/reputationguard.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/reputationguard.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ReputationGuard",
+    "applicationCategory": "BusinessApplication",
+    "description": "Automated review management for local businesses. Drops Google/Yelp HTML snapshots, identifies negative-review-heavy targets for acquisition outreach, and drafts professional reply digests for active clients.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/reputationguard.html",
+    "offers": [
+      {"@type":"Offer","name":"Monthly Monitoring","price":"79","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Deep Audit","price":"497","priceCurrency":"USD"}
+    ],
+    "operatingSystem": "Linux, macOS",
+    "provider": {
+      "@type": "Organization",
+      "name": "Wholesale Omniverse LLC",
+      "telephone": "207-385-4041",
+      "email": "WholesaleOmniverse@gmail.com"
+    }
+  }
+  </script>
+  <title>ReputationGuard — Review Management for Local Businesses | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .rg-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .rg-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .rg-hero .lede{color:#94a3b8;font-size:18px;max-width:640px;margin:0 auto 36px}
+    .rg-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+    .rg-btns a{padding:13px 26px;border-radius:8px;font-weight:700;font-size:15px;text-decoration:none}
+    .btn-primary{background:var(--amber);color:var(--navy)}
+    .btn-primary:hover{background:var(--amber-2);text-decoration:none}
+    .btn-outline-light{background:transparent;border:2px solid #475569;color:#94a3b8}
+    .btn-outline-light:hover{border-color:#94a3b8;text-decoration:none}
+
+    /* Mockup card */
+    .mockup-card{background:#0d1117;border:1px solid #30363d;border-radius:14px;padding:28px;max-width:680px;margin:40px auto 0;text-align:left;font-family:'Courier New',monospace;font-size:13px}
+    .mc-header{border-bottom:1px solid #30363d;padding-bottom:14px;margin-bottom:18px}
+    .mc-business{color:var(--amber);font-weight:700;font-size:15px;letter-spacing:.5px}
+    .mc-rating{color:#c9d1d9;font-size:13px;margin-top:5px}
+    .mc-stars{color:#f59e0b}
+    .mc-section-label{color:#6a737d;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+    .mc-alert-badge{display:inline-block;background:#450a0a;color:#f85149;border:1px solid #f85149;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:700;margin-bottom:14px}
+    .mc-review{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px;margin-bottom:10px}
+    .mc-review:last-child{margin-bottom:0}
+    .mc-rev-stars{color:#f85149;font-size:12px;margin-bottom:4px}
+    .mc-rev-text{color:#8b949e;font-size:12px;line-height:1.5;margin-bottom:8px}
+    .mc-reply-label{color:#6a737d;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+    .mc-reply-text{color:#3fb950;font-size:12px;line-height:1.55}
+
+    /* Use cases */
+    .use-cases{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:900px;margin:0 auto;padding:0 24px 60px}
+    .uc-card{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:28px}
+    .uc-icon{font-size:30px;margin-bottom:14px}
+    .uc-card h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .uc-card p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    /* Features */
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    /* Pricing */
+    .plans{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));max-width:720px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta-outline{display:block;text-align:center;background:transparent;border:2px solid var(--amber);color:var(--amber);font-weight:700;padding:10px;border-radius:8px;text-decoration:none;margin-top:auto}
+    .plan-cta-outline:hover{background:var(--amber);color:var(--navy);text-decoration:none}
+
+    /* Shared section helpers */
+    .section-label{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+    .section-h2{text-align:center;font-size:clamp(22px,3vw,34px);color:var(--navy);margin-bottom:8px}
+    .section-sub{text-align:center;color:var(--slate-6);max-width:560px;margin:0 auto 40px;font-size:16px}
+
+    /* FAQ */
+    .faq-wrap{max-width:700px;margin:0 auto;padding:0 24px 60px}
+    .faq-item{border-bottom:1px solid var(--slate-3);padding:20px 0}
+    .faq-item:last-child{border-bottom:none}
+    .faq-q{font-weight:700;color:var(--navy);font-size:16px;margin-bottom:8px}
+    .faq-a{color:var(--slate-6);font-size:15px;line-height:1.65}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav style="margin-left:auto">
+      <a href="tools.html" style="color:var(--slate-5);font-size:14px;text-decoration:none;font-weight:600">← Back to Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ─────────────────────────────────────────────────────────── -->
+<section class="rg-hero">
+  <p style="color:var(--amber);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">Automated review management</p>
+  <h1>ReputationGuard</h1>
+  <p style="color:var(--amber);font-size:clamp(17px,2.5vw,22px);font-weight:700;margin-bottom:20px">Protect Your 5-Star Rating. Automatically.</p>
+  <p class="lede">Continuous Google and Yelp review monitoring for local businesses. Catch negative reviews the moment they appear, get AI-drafted professional replies in seconds, and identify low-rating businesses ripe for acquisition — all without a single API key.</p>
+  <div class="rg-btns">
+    <a class="btn-primary" href="https://paypal.me/wholesaleomniverse/79" target="_blank" rel="noopener">Start Monitoring — $79/mo →</a>
+    <a class="btn-outline-light" href="mailto:WholesaleOmniverse@gmail.com?subject=ReputationGuard Deep Audit">Deep Audit — $497</a>
+  </div>
+
+  <!-- Mockup Card -->
+  <div class="mockup-card">
+    <div class="mc-header">
+      <div class="mc-business">Mike's Auto Repair &nbsp;—&nbsp; Review Digest</div>
+      <div class="mc-rating">Overall Rating: <span class="mc-stars">★★★</span><span style="color:#6a737d">★★</span> &nbsp;3.8 / 5.0 &nbsp;·&nbsp; 47 reviews &nbsp;·&nbsp; Last scanned: 2026-06-20</div>
+    </div>
+
+    <div class="mc-section-label">Negative Reviews Requiring Reply (3)</div>
+    <div class="mc-alert-badge">⚠ 3 New Negatives Detected</div>
+
+    <div class="mc-review">
+      <div class="mc-rev-stars">★☆☆☆☆ &nbsp;—&nbsp; posted 2 days ago</div>
+      <div class="mc-rev-text">"Never coming back again! Total waste of time and money."</div>
+      <div class="mc-reply-label">Suggested Reply</div>
+      <div class="mc-reply-text">We're truly sorry to hear about your experience — this is not the standard we hold ourselves to. We'd love the chance to make it right. Please call us at 207-555-0100 so we can address your concerns directly.</div>
+    </div>
+
+    <div class="mc-review">
+      <div class="mc-rev-stars">★☆☆☆☆ &nbsp;—&nbsp; posted 4 days ago</div>
+      <div class="mc-rev-text">"Waited 3 hours and no one called with an update. Left without my car being touched."</div>
+      <div class="mc-reply-label">Suggested Reply</div>
+      <div class="mc-reply-text">You deserved consistent communication — we fell short and we apologize. We've reviewed our check-in process and made improvements. We hope you'll give us another opportunity to earn your trust.</div>
+    </div>
+
+    <div class="mc-review">
+      <div class="mc-rev-stars">★★☆☆☆ &nbsp;—&nbsp; posted 6 days ago</div>
+      <div class="mc-rev-text">"Overcharged me for parts I didn't need. Will dispute with my credit card company."</div>
+      <div class="mc-reply-label">Suggested Reply</div>
+      <div class="mc-reply-text">We take pricing concerns very seriously and would like to review your invoice with you. Please reach out directly and we'll walk through every line item to ensure complete transparency.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Use Cases ─────────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 20px">
+  <p class="section-label">Three Ways to Use It</p>
+  <h2 class="section-h2">From monitoring to acquisition</h2>
+  <p class="section-sub">Whether you manage your own reputation or scout distressed businesses, ReputationGuard has a workflow for you.</p>
+</section>
+<div class="use-cases">
+  <div class="uc-card">
+    <div class="uc-icon">📡</div>
+    <h3>Monthly Monitoring</h3>
+    <p>Drop fresh Google or Yelp HTML snapshots weekly. ReputationGuard scans for new 1–3 star reviews and fires an email alert before a single negative post goes viral or dents your search ranking.</p>
+  </div>
+  <div class="uc-card">
+    <div class="uc-icon">🔬</div>
+    <h3>Deep Audit</h3>
+    <p>Full historical review analysis across all platforms. Get a scored breakdown of your review velocity, rating trend, common complaint themes, and a ranked list of local competitors whose poor ratings signal acquisition opportunity.</p>
+  </div>
+  <div class="uc-card">
+    <div class="uc-icon">✍️</div>
+    <h3>Reply Management</h3>
+    <p>Every negative review gets an AI-drafted professional, empathetic response ready to paste directly into Google or Yelp. Replies are tuned to acknowledge the complaint, offer resolution, and signal responsiveness to future readers.</p>
+  </div>
+</div>
+
+<!-- ── Features ─────────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0">
+  <div style="text-align:center;padding:60px 24px 0">
+    <p class="section-label">Four Core Features</p>
+    <h2 class="section-h2">Everything your reputation needs</h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat">
+      <div class="feat-icon">🌐</div>
+      <h3>Google &amp; Yelp Scanning</h3>
+      <p>Drop saved HTML snapshots of your business listing into <code>data/rg_snapshots/</code>. No API key required — ReputationGuard parses the page structure directly and pulls every review with its star rating, date, and reviewer name.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🔔</div>
+      <h3>Negative Review Alerts</h3>
+      <p>Any new 1–3 star review triggers an immediate email notification. The alert includes the full review text, reviewer name, date, and rating so you can act fast — before the review gains impressions or influences other customers.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🤖</div>
+      <h3>AI Reply Drafts</h3>
+      <p>Each negative review in the digest comes with a professionally drafted reply. Responses acknowledge the specific complaint, offer a resolution path, and strike an empathetic tone — ready to copy-paste in under 30 seconds.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎯</div>
+      <h3>Acquisition Targeting</h3>
+      <p>Identifies local businesses with consistently poor ratings and high complaint density — ideal targets for wholesale acquisition or distressed-business outreach. Every deep audit includes a scored acquisition shortlist with contact details.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ───────────────────────────────────────────────────────── -->
+<section style="padding:60px 24px 20px;text-align:center">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-h2">Simple plans, no contracts</h2>
+  <p class="section-sub">Send payment via PayPal. Access key arrives within 2 hours.</p>
+</section>
+<div class="plans">
+  <div class="plan-card featured">
+    <div class="plan-badge">Featured</div>
+    <div class="plan-price">$79<span>/mo</span></div>
+    <div class="plan-name">Monthly Monitoring</div>
+    <div class="plan-desc">Ongoing review surveillance for one business location. Catch negatives the moment they appear.</div>
+    <ul class="plan-features">
+      <li>Weekly Google &amp; Yelp snapshot scan</li>
+      <li>Negative review email alerts (1–3 stars)</li>
+      <li>10 AI reply drafts per month</li>
+      <li>Monthly rating trend summary</li>
+      <li>1 location included</li>
+    </ul>
+    <a class="plan-cta" href="https://paypal.me/wholesaleomniverse/79" target="_blank" rel="noopener">Start Monitoring — $79/mo →</a>
+  </div>
+  <div class="plan-card">
+    <div class="plan-price">$497</div>
+    <div class="plan-name">Deep Audit</div>
+    <div class="plan-desc">One-time forensic review audit — full history analysis, acquisition target list, and a reply template library.</div>
+    <ul class="plan-features">
+      <li>Full review history analysis (all platforms)</li>
+      <li>Rating trend + complaint theme breakdown</li>
+      <li>Acquisition target shortlist (scored)</li>
+      <li>30 ready-to-use reply templates</li>
+      <li>Unlimited locations in one audit</li>
+    </ul>
+    <a class="plan-cta-outline" href="mailto:WholesaleOmniverse@gmail.com?subject=ReputationGuard Deep Audit - $497" target="_blank" rel="noopener">Order Deep Audit — $497</a>
+  </div>
+</div>
+
+<!-- ── FAQ ───────────────────────────────────────────────────────────── -->
+<section style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:60px 24px 0">
+  <p class="section-label">FAQ</p>
+  <h2 class="section-h2">Common questions</h2>
+</section>
+<div class="faq-wrap" style="padding-top:40px">
+  <div class="faq-item">
+    <div class="faq-q">What platforms do you monitor?</div>
+    <div class="faq-a">Currently Google Business Profile and Yelp. Both use saved HTML snapshots — you navigate to your listing, save the page, and drop the file in <code>data/rg_snapshots/</code>. No browser extension, no API credentials, no OAuth flow needed. Additional platforms (TripAdvisor, Facebook) are on the roadmap.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Do you need my Google Business login?</div>
+    <div class="faq-a">No. ReputationGuard works entirely from publicly visible HTML snapshots of your listing. You never share login credentials, OAuth tokens, or API keys. The agent reads the same page a customer sees — just automated and parsed into a structured digest.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">How quickly do I get notified of a new negative review?</div>
+    <div class="faq-a">Notification speed depends on how frequently you drop new snapshots. With the recommended weekly scan cadence, you'll know about any new 1–3 star review within 7 days. Drop snapshots more frequently (daily or every few days) and turnaround shortens accordingly — the agent runs on every new file it finds in the input directory.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What is "acquisition targeting" and who is it for?</div>
+    <div class="faq-a">The Deep Audit scans competitor or market listings and scores each business by negative review density, rating decline trend, and complaint frequency. Businesses with consistently poor ratings and unresolved complaints often signal operational or ownership distress — making them strong candidates for wholesale acquisition outreach. This feature is designed for real estate wholesalers, business brokers, and investors scouting motivated sellers in the local business market.</div>
+  </div>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="tools.html">All Tools</a>
+        <a href="speedaudit.html">SpeedAudit</a>
+        <a href="salespage_doctor.html">SalesPage Doctor</a>
+        <a href="dropship_scout_trends.html">DropshipScout Trends</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="sell.html">Sell My House</a>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

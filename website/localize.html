@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Translate marketing, technical, and conversational content into 20 languages — with cultural context, idiom warnings, RTL support, and date/currency formatting. $19/page, $49/mo (5 pages), $199/mo unlimited.">
+  <meta property="og:title" content="Localize — Translate Marketing Content Into 20 Languages | Wholesale Omniverse">
+  <meta property="og:description" content="Translate marketing, technical, and conversational content into 20 languages — with cultural context, idiom warnings, RTL support, and date/currency formatting.">
+  <meta property="og:url" content="https://kodelyoko1.github.io/Kode-Claude/localize.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://kodelyoko1.github.io/Kode-Claude/assets/logo.png">
+  <link rel="canonical" href="https://kodelyoko1.github.io/Kode-Claude/localize.html">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Localize",
+    "description": "Translation and localization for marketing, technical, and conversational content. Supports 20 language codes with per-language culture notes including date/currency formats, RTL flags, and idiom warnings.",
+    "url": "https://kodelyoko1.github.io/Kode-Claude/localize.html",
+    "applicationCategory": "BusinessApplication",
+    "offers": [
+      {"@type":"Offer","name":"Per Page","price":"19","priceCurrency":"USD"},
+      {"@type":"Offer","name":"Monthly 5 Pages","price":"49","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}},
+      {"@type":"Offer","name":"Unlimited","price":"199","priceCurrency":"USD","priceSpecification":{"@type":"RecurringChargeSpecification","billingPeriod":"P1M"}}
+    ]
+  }
+  </script>
+  <title>Localize — Translate Marketing Content Into 20 Languages | Wholesale Omniverse</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <style>
+    .lz-hero{background:var(--navy);color:#fff;padding:80px 24px 60px;text-align:center}
+    .lz-hero h1{color:#fff;font-size:clamp(28px,4vw,46px);margin-bottom:16px}
+    .lz-hero .lede{color:#94a3b8;font-size:18px;max-width:600px;margin:0 auto 36px}
+    .cta-group{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:0}
+
+    /* Translation mockup */
+    .translation-preview{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:0;max-width:700px;margin:0 auto;text-align:left;overflow:hidden}
+    .preview-header{background:#1e293b;padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #334155}
+    .preview-dot{width:12px;height:12px;border-radius:50%}
+    .dot-red{background:#ef4444}
+    .dot-yellow{background:#f59e0b}
+    .dot-green{background:#22c55e}
+    .preview-title{color:#94a3b8;font-size:13px;margin-left:8px}
+    .translation-body{padding:24px 28px}
+    .tl-row{margin-bottom:20px}
+    .tl-row:last-child{margin-bottom:0}
+    .tl-lang-label{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;margin-bottom:8px}
+    .tl-lang-en{background:#1e3a5f;color:#60a5fa}
+    .tl-lang-es{background:#1c2f1c;color:#4ade80}
+    .tl-lang-ja{background:#2d1f3d;color:#c084fc}
+    .tl-text{color:#e2e8f0;font-size:14px;line-height:1.65;padding:10px 14px;background:#1e293b;border-radius:8px;margin-bottom:8px}
+    .tl-culture-note{font-size:12px;color:#94a3b8;font-style:italic;padding-left:4px}
+    .tl-culture-tag{display:inline-block;background:#292524;border:1px solid #57534e;color:#d97706;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px}
+    .tl-divider{border:none;border-top:1px solid #334155;margin:20px 0}
+
+    /* Language grid */
+    .lang-section{background:var(--slate-1);padding:64px 24px}
+    .lang-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:820px;margin:0 auto}
+    @media(max-width:600px){.lang-grid{grid-template-columns:repeat(2,1fr)}}
+    .lang-card{background:#fff;border:1px solid var(--slate-3);border-radius:10px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between}
+    .lang-info{display:flex;flex-direction:column}
+    .lang-code{font-size:13px;font-weight:800;color:var(--amber);letter-spacing:1px}
+    .lang-name{font-size:13px;color:var(--navy);font-weight:600;margin-top:2px}
+    .rtl-badge{font-size:10px;font-weight:700;letter-spacing:1px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:2px 7px;border-radius:20px;flex-shrink:0}
+
+    /* Feature grid */
+    .features-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:900px;margin:0 auto;padding:60px 24px}
+    .feat{background:#fff;border:1px solid var(--slate-3);border-radius:12px;padding:24px}
+    .feat-icon{font-size:30px;margin-bottom:12px}
+    .feat h3{color:var(--navy);font-size:17px;margin-bottom:8px}
+    .feat p{color:var(--slate-6);font-size:14px;line-height:1.65}
+
+    /* How it works */
+    .steps-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));max-width:900px;margin:0 auto;padding:0 24px}
+    .step-card{text-align:center;padding:24px}
+    .step-number{width:48px;height:48px;background:var(--amber);color:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin:0 auto 16px}
+    .step-card h3{color:var(--navy);font-size:16px;margin-bottom:8px}
+    .step-card p{color:var(--slate-6);font-size:14px}
+
+    /* Pricing */
+    .plans-grid{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:820px;margin:0 auto;padding:0 24px 60px}
+    .plan-card{background:#fff;border:2px solid var(--slate-3);border-radius:14px;padding:28px;display:flex;flex-direction:column}
+    .plan-card.featured{border-color:var(--amber);box-shadow:0 8px 32px rgba(245,158,11,.12)}
+    .plan-badge-amber{display:inline-block;background:var(--amber);color:var(--navy);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:14px}
+    .plan-price{font-size:36px;font-weight:900;color:var(--navy);margin-bottom:4px}
+    .plan-price span{font-size:16px;font-weight:400;color:var(--slate-5)}
+    .plan-name{font-size:17px;font-weight:700;color:var(--navy);margin-bottom:8px}
+    .plan-desc{font-size:14px;color:var(--slate-6);margin-bottom:20px;flex:1}
+    .plan-features{list-style:none;padding:0;margin:0 0 20px;font-size:14px;color:var(--slate-7)}
+    .plan-features li{padding:5px 0;display:flex;gap:8px;align-items:flex-start}
+    .plan-features li::before{content:"✓";color:var(--amber);font-weight:700;flex-shrink:0}
+    .plan-cta{display:block;text-align:center;background:var(--amber);color:var(--navy);font-weight:700;padding:12px;border-radius:8px;text-decoration:none}
+    .plan-cta:hover{background:var(--amber-2);text-decoration:none}
+    .plan-cta.outline{background:transparent;border:2px solid var(--amber);color:var(--amber)}
+    .plan-cta.outline:hover{background:rgba(245,158,11,.08)}
+
+    /* FAQ */
+    .section-narrow{max-width:720px;margin:0 auto;padding:60px 24px}
+
+    /* Footer */
+    footer.site .container .row .col a{display:block;color:var(--slate-5);font-size:14px;margin-bottom:8px}
+    footer.site .container .row .col a:hover{color:var(--amber);text-decoration:none}
+    footer.site .container .row .col h4{color:#fff;margin-bottom:16px}
+    footer.site{background:var(--navy);padding:48px 0 24px}
+    .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid #1e293b;margin-top:40px;padding-top:24px;font-size:13px;color:var(--slate-5)}
+    .footer-bottom a{color:var(--slate-5)}
+    .footer-bottom a:hover{color:var(--amber)}
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Wholesale Omniverse">
+      <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+    </a>
+    <nav class="site-nav">
+      <a href="tools.html">← Back to Tools</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="deal-analyzer.html">Real Estate</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<section class="lz-hero">
+  <p class="eyebrow" style="color:var(--amber);margin-bottom:12px">20 Languages · Cultural Context · RTL Support</p>
+  <h1>Localize — <span style="color:var(--amber)">Translate Marketing Content Into 20 Languages</span></h1>
+  <p class="lede">Real localization goes beyond word-for-word translation. Every output includes idiom warnings, date and currency format adjustments, RTL layout flags, and per-language tone guidance — so your content lands correctly, not just literally.</p>
+  <div class="cta-group">
+    <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener">Localize a Page — $19 →</a>
+    <a class="btn btn-secondary" href="#pricing">See Pricing</a>
+  </div>
+</section>
+
+<!-- ── Translation Mockup ─────────────────────────────────────── -->
+<section style="padding:64px 24px;text-align:center;background:var(--slate-1)">
+  <h2 style="color:var(--navy);margin-bottom:8px">More than translation — cultural context included</h2>
+  <p style="color:var(--slate-6);font-size:15px;max-width:540px;margin:0 auto 36px">Every output tells you not just what was translated, but <em>how</em> it was adapted — register, urgency, punctuation norms, and more.</p>
+
+  <div class="translation-preview">
+    <div class="preview-header">
+      <div class="preview-dot dot-red"></div>
+      <div class="preview-dot dot-yellow"></div>
+      <div class="preview-dot dot-green"></div>
+      <span class="preview-title">data/lz_outputs/trial-expiry-email/</span>
+    </div>
+    <div class="translation-body">
+
+      <div class="tl-row">
+        <div class="tl-lang-label tl-lang-en">EN · Source</div>
+        <div class="tl-text">Your free trial expires tomorrow — upgrade now.</div>
+      </div>
+
+      <hr class="tl-divider">
+
+      <div class="tl-row">
+        <div class="tl-lang-label tl-lang-es">ES · Spanish</div>
+        <div class="tl-text">Tu prueba gratuita vence mañana — actualiza ahora.</div>
+        <div class="tl-culture-note"><span class="tl-culture-tag">ES</span>Uses <em>tú</em> (informal); urgency retained but softened per Latin American register norms. Em-dash preserved — common in ES marketing copy.</div>
+      </div>
+
+      <hr class="tl-divider">
+
+      <div class="tl-row">
+        <div class="tl-lang-label tl-lang-ja">JA · Japanese</div>
+        <div class="tl-text">無料トライアルは明日終了します。今すぐアップグレード。</div>
+        <div class="tl-culture-note"><span class="tl-culture-tag">JA</span>Formal register (です/ます dropped for concise CTA style). Exclamation removed — overuse is considered pushy in JA UX copy. Period added per JA punctuation convention.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Language Grid ──────────────────────────────────────────── -->
+<div class="lang-section">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:8px">20 Languages Supported</h2>
+  <p style="text-align:center;color:var(--slate-6);font-size:15px;max-width:500px;margin:0 auto 36px">Each language comes with baked-in culture notes: date formats, currency symbols, RTL layout flags, and idiom warnings.</p>
+
+  <div class="lang-grid">
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">ES</span><span class="lang-name">Spanish</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">FR</span><span class="lang-name">French</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">DE</span><span class="lang-name">German</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">PT</span><span class="lang-name">Portuguese</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">IT</span><span class="lang-name">Italian</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">NL</span><span class="lang-name">Dutch</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">JA</span><span class="lang-name">Japanese</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">KO</span><span class="lang-name">Korean</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">ZH</span><span class="lang-name">Chinese (Simplified)</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">AR</span><span class="lang-name">Arabic</span></div>
+      <span class="rtl-badge">RTL</span>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">HE</span><span class="lang-name">Hebrew</span></div>
+      <span class="rtl-badge">RTL</span>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">RU</span><span class="lang-name">Russian</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">PL</span><span class="lang-name">Polish</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">SV</span><span class="lang-name">Swedish</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">NO</span><span class="lang-name">Norwegian</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">DA</span><span class="lang-name">Danish</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">TR</span><span class="lang-name">Turkish</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">HI</span><span class="lang-name">Hindi</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">TH</span><span class="lang-name">Thai</span></div>
+    </div>
+    <div class="lang-card">
+      <div class="lang-info"><span class="lang-code">VI</span><span class="lang-name">Vietnamese</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Features ───────────────────────────────────────────────── -->
+<div class="features-grid">
+  <div class="feat">
+    <div class="feat-icon">🌐</div>
+    <h3>20 Languages Supported</h3>
+    <p>Every language ships with baked-in culture notes: date and currency formatting conventions, local idiom warnings, punctuation norms, and honorific guidance so the output reads naturally — not translated.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">↔️</div>
+    <h3>RTL Support</h3>
+    <p>Arabic (AR) and Hebrew (HE) outputs include RTL layout flags and direction markers. Culture notes flag UI mirror requirements so your dev team knows exactly what CSS changes to make before shipping.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🎯</div>
+    <h3>3 Content Modes</h3>
+    <p>Specify <em>marketing</em> (persuasion-forward, idiom-aware), <em>technical</em> (precision-first, minimal adaptation), or <em>conversational</em> (natural register, informal tone) — each applies different tone rules per language.</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">⚡</div>
+    <h3>Auto-Source Integration</h3>
+    <p>Drop a <code>data/lz_config.json</code> with target languages and Localize will automatically process new files from <code>sw_outputs/</code> (SEOWriter) and <code>nl_newsletters/</code> (NicheLens) — no manual step required.</p>
+  </div>
+</div>
+
+<!-- ── How it works ───────────────────────────────────────────── -->
+<section style="background:var(--slate-1);padding:64px 24px">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:48px">How Localize works</h2>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <h3>Drop your source file</h3>
+      <p>Save a <code>data/lz_inputs/{slug}.json</code> with <code>source_text</code>, <code>source_lang</code>, <code>target_langs</code>, <code>purpose</code>, and <code>tone</code>. Or configure auto-source to pull from SEOWriter and NicheLens outputs automatically.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">2</div>
+      <h3>Agent translates + annotates</h3>
+      <p>Claude claude-sonnet-4-6 translates into each target language, then appends per-language culture notes — idiom flags, date format reminders, RTL markers, and register guidance — directly in the output.</p>
+    </div>
+    <div class="step-card">
+      <div class="step-number">3</div>
+      <h3>Ship with confidence</h3>
+      <p>Outputs land in <code>data/lz_outputs/{slug}/</code> — one file per target language. Each file is publish-ready. If a translation fails (quota, network), a <code>[NEEDS_TRANSLATION_TO_X]</code> marker file flags exactly what to retry.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ────────────────────────────────────────────────── -->
+<section id="pricing" style="padding:64px 24px">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="color:var(--navy)">Pricing</h2>
+    <p style="color:var(--slate-6);max-width:480px;margin:8px auto 0">Pay via PayPal, email your content to WholesaleOmniverse@gmail.com with your target language(s), and your first translation ships within 24 hours.</p>
+  </div>
+  <div class="plans-grid">
+
+    <div class="plan-card">
+      <div class="plan-name">Per Page</div>
+      <div class="plan-price">$19<span> once</span></div>
+      <p class="plan-desc">One document translated into one target language, with full cultural context notes included.</p>
+      <ul class="plan-features">
+        <li>1 document → 1 language</li>
+        <li>Culture notes + idiom warnings</li>
+        <li>RTL flag if applicable</li>
+        <li>Markdown output</li>
+        <li>Delivered within 24 hours</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener" class="plan-cta outline">Order — $19 →</a>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-badge-amber">Most Popular</div>
+      <div class="plan-name">Monthly (5 pages)</div>
+      <div class="plan-price">$49<span>/mo</span></div>
+      <p class="plan-desc">Five pages per month into any combination of the 20 supported languages. Mix and match freely each month.</p>
+      <ul class="plan-features">
+        <li>5 pages per month</li>
+        <li>Any of the 20 languages</li>
+        <li>Culture notes on every output</li>
+        <li>All 3 content modes (marketing / technical / conversational)</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/49" target="_blank" rel="noopener" class="plan-cta">Start Monthly — $49/mo →</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Unlimited</div>
+      <div class="plan-price">$199<span>/mo</span></div>
+      <p class="plan-desc">No page cap. All 20 languages. Auto-source integration with SEOWriter and NicheLens outputs wired in automatically.</p>
+      <ul class="plan-features">
+        <li>Unlimited pages</li>
+        <li>All 20 languages</li>
+        <li>Auto-source integration (sw_outputs + nl_newsletters)</li>
+        <li>Priority queue</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <a href="https://paypal.me/wholesaleomniverse/199" target="_blank" rel="noopener" class="plan-cta outline">Unlimited — $199/mo</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────────────── -->
+<div class="section-narrow">
+  <h2 style="text-align:center;color:var(--navy);margin-bottom:36px">Questions</h2>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What does "cultural context" mean in practice?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Every translated output includes a per-language annotation block that flags: which date format to use (DD/MM/YYYY vs MM/DD/YYYY vs YYYY年MM月DD日), local currency symbol placement (€1,200 vs 1.200 €), idioms that don't carry across cultures, punctuation norms (em-dash usage, exclamation frequency), and register notes (formal <em>usted</em> vs informal <em>tú</em> in Spanish, honorific levels in Japanese). You get the translation plus the reasoning — so your team can QA it confidently.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">How does RTL layout work?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Arabic (AR) and Hebrew (HE) outputs include Unicode right-to-left markers and a culture note flagging which UI elements need to be mirrored — navigation, image placement, text-align, flex direction. The translated text is ready to drop into an RTL-capable CMS or email template. The culture note tells your developer exactly what CSS changes (<code>dir="rtl"</code>, <code>text-align: right</code>, etc.) are needed before shipping.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Can I specify a tone — formal vs casual?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">Yes. Set the <code>tone</code> field in your input JSON to <code>formal</code>, <code>neutral</code>, or <code>casual</code>. This combines with the <code>purpose</code> field (<code>marketing</code>, <code>technical</code>, or <code>conversational</code>) to control register. For example, <code>purpose: marketing, tone: casual</code> in Spanish produces <em>tú</em>-form copy with punchy CTA verbs; <code>purpose: technical, tone: formal</code> produces <em>usted</em>-form documentation language with precise terminology.</p>
+  </details>
+
+  <details style="border-bottom:1px solid var(--slate-3);padding:16px 0">
+    <summary style="font-weight:700;color:var(--navy);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">What happens if the API quota is exceeded?<span style="color:var(--amber);font-size:18px">＋</span></summary>
+    <p style="margin-top:12px;color:var(--slate-6);font-size:15px">If a translation call fails — quota, rate limit, or network error — Localize writes a <code>[NEEDS_TRANSLATION_TO_X]</code> marker file in the output folder with the failure reason logged inside. Nothing is silently skipped. The marker file tells you exactly which language failed and why, so you can rerun just that target without reprocessing the entire batch. The failure is also written to the agent's run log for Batman to sweep up.</p>
+  </details>
+</div>
+
+<!-- ── CTA Banner ─────────────────────────────────────────────── -->
+<section style="background:linear-gradient(135deg,#f59e0b,#fbbf24);padding:48px 24px;text-align:center">
+  <h2 style="color:var(--navy);margin-bottom:8px">Your content, in every language your audience speaks.</h2>
+  <p style="color:rgba(15,23,42,.7);margin-bottom:24px">Pay, send your content and target languages, and a culturally-annotated translation lands in your inbox within 24 hours.</p>
+  <a class="btn btn-primary" href="https://paypal.me/wholesaleomniverse/19" target="_blank" rel="noopener" style="background:var(--navy);color:#fff;margin-right:12px">Localize a Page — $19 →</a>
+  <a class="btn" href="mailto:WholesaleOmniverse@gmail.com?subject=Localize%20Question" style="background:#fff;color:var(--navy)">Ask a Question</a>
+</section>
+
+<!-- ── Footer ────────────────────────────────────────────────── -->
+<footer class="site">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="brand">
+          <img src="assets/logo.png" alt="Wholesale Omniverse">
+          <span class="brand-text">WHOLESALE <span class="accent">OMNIVERSE</span></span>
+        </div>
+        <p style="color:var(--slate-5);font-size:14px;margin-top:16px;max-width:300px;">Autonomous revenue agents for real estate, content, social video, e-commerce, SEO, and vertical SaaS.</p>
+      </div>
+      <div class="col">
+        <h4>Free Tools</h4>
+        <a href="mao-calculator.html">MAO Calculator</a>
+        <a href="speedaudit.html">SpeedAudit</a>
+        <a href="salespage_doctor.html">SalesPage Doctor</a>
+        <a href="dropship_scout_trends.html">DropshipScout</a>
+        <a href="trendscout.html">TrendScout</a>
+        <a href="inboxzero.html">InboxZero</a>
+      </div>
+      <div class="col">
+        <h4>Real Estate</h4>
+        <a href="deal-analyzer.html">Deal Analyzer</a>
+        <a href="outreach.html">Outreach-as-a-Service</a>
+        <a href="hudscout.html">HUDScout</a>
+        <a href="leadsieve.html">Lead Sieve</a>
+      </div>
+      <div class="col">
+        <h4>Contact</h4>
+        <a href="tel:+12073854041">207-385-4041</a>
+        <a href="mailto:WholesaleOmniverse@gmail.com">WholesaleOmniverse@gmail.com</a>
+        <a href="https://paypal.me/wholesaleomniverse" target="_blank" rel="noopener">PayPal.me/wholesaleomniverse</a>
+        <a href="pricing.html">All Pricing</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Wholesale Omniverse LLC. All rights reserved.</div>
+      <div><a href="index.html">← Home</a> &nbsp;&middot;&nbsp; <a href="pricing.html">Pricing</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
