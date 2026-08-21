@@ -36,6 +36,7 @@ import requests
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 from autonomous import storage
+from ict_predictor import killzone
 
 YF_SYMBOLS = {"GC": "GC=F", "CL": "CL=F"}
 
@@ -71,6 +72,14 @@ PRICE_SOURCE = os.getenv("IP_PRICE_SOURCE", "auto").strip().lower()
 # about a market that has since moved.
 MAX_STALE_SEC = int(os.getenv("IP_MAX_STALE_SEC", "1200"))
 
+# How far behind the live market the newest MT5 BAR may be before the series is
+# refused. This is a different failure from a stale disk cache: the terminal
+# answers immediately and confidently with history it simply hasn't finished
+# downloading. Observed on a freshly selected symbol - a live XAUUSD bid of
+# 4,612.98 alongside a newest 15M close of 4,324.56, 6.2% apart. Set to 0 to
+# disable the check.
+MAX_BAR_AGE_SEC = int(os.getenv("IP_MT5_MAX_BAR_AGE_SEC", "0")) or None
+
 
 class FeedError(Exception):
     pass
@@ -79,18 +88,43 @@ class FeedError(Exception):
 _INTERVAL_SEC = {"1m": 60, "5m": 300, "15m": 900}
 
 
+def _round_offset(raw_seconds: float) -> int:
+    """Round a raw offset to whole hours; 0 if implausible (>|14h|), so a bad
+    estimate can never corrupt timestamps."""
+    hours = round(raw_seconds / 3600.0)
+    return 0 if abs(hours) > 14 else int(hours * 3600)
+
+
 def _server_utc_offset(last_bar_time: int, interval: str) -> int:
     """
-    Estimate the broker server's offset from UTC, in seconds, by comparing the
-    newest bar's timestamp to real UTC now. Rounded to whole hours because
-    every broker offset is a whole number of hours. Returns 0 if the result
-    looks implausible (>|14h|), so a bad estimate can't corrupt timestamps.
+    Estimate the broker server's offset from UTC from the newest bar.
+
+    ONLY valid when that bar really is the one currently forming. It cannot
+    tell "the server is UTC+3" apart from "these bars are 3 hours stale" -
+    both look identical from the bar alone, and the stale case silently
+    shifts every timestamp in the series. Prefer _tick_utc_offset(); this
+    stays as the fallback for when no tick is available.
     """
     step = _INTERVAL_SEC.get(interval, 900)
-    # The newest bar is the one currently forming, so it opened <= step ago.
-    raw = last_bar_time - (time.time() - step)
-    hours = round(raw / 3600.0)
-    return 0 if abs(hours) > 14 else int(hours * 3600)
+    return _round_offset(last_bar_time - (time.time() - step))
+
+
+def _tick_utc_offset(tick_time: int) -> int:
+    """
+    Offset from a live tick, which is stamped in server time like the bars but,
+    unlike them, is current by definition. This breaks the ambiguity above:
+    with the offset known independently, bar staleness becomes measurable.
+    """
+    return _round_offset(tick_time - time.time())
+
+
+def _max_bar_age(interval: str) -> int:
+    """Grace before the newest bar counts as stale. Two intervals covers a bar
+    that has not closed yet plus one still in flight; the 10-minute floor keeps
+    the 1M frame from tripping on ordinary quiet stretches."""
+    if MAX_BAR_AGE_SEC:
+        return MAX_BAR_AGE_SEC
+    return max(2 * _INTERVAL_SEC.get(interval, 900), 600)
 
 
 def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
@@ -128,10 +162,33 @@ def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
                             f"({mt5.last_error()})")
         # MT5 stamps bars in BROKER SERVER time, not UTC (MetaQuotes servers
         # run EET/EEST = UTC+2/+3). Left raw, every time shown in a report is
-        # off by that offset. Estimate the offset from the newest bar: the
-        # last completed bar can't be in the future, so the gap between its
-        # server timestamp and real UTC now is the server's offset.
-        offset = _server_utc_offset(int(rates[-1]["time"]), interval)
+        # off by that offset.
+        #
+        # Take the offset from a live tick rather than the newest bar. The tick
+        # is current by definition, so it pins the offset without assuming the
+        # bars are up to date - and with the offset pinned independently, how
+        # far behind the bars are becomes a measurable number instead of being
+        # absorbed into the offset.
+        last_bar_server = int(rates[-1]["time"])
+        tick = mt5.symbol_info_tick(symbol)
+        tick_time = int(getattr(tick, "time", 0) or 0)
+        if tick_time:
+            offset = _tick_utc_offset(tick_time)
+            bar_lag = tick_time - last_bar_server
+        else:
+            offset = _server_utc_offset(last_bar_server, interval)
+            bar_lag = 0
+
+        # Refuse stale history rather than analysing it. Only while the market
+        # is open: over a weekend the newest bar is legitimately hours old and
+        # that is not a fault.
+        limit = _max_bar_age(interval)
+        if bar_lag > limit and killzone.market_is_open():
+            raise FeedError(
+                f"MT5: {symbol} {interval} history is {bar_lag/60:.0f} min "
+                f"behind the live tick (limit {limit/60:.0f} min). The terminal "
+                f"has not finished downloading bars for this symbol. Open its "
+                f"chart in MT5 and let the history load, then re-run.")
         return [{
             "t": int(r["time"]) - offset,
             "o": float(r["open"]),
