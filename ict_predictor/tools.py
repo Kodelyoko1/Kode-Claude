@@ -48,6 +48,12 @@ MAX_LOGGED_PREDICTIONS = 1000
 def analyze_asset(asset: str) -> dict:
     """Run the full Decision & Validation Matrix for one asset. Always
     returns a prediction dict (possibly a NO TRADE) — never raises."""
+    # Market session first. A killzone is only a clock window — 13:00 UTC on a
+    # Saturday still satisfies it — so without this the agent analyses stale
+    # Friday bars all weekend and issues entries nothing can fill.
+    if not killzone.market_is_open():
+        return no_trade_report(asset, f"Market {killzone.market_status()}")
+
     kz = killzone.current_killzone()
 
     if not killzone.asset_active_in_killzone(asset, kz):

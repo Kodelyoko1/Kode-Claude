@@ -67,3 +67,51 @@ def next_killzone_open(now: Optional[datetime] = None) -> str:
         if hour < h:
             return f"{h:02d}:00 UTC"
     return f"{opens[0]:02d}:00 UTC (next day)"
+
+
+# ---------------------------------------------------------------------------
+# Market session (separate concern from killzones)
+# ---------------------------------------------------------------------------
+# Spot gold and FX trade continuously from Sunday evening to Friday evening,
+# then stop. A killzone check alone does not catch this: 13:00 UTC on a
+# Saturday still "is" the NY AM window by clock arithmetic, so without this
+# the agent will analyse Friday's stale closing bars all weekend and emit
+# entries against a market that cannot fill them.
+#
+# Boundaries are the widely-used retail convention (approximately New York
+# 17:00 close / open, expressed in UTC). Brokers differ by an hour or two
+# around the edges and holidays are not modelled, so this is deliberately
+# conservative: it errs toward calling the market closed near the boundary
+# rather than issuing an order that would sit unfilled.
+MARKET_CLOSE_DOW = 4      # Friday
+MARKET_CLOSE_HOUR = 21    # 21:00 UTC Friday
+MARKET_OPEN_DOW = 6       # Sunday
+MARKET_OPEN_HOUR = 22     # 22:00 UTC Sunday
+
+
+def market_is_open(now: Optional[datetime] = None) -> bool:
+    """True when the spot gold / FX market is trading."""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    dow, hour = now.weekday(), now.hour
+    if dow == 5:                                     # all Saturday
+        return False
+    if dow == MARKET_CLOSE_DOW and hour >= MARKET_CLOSE_HOUR:
+        return False
+    if dow == MARKET_OPEN_DOW and hour < MARKET_OPEN_HOUR:
+        return False
+    return True
+
+
+def market_status(now: Optional[datetime] = None) -> str:
+    """Human-readable reason, for NO TRADE reports."""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    if market_is_open(now):
+        return "open"
+    from datetime import timedelta
+    nxt = now
+    for _ in range(24 * 8):
+        nxt += timedelta(hours=1)
+        if market_is_open(nxt):
+            return (f"closed for the weekend — reopens "
+                    f"{nxt:%a %Y-%m-%d %H:00 UTC}")
+    return "closed"
