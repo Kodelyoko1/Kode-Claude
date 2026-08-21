@@ -74,18 +74,31 @@ if (-not (Test-Path $Script)) {
 }
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
 
-# Wrapper keeps a dated log per run so a failed cycle can be read after the
+# Runner keeps a dated log per run so a failed cycle can be read after the
 # fact - a scheduled task that writes nowhere is impossible to debug.
-$Wrapper = Join-Path $InstallDir "run_ict_scheduled.cmd"
+#
+# This is a PowerShell runner, not a .cmd. An earlier version used a batch
+# wrapper that derived the date stamp from `wmic os get localdatetime`, but
+# Microsoft REMOVED wmic in recent Windows 11 builds: the variable came back
+# empty, the redirect target was malformed, and the wrapper died before Python
+# started - producing a task that "ran" with no log at all. Get-Date has no
+# such dependency, and staying in PowerShell also avoids cmd's quoting rules
+# around paths with spaces.
+$Runner = Join-Path $InstallDir "run_ict_scheduled.ps1"
 @"
-@echo off
-cd /d "$InstallDir"
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set DT=%%I
-set STAMP=%DT:~0,8%
-"$Python" "$Script" >> "$LogDir\ict_%STAMP%.log" 2>&1
-"@ | Out-File -Encoding ascii $Wrapper
+Set-Location -LiteralPath '$InstallDir'
+`$stamp = Get-Date -Format 'yyyyMMdd'
+`$log = Join-Path '$LogDir' ("ict_" + `$stamp + ".log")
+"=== run started {0} ===" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
+    Out-File -FilePath `$log -Append -Encoding utf8
+& '$Python' '$Script' 2>&1 |
+    Out-File -FilePath `$log -Append -Encoding utf8
+"=== run finished {0} (exit {1}) ===" -f (Get-Date -Format 'HH:mm:ss'), `$LASTEXITCODE |
+    Out-File -FilePath `$log -Append -Encoding utf8
+"@ | Out-File -Encoding ascii $Runner
 
-$action = New-ScheduledTaskAction -Execute $Wrapper
+$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$Runner`""
 
 $trigger = New-ScheduledTaskTrigger -Weekly `
     -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At $At
