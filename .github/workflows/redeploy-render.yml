@@ -1,0 +1,41 @@
+name: Redeploy Render Service
+
+on:
+  workflow_dispatch:   # trigger manually from GitHub Actions UI
+  push:
+    branches: [main]   # also auto-trigger on every push to main
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find service ID
+        id: find_service
+        run: |
+          SERVICE_ID=$(curl -s "https://api.render.com/v1/services?limit=50" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" | \
+            python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          for item in data:
+            svc = item.get('service', item)
+            if svc.get('name') == 'polymarket-weather-agent':
+              print(svc['id'])
+              break
+          ")
+          echo "service_id=$SERVICE_ID" >> $GITHUB_OUTPUT
+          echo "Service ID: $SERVICE_ID"
+
+      - name: Trigger redeploy
+        run: |
+          curl -s -X POST \
+            "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}' | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)
+          print('Deploy triggered — ID:', d.get('id', d))
+          "
