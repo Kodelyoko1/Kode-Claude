@@ -118,6 +118,23 @@ def _tick_utc_offset(tick_time: int) -> int:
     return _round_offset(tick_time - time.time())
 
 
+def _offset_for(symbol, last_bar_server: int, interval: str) -> tuple[int, int]:
+    """
+    Resolve (utc_offset, bar_lag) for an MT5 series.
+
+    Prefers a live tick, which is current by definition and so pins the offset
+    without assuming the bars are up to date; falls back to the bar-derived
+    estimate when no tick is available. Returns the bar lag alongside it so
+    callers can decide whether the history is fresh enough to use.
+    """
+    import MetaTrader5 as mt5
+    tick = mt5.symbol_info_tick(symbol)
+    tick_time = int(getattr(tick, "time", 0) or 0)
+    if tick_time:
+        return _tick_utc_offset(tick_time), tick_time - last_bar_server
+    return _server_utc_offset(last_bar_server, interval), 0
+
+
 def _max_bar_age(interval: str) -> int:
     """Grace before the newest bar counts as stale. Two intervals covers a bar
     that has not closed yet plus one still in flight; the 10-minute floor keeps
@@ -169,15 +186,7 @@ def _fetch_from_mt5(asset: str, interval: str) -> list[dict]:
         # bars are up to date - and with the offset pinned independently, how
         # far behind the bars are becomes a measurable number instead of being
         # absorbed into the offset.
-        last_bar_server = int(rates[-1]["time"])
-        tick = mt5.symbol_info_tick(symbol)
-        tick_time = int(getattr(tick, "time", 0) or 0)
-        if tick_time:
-            offset = _tick_utc_offset(tick_time)
-            bar_lag = tick_time - last_bar_server
-        else:
-            offset = _server_utc_offset(last_bar_server, interval)
-            bar_lag = 0
+        offset, bar_lag = _offset_for(symbol, int(rates[-1]["time"]), interval)
 
         # Refuse stale history rather than analysing it. Only while the market
         # is open: over a weekend the newest bar is legitimately hours old and
@@ -341,7 +350,7 @@ def get_history(asset: str, interval: str, bars: int) -> list[dict]:
                 f"{f', terminal maxbars={maxbars:,}' if maxbars else ''}). "
                 f"The symbol may also simply have no data at this timeframe — "
                 f"open its chart in MT5 once to make the terminal download history.")
-        offset = _server_utc_offset(int(rates[-1]["time"]), interval)
+        offset, _ = _offset_for(symbol, int(rates[-1]["time"]), interval)
         return [{"t": int(r["time"]) - offset, "o": float(r["open"]),
                  "h": float(r["high"]), "l": float(r["low"]),
                  "c": float(r["close"]), "v": float(r["tick_volume"])}
