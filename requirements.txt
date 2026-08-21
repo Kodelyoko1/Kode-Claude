@@ -35,3 +35,11 @@ py-clob-client>=0.18.0   # optional — only required for live order placement
 # The import is guarded in ict_predictor/mt5_execution.py, so on platforms
 # where pip skips this the agent still analyses and reports normally.
 MetaTrader5>=5.0.45; sys_platform == "win32"
+
+# Timezone database for zoneinfo. ICT killzones are defined in New York local
+# time and shift an hour with US daylight saving, so the agent resolves them
+# through America/New_York. Linux and macOS ship a system tz database; WINDOWS
+# DOES NOT, and the agent must run on Windows for MetaTrader5 - without this
+# the killzone logic silently falls back to fixed UTC and runs an hour late
+# every summer.
+tzdata>=2024.1

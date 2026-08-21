@@ -245,6 +245,22 @@ def run_diagnostics() -> list[dict]:
         checks.append(_check("Order mode", OK,
                              "DRY-RUN — orders computed and logged, nothing sent"))
 
+    mode = killzone.killzone_mode()
+    wins = killzone.killzone_windows_utc()
+    win_txt = ", ".join(f"{n} {a:02d}:00-{b:02d}:00 UTC" for n, (a, b) in wins.items())
+    if mode == "ny":
+        checks.append(_check("Killzone timing", OK,
+                             f"New York local time (DST-aware) — today: {win_txt}"))
+    elif mode == "utc":
+        checks.append(_check("Killzone timing", INFO,
+                             f"fixed UTC by request (IP_KILLZONE_TZ=utc) — {win_txt}"))
+    else:
+        checks.append(_check(
+            "Killzone timing", WARN,
+            f"fell back to fixed UTC — tzdata missing, so windows run an hour "
+            f"LATE during US daylight saving ({win_txt})",
+            "pip install tzdata  (Windows has no system timezone database)"))
+
     kz = killzone.current_killzone()
     if kz:
         checks.append(_check("Killzone", OK, f"{kz} is active — signals possible now"))

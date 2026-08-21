@@ -1,18 +1,41 @@
 """
 Killzone / session-timing rules for the ICT Gold & Crude Prediction Agent.
 
-Windows are pinned to fixed UTC hours (matching the EST anchoring given in
-the strategy spec: EST = UTC-5, so these windows are correct as written
-regardless of US daylight-saving — during EDT the wall-clock EST labels
-below run an hour "late" relative to New York local time, which is the
-same trade-off the spec's own EST/UTC table makes).
+ICT killzones are defined in NEW YORK local time (London 02:00-05:00 NY,
+NY AM 07:00-10:00 NY) because they track when those desks are actually
+active. New York observes daylight saving, so the equivalent UTC hours SHIFT
+BY AN HOUR twice a year:
+
+    winter (EST, UTC-5)   London 07:00-10:00 UTC   NY AM 12:00-15:00 UTC
+    summer (EDT, UTC-4)   London 06:00-09:00 UTC   NY AM 11:00-14:00 UTC
+
+This module previously hardcoded the winter numbers, which made every
+summer session run an hour late - the agent sat out the first hour of the
+real window and kept scanning for an hour after it closed.
+
+Windows are now resolved through the America/New_York zone. Set
+IP_KILLZONE_TZ=utc to restore the old fixed-UTC behaviour (the literal
+reading of the original spec's EST/UTC table).
+
+NOTE FOR WINDOWS: zoneinfo needs the `tzdata` package there - Linux and
+macOS ship a system tz database, Windows does not. It is in requirements.txt.
+If it is missing the module falls back to fixed UTC rather than crashing,
+and killzone_mode() reports which is in effect.
 """
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Optional
 
-# (start_hour_utc, end_hour_utc) — end exclusive
+import os
+
+# Windows in NEW YORK local hours, end exclusive. These are the definition;
+# the UTC equivalents are derived per-date so DST is handled automatically.
+LONDON_KILLZONE_NY = (2, 5)
+NY_AM_KILLZONE_NY = (7, 10)
+
+# Fixed-UTC fallback / opt-out: the winter equivalents, i.e. the literal
+# reading of the original spec's EST table.
 LONDON_KILLZONE = (7, 10)
 NY_AM_KILLZONE = (12, 15)
 
@@ -20,6 +43,43 @@ KILLZONES = {
     "London Killzone": LONDON_KILLZONE,
     "NY AM Killzone": NY_AM_KILLZONE,
 }
+
+_NY_ZONE = None
+_TZ_MODE = "utc"
+if os.getenv("IP_KILLZONE_TZ", "ny").strip().lower() != "utc":
+    try:
+        from zoneinfo import ZoneInfo
+        _NY_ZONE = ZoneInfo("America/New_York")
+        _TZ_MODE = "ny"
+    except Exception:
+        # Missing tzdata (typical on Windows without the pip package).
+        _NY_ZONE, _TZ_MODE = None, "utc-fallback"
+
+
+def killzone_mode() -> str:
+    """'ny' (DST-aware), 'utc' (opted out), or 'utc-fallback' (tzdata missing)."""
+    return _TZ_MODE
+
+
+def _ny_hour(now: datetime) -> Optional[int]:
+    """Hour of day in New York, or None when the zone is unavailable."""
+    if _NY_ZONE is None:
+        return None
+    return now.astimezone(_NY_ZONE).hour
+
+
+def killzone_windows_utc(now: Optional[datetime] = None) -> dict:
+    """The UTC windows in effect for `now`'s date — for display/debugging."""
+    now = now or datetime.now(timezone.utc)
+    if _NY_ZONE is None:
+        return dict(KILLZONES)
+    off = int(-now.astimezone(_NY_ZONE).utcoffset().total_seconds() // 3600)
+    return {
+        "London Killzone": ((LONDON_KILLZONE_NY[0] + off) % 24,
+                            (LONDON_KILLZONE_NY[1] + off) % 24),
+        "NY AM Killzone": ((NY_AM_KILLZONE_NY[0] + off) % 24,
+                           (NY_AM_KILLZONE_NY[1] + off) % 24),
+    }
 
 # Which assets the spec treats as "ideal" for each killzone.
 ASSET_KILLZONE_FIT = {
@@ -34,8 +94,19 @@ def _in_window(hour: int, window: tuple[int, int]) -> bool:
 
 
 def current_killzone(now: Optional[datetime] = None) -> Optional[str]:
-    """Return the active killzone name, or None if outside all killzones."""
+    """Return the active killzone name, or None if outside all killzones.
+
+    Evaluated in New York local time when available, so the window tracks
+    the trading desks rather than drifting an hour with daylight saving.
+    """
     now = now or datetime.now(timezone.utc)
+    ny = _ny_hour(now)
+    if ny is not None:
+        if _in_window(ny, LONDON_KILLZONE_NY):
+            return "London Killzone"
+        if _in_window(ny, NY_AM_KILLZONE_NY):
+            return "NY AM Killzone"
+        return None
     hour = now.astimezone(timezone.utc).hour
     for name, window in KILLZONES.items():
         if _in_window(hour, window):
@@ -59,10 +130,11 @@ def est_label(now: Optional[datetime] = None) -> str:
 
 
 def next_killzone_open(now: Optional[datetime] = None) -> str:
-    """Human-readable note on when the next killzone opens, for NO-TRADE reports."""
+    """Human-readable note on when the next killzone opens, for NO-TRADE reports.
+    Uses the windows actually in effect today, so it stays correct across DST."""
     now = now or datetime.now(timezone.utc)
     hour = now.astimezone(timezone.utc).hour
-    opens = sorted(w[0] for w in KILLZONES.values())
+    opens = sorted(w[0] for w in killzone_windows_utc(now).values())
     for h in opens:
         if hour < h:
             return f"{h:02d}:00 UTC"
