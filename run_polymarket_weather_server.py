@@ -2,7 +2,8 @@
 """
 Flask web server for Render free-tier deployment.
 Runs the trading loop in a background thread; exposes /health, /status,
-/backtest, /report, and /collect so the owner can monitor the agent.
+/backtest, /report, /collect, /trades, and /trades.json so the owner
+can monitor the agent.
 
 Use UptimeRobot (free) to ping /health every 5 min to prevent sleep.
 """
@@ -256,8 +257,22 @@ def collect_route():
 
 
 # ---------------------------------------------------------------------------
-# /trades  — show full trade log
+# /trades.json  — raw JSON trade log (for automated fetching)
+# /trades       — HTML trade log table
 # ---------------------------------------------------------------------------
+
+@app.route("/trades.json")
+def trades_json():
+    import json as _json
+    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
+    trades = []
+    if trade_log_path.exists():
+        try:
+            trades = _json.loads(trade_log_path.read_text()) or []
+        except Exception:
+            pass
+    return jsonify(trades), 200
+
 
 @app.route("/trades")
 def trades_route():
