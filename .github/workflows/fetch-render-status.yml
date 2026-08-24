@@ -81,6 +81,10 @@ print(f'Extracted {len(trades)} trades')
 " 2>/dev/null || echo '[]' > data/pw_trades/trade_log.json
 
       - name: Commit snapshot
+        # Skip the push when triggered by a push event — GitHub blocks
+        # write-back from push-triggered workflows to prevent infinite loops.
+        # workflow_dispatch runs commit + push normally.
+        if: github.event_name == 'workflow_dispatch'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
