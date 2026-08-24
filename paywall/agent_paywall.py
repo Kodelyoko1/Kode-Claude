@@ -60,6 +60,7 @@ AGENT_NAMES = {
     "ict_predictor":        "ICT Predictor — Gold & Crude ICT Killzone Signal Feed",
     "amazon_pinterest":     "Amazon Influencer x Pinterest Agent — Storefront Curation + Pin Automation",
     "videoeditor":          "VideoEditor — Autonomous Video Polish + Reels Cutter",
+    "louisiana_football_quant": "Louisiana Football Quant Agent — Sportsbook +EV/Arb + PrizePicks + Kalshi Macro Signal Feed",
 }
 
 # Default prices — overridden by .env PAYWALL_<AGENT>_PRICE vars
@@ -109,6 +110,7 @@ DEFAULT_PRICES = {
     "ict_predictor":    147,
     "amazon_pinterest": 147,
     "videoeditor":      99,
+    "louisiana_football_quant": 197,
 }
 
 

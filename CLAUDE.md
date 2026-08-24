@@ -235,6 +235,17 @@ Autonomous weather-market trading agent for PolyMarket. Trains a per-city, per-e
 **Run:** `python3 run_polymarket_weather_auto.py` (`--backtest` / `--train` / `--refresh` / `--status` / `--opportunities`)  
 **Data:** `data/pw_historical/`, `data/pw_models/`, `data/pw_reports/`
 
+### Louisiana Football Quant Agent (`louisiana_football_quant/`) — $197/mo signal feed
+Read-only, pure price-math signal feed across three separate venues — **never a matched cross-venue arbitrage**, since Kalshi does not list sports outcome contracts:
+1. **Sportsbook consensus** — pulls NFL + CFB odds for the three Louisiana-licensed books (DraftKings/FanDuel/BetMGM) via The Odds API (`ODDS_API_KEY`, free tier). `analysis.py` runs a proportional (multiplicative) no-vig devig per market, flags any single book's price that beats the devigged fair price by ≥`LQ_MIN_EV_PCT` (default 2%) as a +EV bet, and separately flags genuine two-way cross-book arbitrage (best price per side, at possibly different books, with implied-probability sum < 100%) above `LQ_MIN_ARB_PCT` (default 0.5%).
+2. **PrizePicks** — pulls the platform's own public `/projections` JSON endpoint (no auth, same technique as HUDScout's HUD endpoint) and runs a heuristic demon/goblin payout-multiplier value scan. Explicitly labeled heuristic in every output — it is not a matched sportsbook comparison.
+3. **Kalshi macro sleeve** — pulls Kalshi's open markets filtered to non-sports categories (`LQ_KALSHI_CATEGORIES`, default `Rates,Economics,Climate and Weather`), with a defense-in-depth regex filter (`kalshi_client._is_sports_market`) that drops anything sports-shaped even if it slips through the category filter. Reported as its own independent sleeve, not compared to football at all.
+
+**Execution model:** signal-only for sportsbooks and PrizePicks — neither platform has a vendor API for submitting a wager/entry into a personal account, and automating that via session/browser scraping would violate both platforms' terms of service, so this agent never attempts it; every hit is meant to be acted on manually through the owner's or subscriber's own licensed account. Kalshi order submission (macro markets only, RSA-PSS request signing) is dry-run by default; set `LQ_KALSHI_LIVE=1` with `KALSHI_API_KEY_ID`/`KALSHI_PRIVATE_KEY_PATH` to arm it — same dry-run-unless-armed pattern as `PW_LIVE_TRADING` and `IP_MT5_LIVE`. Not financial advice; sports wagering carries substantial risk of loss and is subject to Louisiana gaming law and each platform's terms of service.  
+**Run:** `python3 run_louisiana_football_quant_auto.py` (`--status` / `--scan-only`)  
+**Env:** `ODDS_API_KEY` (required for the sportsbook feed), `LQ_SPORTSBOOKS` (default `draftkings,fanduel,betmgm`), `LQ_SPORTS` (default `nfl,cfb`), `LQ_MIN_EV_PCT` (default `2.0`), `LQ_MIN_ARB_PCT` (default `0.5`), `LQ_PRIZEPICKS_LEAGUES` (default `NFL,CFB`), `LQ_PRIZEPICKS_HEURISTIC_PCT` (default `10.0`), `LQ_KALSHI_CATEGORIES`, `LQ_KALSHI_LIVE` (default `0`), `KALSHI_API_KEY_ID`, `KALSHI_PRIVATE_KEY_PATH`, `LQ_OWNER_EMAIL`  
+**Data:** `data/lq_predictions.json` (rolling log), `data/lq_reports/YYYY-MM-DD.md` (digest)
+
 ---
 
 ## SEO & Reputation

@@ -62,6 +62,8 @@ data/ip_reports/
 data/ip_candles/
 data/ip_predictions.json
 data/ip_forward_results.json
+data/lq_reports/
+data/lq_predictions.json
 
 # Per-agent runtime data (auto-generated; never commit)
 # Lead lists, delivery logs, prospect drafts, queue state, owner inputs/outputs

@@ -43,6 +43,7 @@ python3 run_speedaudit_auto.py         || log "speedaudit failed"
 python3 run_courseforge_auto.py        || log "courseforge failed"
 python3 run_localize_auto.py           || log "localize failed"
 python3 run_amazon_pinterest_auto.py   || log "amazon_pinterest failed"
+python3 run_louisiana_football_quant_auto.py || log "louisiana_football_quant failed"
 
 # Batman runs last so it can sweep the run logs from all the daily
 # agents above and flag failures / corrupted JSON / stale agents.
