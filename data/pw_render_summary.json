@@ -13,6 +13,6 @@
   "halted": null,
   "halt_reason": null,
   "trade_log_count": 37,
-  "scan_opportunities": 12,
-  "scan_total_markets": 633
+  "scan_opportunities": 0,
+  "scan_total_markets": 474
 }
