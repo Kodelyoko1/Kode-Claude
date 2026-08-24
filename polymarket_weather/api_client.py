@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -24,6 +25,39 @@ CHAIN_ID   = 137  # Polygon mainnet
 
 _SESSION = requests.Session()
 _SESSION.headers.update({"User-Agent": "WholesaleOmniverse-PolyWeather/1.0"})
+
+# Diagnostics written by get_weather_markets() and read by the /scan endpoint
+_last_fetch_info: dict = {
+    "strategy": "none",
+    "raw_fetched": 0,
+    "weather_kept": 0,
+    "source": "none",
+}
+
+# ---------------------------------------------------------------------------
+# Weather market detection (post-fetch filter)
+# ---------------------------------------------------------------------------
+
+_WEATHER_RE = re.compile(
+    r'\b('
+    r'temperatur|temp\b|degree|°f|°c|fahrenheit|celsius|'
+    r'rain|precipit|shower|drizzle|flood|'
+    r'snow|blizzard|frost|freeze|frozen|'
+    r'wind|mph|knots|gust|hurricane|tornado|cyclone|typhoon|'
+    r'forecast|weather|humidity|drought|heatwave|heat wave|'
+    r'high of|low of|above \d+|below \d+|exceed \d+|over \d+|'
+    r'storm|hail|lightning|thunder|cloudy|sunny|overcast'
+    r')',
+    re.IGNORECASE,
+)
+
+
+def _is_weather_market(question: str, tags: list[str]) -> bool:
+    """Return True if the market question or tags indicate a weather event."""
+    tag_set = {t.lower() for t in tags}
+    if "weather" in tag_set or "climate" in tag_set or "meteorology" in tag_set:
+        return True
+    return bool(_WEATHER_RE.search(question))
 
 
 # ---------------------------------------------------------------------------
@@ -88,25 +122,13 @@ def _get(url: str, params: dict | None = None, timeout: int = 20) -> dict | list
     return resp.json()
 
 
-def get_weather_markets(limit: int = 200, closed: bool = False) -> list[Market]:
-    """
-    Return PolyMarket weather markets via Gamma API.
-    Falls back to cached synthetic data if the live API is unreachable (403/network error).
-    """
-    params = {
-        "tag_slug": "weather",
-        "closed": str(closed).lower(),
-        "limit": limit,
-    }
-    try:
-        data = _get(f"{GAMMA_API}/markets", params=params)
-    except Exception:
-        return _load_cached_markets(closed=closed)
-
+def _parse_markets_response(data: dict | list) -> list[Market]:
+    """Parse a Gamma API /markets response (list or {data:[...]} envelope)."""
+    rows = data if isinstance(data, list) else data.get("data", [])
     markets = []
-    for m in data if isinstance(data, list) else data.get("data", []):
+    for m in rows:
         tokens = []
-        for t in m.get("tokens", []) or m.get("clobTokenIds", []):
+        for t in m.get("tokens", []) or []:
             if isinstance(t, dict):
                 tokens.append(t)
         if not tokens:
@@ -116,6 +138,11 @@ def get_weather_markets(limit: int = 200, closed: bool = False) -> list[Market]:
                 {"token_id": tid, "outcome": out}
                 for tid, out in zip(clob_ids, outcomes)
             ]
+        raw_tags = m.get("tags") or []
+        tag_slugs = [
+            t.get("slug", "") if isinstance(t, dict) else str(t)
+            for t in raw_tags
+        ]
         markets.append(Market(
             condition_id=m.get("conditionId", m.get("condition_id", "")),
             question=m.get("question", ""),
@@ -125,9 +152,124 @@ def get_weather_markets(limit: int = 200, closed: bool = False) -> list[Market]:
             volume=float(m.get("volume", 0) or 0),
             liquidity=float(m.get("liquidity", 0) or 0),
             closed=m.get("closed", False),
-            tags=[t.get("slug", "") for t in (m.get("tags") or [])],
+            tags=tag_slugs,
         ))
-    return markets if markets else _load_cached_markets(closed=closed)
+    return markets
+
+
+def _parse_events_response(data: dict | list) -> list[Market]:
+    """
+    Parse a Gamma API /events response.  Each event contains a list of
+    nested market dicts — flatten them into Market objects.
+    """
+    rows = data if isinstance(data, list) else data.get("data", [])
+    all_markets: list[Market] = []
+    for event in rows:
+        for m in event.get("markets", []):
+            tokens = []
+            for t in m.get("tokens", []) or []:
+                if isinstance(t, dict):
+                    tokens.append(t)
+            if not tokens:
+                outcomes = m.get("outcomes", ["Yes", "No"])
+                clob_ids = m.get("clobTokenIds") or []
+                tokens = [
+                    {"token_id": tid, "outcome": out}
+                    for tid, out in zip(clob_ids, outcomes)
+                ]
+            raw_tags = (event.get("tags") or []) + (m.get("tags") or [])
+            tag_slugs = [
+                t.get("slug", "") if isinstance(t, dict) else str(t)
+                for t in raw_tags
+            ]
+            all_markets.append(Market(
+                condition_id=m.get("conditionId", m.get("condition_id", "")),
+                question=m.get("question", ""),
+                slug=m.get("slug", ""),
+                end_date=m.get("endDate", m.get("end_date", "")),
+                tokens=tokens,
+                volume=float(m.get("volume", 0) or 0),
+                liquidity=float(m.get("liquidity", 0) or 0),
+                closed=m.get("closed", False),
+                tags=tag_slugs,
+            ))
+    return all_markets
+
+
+def get_weather_markets(limit: int = 200, closed: bool = False) -> list[Market]:
+    """
+    Return PolyMarket weather markets via Gamma API.
+
+    Multi-strategy fetch (each stage post-filters for actual weather questions):
+      1. /markets?tag_slug=weather  — primary attempt
+      2. /events?tag_slug=weather   — events endpoint (different schema)
+      3. /markets (no tag filter, larger page) + text-based weather filter
+      4. On-disk synthetic cache
+
+    Any raw API response is always filtered through _is_weather_market() so
+    non-weather markets returned by a misbehaving tag filter are discarded.
+    Falls back to cached synthetic data when live API is unreachable.
+    """
+    global _last_fetch_info
+    closed_str = str(closed).lower()
+
+    def _record(strategy: str, raw: int, kept: int, source: str) -> None:
+        _last_fetch_info.update({"strategy": strategy, "raw_fetched": raw,
+                                  "weather_kept": kept, "source": source})
+
+    # --- Strategy 1: /markets?tag_slug=weather ---
+    try:
+        data = _get(f"{GAMMA_API}/markets", params={
+            "tag_slug": "weather",
+            "closed": closed_str,
+            "limit": limit,
+        })
+        markets = _parse_markets_response(data)
+        weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
+        _record("markets?tag_slug=weather", len(markets), len(weather), "live")
+        if weather:
+            return weather
+    except Exception:
+        pass
+
+    # --- Strategy 2: /events?tag_slug=weather (events can have different tag index) ---
+    try:
+        data = _get(f"{GAMMA_API}/events", params={
+            "tag_slug": "weather",
+            "closed": closed_str,
+            "active": "true",
+            "limit": 100,
+        })
+        markets = _parse_events_response(data)
+        weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
+        _record("events?tag_slug=weather", len(markets), len(weather), "live")
+        if weather:
+            return weather
+    except Exception:
+        pass
+
+    # --- Strategy 3: broad fetch + weather keyword filter ---
+    # Fetch a large page of active markets and text-filter for weather content.
+    for sort_by in ("volume24hr", "liquidity", "end_date_min"):
+        try:
+            data = _get(f"{GAMMA_API}/markets", params={
+                "closed": closed_str,
+                "active": "true",
+                "limit": 500,
+                "order": sort_by,
+            })
+            markets = _parse_markets_response(data)
+            weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
+            _record(f"markets?order={sort_by} (broad)", len(markets), len(weather), "live")
+            if weather:
+                return weather
+        except Exception:
+            continue
+
+    # --- Strategy 4: on-disk cache (synthetic or previously fetched) ---
+    cached = _load_cached_markets(closed=closed)
+    _record("cache", len(cached), len(cached), "cache")
+    return cached
 
 
 def _load_cached_markets(closed: bool = False) -> list[Market]:

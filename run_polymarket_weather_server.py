@@ -297,6 +297,7 @@ def collect_route():
 @app.route("/scan")
 def scan_route():
     """Run scan_opportunities() and return detailed pipeline diagnostics."""
+    import polymarket_weather.api_client as _api_mod
     from polymarket_weather.api_client import get_weather_markets, get_order_book
     from polymarket_weather.agent import WeatherTradingAgent, _extract_city, _extract_event_type
     from polymarket_weather.tools import MIN_EDGE, MIN_LIQUIDITY, BANKROLL, KELLY_FRACTION, MAX_POSITION_PCT
@@ -316,11 +317,13 @@ def scan_route():
         "price_at_extreme": 0,
         "below_edge_threshold": 0,
         "opportunities": 0,
-        "samples": [],  # first 10 markets with diagnostics
+        "fetch_info": {},     # how markets were fetched (strategy / raw count / kept)
+        "samples": [],        # first 10 markets with diagnostics
     }
 
     try:
         markets = get_weather_markets(limit=200, closed=False)
+        stats["fetch_info"] = dict(_api_mod._last_fetch_info)
         stats["total_markets"] = len(markets)
         for m in markets:
             diag = {"question": m.question[:80], "liquidity": m.liquidity, "closed": m.closed}
