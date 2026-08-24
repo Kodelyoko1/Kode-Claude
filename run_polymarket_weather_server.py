@@ -45,10 +45,27 @@ _state = {
 # ---------------------------------------------------------------------------
 
 def _load_trades() -> list:
-    trade_log_path = ROOT / "data" / "pw_trades" / "trade_log.json"
-    if trade_log_path.exists():
+    # Agent writes JSONL (one record per line); try that first.
+    jsonl_path = ROOT / "data" / "pw_trades" / "trade_log.jsonl"
+    if jsonl_path.exists():
         try:
-            return _json.loads(trade_log_path.read_text()) or []
+            trades = []
+            for line in jsonl_path.read_text().strip().splitlines():
+                line = line.strip()
+                if line:
+                    try:
+                        trades.append(_json.loads(line))
+                    except Exception:
+                        pass
+            if trades:
+                return trades
+        except Exception:
+            pass
+    # Fallback: legacy JSON array format
+    json_path = ROOT / "data" / "pw_trades" / "trade_log.json"
+    if json_path.exists():
+        try:
+            return _json.loads(json_path.read_text()) or []
         except Exception:
             pass
     return []
@@ -162,12 +179,14 @@ def index():
     </div>"""
 
     body = f"""
-    <h1>⛅ PolyMarket Weather Agent</h1>
-    <p class="dim">Started: {_state['started']} · Last cycle: {_state['last_cycle'] or '—'}</p>
+    <h1>&#9925; PolyMarket Weather Agent</h1>
+    <p class="dim">Started: {_state['started']} &middot; Last cycle: {_state['last_cycle'] or '&mdash;'}</p>
     <p style="margin-top:8px">Mode: {mode_badge} &nbsp;|&nbsp; Model quality: {model_quality}</p>
 
     <nav class="nav">
       <a href="/trades">Live positions</a>
+      <a href="/scan">Scan markets</a>
+      <a href="/risk">Risk state</a>
       <a href="/status">JSON status</a>
       <a href="/backtest">Run backtest</a>
       <a href="/report">Latest report</a>
@@ -208,8 +227,8 @@ def backtest_route():
             rows += f"<tr><td>report_path</td><td><span class='dim'>{result['report_path']}</span></td></tr>"
 
     body = f"""
-    <h1>⛅ Backtest Results</h1>
-    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <h1>&#9925; Backtest Results</h1>
+    <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
     <div class="card">
       <table>
         <thead><tr><th>Metric</th><th>Value</th></tr></thead>
@@ -229,15 +248,15 @@ def report_route():
     reports = sorted(reports_dir.glob("*.md"), reverse=True) if reports_dir.exists() else []
     if not reports:
         body = """
-        <h1>⛅ Latest Report</h1>
-        <nav class="nav"><a href="/">← Dashboard</a></nav>
+        <h1>&#9925; Latest Report</h1>
+        <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
         <p style="color:#aaa;margin-top:12px">No reports yet — run a full cycle first.</p>"""
         return _page("Report — PolyMarket Weather", body)
 
     content = reports[0].read_text()
     body = f"""
-    <h1>⛅ Latest Report <span class="dim">({reports[0].name})</span></h1>
-    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <h1>&#9925; Latest Report <span class="dim">({reports[0].name})</span></h1>
+    <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
     <pre>{content}</pre>"""
     return _page("Report — PolyMarket Weather", body)
 
@@ -259,8 +278,8 @@ def collect_route():
         for k, v in result.items()
     )
     body = f"""
-    <h1>⛅ Collect Resolutions</h1>
-    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <h1>&#9925; Collect Resolutions</h1>
+    <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
     <div class="card">
       <table>
         <thead><tr><th>Key</th><th>Value</th></tr></thead>
@@ -268,6 +287,124 @@ def collect_route():
       </table>
     </div>"""
     return _page("Collect — PolyMarket Weather", body)
+
+
+# ---------------------------------------------------------------------------
+# /scan  — live opportunity scan (no trades placed)
+# /risk  — risk manager state + /risk/reset to clear stale positions
+# ---------------------------------------------------------------------------
+
+@app.route("/scan")
+def scan_route():
+    """Run scan_opportunities() and return detailed pipeline diagnostics."""
+    from polymarket_weather.api_client import get_weather_markets, get_order_book
+    from polymarket_weather.agent import WeatherTradingAgent, _extract_city, _extract_event_type
+    from polymarket_weather.tools import MIN_EDGE, MIN_LIQUIDITY, BANKROLL, KELLY_FRACTION, MAX_POSITION_PCT
+
+    agent = WeatherTradingAgent(
+        min_edge=MIN_EDGE, min_liquidity=MIN_LIQUIDITY,
+        bankroll=BANKROLL, kelly_fraction=KELLY_FRACTION,
+        max_position_pct=MAX_POSITION_PCT,
+    )
+
+    stats = {
+        "total_markets": 0,
+        "closed_skipped": 0,
+        "low_liquidity_skipped": 0,
+        "no_city_match": 0,
+        "no_yes_token": 0,
+        "price_at_extreme": 0,
+        "below_edge_threshold": 0,
+        "opportunities": 0,
+        "samples": [],  # first 10 markets with diagnostics
+    }
+
+    try:
+        markets = get_weather_markets(limit=200, closed=False)
+        stats["total_markets"] = len(markets)
+        for m in markets:
+            diag = {"question": m.question[:80], "liquidity": m.liquidity, "closed": m.closed}
+            if m.closed:
+                stats["closed_skipped"] += 1
+                continue
+            if m.liquidity < MIN_LIQUIDITY:
+                stats["low_liquidity_skipped"] += 1
+                diag["skip"] = f"low_liquidity ({m.liquidity:.0f} < {MIN_LIQUIDITY})"
+                if len(stats["samples"]) < 10:
+                    stats["samples"].append(diag)
+                continue
+            city = _extract_city(m.question)
+            if city is None:
+                stats["no_city_match"] += 1
+                diag["skip"] = "no_city_match"
+                if len(stats["samples"]) < 10:
+                    stats["samples"].append(diag)
+                continue
+            diag["city"] = city
+            yes_token = m.yes_token_id()
+            if not yes_token:
+                stats["no_yes_token"] += 1
+                diag["skip"] = "no_yes_token"
+                if len(stats["samples"]) < 10:
+                    stats["samples"].append(diag)
+                continue
+            try:
+                book = get_order_book(yes_token)
+                mp = book.mid_price()
+                diag["market_price"] = round(mp, 4)
+            except Exception as e:
+                diag["skip"] = f"book_error: {e}"
+                if len(stats["samples"]) < 10:
+                    stats["samples"].append(diag)
+                continue
+            if mp <= 0.01 or mp >= 0.99:
+                stats["price_at_extreme"] += 1
+                diag["skip"] = f"price_extreme ({mp:.3f})"
+                if len(stats["samples"]) < 10:
+                    stats["samples"].append(diag)
+                continue
+            event_type = _extract_event_type(m.question)
+            target_date = (m.end_date or "")[:10]
+            model_prob = agent._get_model_prob(city, event_type, target_date)
+            edge = abs(model_prob - mp)
+            diag["event_type"] = event_type
+            diag["model_prob"] = round(model_prob, 4)
+            diag["edge"] = round(edge, 4)
+            if edge < MIN_EDGE:
+                stats["below_edge_threshold"] += 1
+                diag["skip"] = f"low_edge ({edge:.3f} < {MIN_EDGE})"
+            else:
+                stats["opportunities"] += 1
+                diag["skip"] = None
+            if len(stats["samples"]) < 10:
+                stats["samples"].append(diag)
+    except Exception as exc:
+        stats["error"] = str(exc)
+
+    return jsonify(stats), 200
+
+
+@app.route("/risk")
+def risk_route():
+    """Return full risk manager state."""
+    from polymarket_weather.risk import RiskManager
+    from polymarket_weather.tools import MIN_EDGE, BANKROLL, MAX_POSITION_PCT
+    rm = RiskManager(starting_bankroll=BANKROLL, min_edge=MIN_EDGE, max_position_pct=MAX_POSITION_PCT)
+    state = dict(rm._state)
+    return jsonify(state), 200
+
+
+@app.route("/risk/reset", methods=["GET", "POST"])
+def risk_reset_route():
+    """Clear stale open positions from risk state (keeps bankroll and P&L)."""
+    from polymarket_weather.risk import RiskManager, STATE_FILE
+    from polymarket_weather.tools import MIN_EDGE, BANKROLL, MAX_POSITION_PCT
+    import json as _j
+    rm = RiskManager(starting_bankroll=BANKROLL, min_edge=MIN_EDGE, max_position_pct=MAX_POSITION_PCT)
+    old_count = len(rm._state.get("open_positions", []))
+    rm._state["open_positions"] = []
+    rm._save_state()
+    return jsonify({"cleared": old_count, "message": "open_positions reset to []"}), 200
 
 
 # ---------------------------------------------------------------------------
@@ -286,16 +423,16 @@ def trades_route():
 
     if not trades:
         body = """
-        <h1>⛅ Trade Log</h1>
-        <nav class="nav"><a href="/">← Dashboard</a></nav>
+        <h1>&#9925; Trade Log</h1>
+        <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
         <p style="color:#aaa;margin-top:12px">No trades recorded yet.</p>"""
         return _page("Trades — PolyMarket Weather", body)
 
     rows = ""
     for t in reversed(trades):
-        approved = "✅" if t.get("approved") else "❌"
+        approved = "&#10003;" if t.get("approved") else "&#10007;"
         pnl = t.get("pnl", None)
-        pnl_str = f"${pnl:+.2f}" if pnl is not None else "—"
+        pnl_str = f"${pnl:+.2f}" if pnl is not None else "&mdash;"
         pnl_cls = "pos" if (pnl or 0) >= 0 else "neg"
         side_cls = "pos" if t.get("side") == "YES" else "neg"
         rows += (
@@ -313,15 +450,15 @@ def trades_route():
         )
 
     body = f"""
-    <h1>⛅ Trade Log <span class="dim">({len(trades)} total)</span></h1>
-    <nav class="nav"><a href="/">← Dashboard</a></nav>
+    <h1>&#9925; Trade Log <span class="dim">({len(trades)} total)</span></h1>
+    <nav class="nav"><a href="/">&larr; Dashboard</a></nav>
     <div class="card" style="overflow-x:auto">
       <table>
         <thead>
           <tr>
             <th>Time (UTC)</th><th>Side</th><th>Edge</th>
             <th>Model P</th><th>Mkt P</th><th>Size</th>
-            <th>P&L</th><th>Placed</th><th>Question</th>
+            <th>P&amp;L</th><th>Placed</th><th>Question</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>

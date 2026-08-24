@@ -56,7 +56,7 @@ MIN_EDGE         = float(os.getenv("PW_MIN_EDGE", "0.07"))
 BANKROLL         = float(os.getenv("PW_BANKROLL", "1000.0"))
 KELLY_FRACTION   = float(os.getenv("PW_KELLY_FRACTION", "0.25"))
 MAX_POSITION_PCT = float(os.getenv("PW_MAX_POSITION_PCT", "0.05"))
-MIN_LIQUIDITY    = float(os.getenv("PW_MIN_LIQUIDITY", "500.0"))
+MIN_LIQUIDITY    = float(os.getenv("PW_MIN_LIQUIDITY", "100.0"))
 RETRAIN_DAYS     = int(os.getenv("PW_RETRAIN_DAYS", "7"))
 DATA_REFRESH_HOURS = int(os.getenv("PW_DATA_REFRESH_HOURS", "6"))
 CITIES           = os.getenv("PW_CITIES", "new_york,chicago,miami,atlanta,dallas").split(",")
@@ -157,13 +157,13 @@ def run_backtest_quick(lookback_records: int = 500) -> dict:
         raw = load_historical_weather(city)[-lookback_records:]
         eng = engineer_features(raw)
         for r in eng:
-            # Synthetic market price: true prob ± 10% noise (simulates market mispricing)
+            # Synthetic market price: true prob +/- 10% noise (simulates market mispricing)
             true_val = 1 if float(r.get("temperature_2m_max") or 0) > 32.2 else 0
             noise    = random.uniform(-0.12, 0.12)
             r["market_price"] = max(0.05, min(0.95, true_val + noise))
             r["outcome"]      = true_val
             r["market_id"]    = f"{city}_{r.get('date','')}_temp90"
-            r["question"]     = f"Will temp exceed 90°F in {city}?"
+            r["question"]     = f"Will temp exceed 90F in {city}?"
             all_records.append(r)
 
     if not all_records:
@@ -217,11 +217,11 @@ def _write_digest(cycle_result: dict, backtest_result: dict | None = None) -> Pa
         lines += [
             "## Top Opportunities",
             "| Question | City | Side | Edge | Model P | Market P | EV |",
-            "|----------|------|------|------|---------|----------|----|",
+            "|----------|------|------|------|---------|----------|----|" ,
         ]
         for o in opps:
             lines.append(
-                f"| {o['question'][:45]}… | {o['city']} | {o['side']} | "
+                f"| {o['question'][:45]}... | {o['city']} | {o['side']} | "
                 f"{o['edge']:.3f} | {o['model_prob']:.3f} | "
                 f"{o['market_price']:.3f} | {o['ev']:.4f} |"
             )
@@ -243,7 +243,7 @@ def _write_digest(cycle_result: dict, backtest_result: dict | None = None) -> Pa
     if recent_trades:
         lines += ["## Recent Trades", ""]
         for t in recent_trades[-5:]:
-            approved = "✓" if t.get("approved") else "✗"
+            approved = "checkmark" if t.get("approved") else "x"
             lines.append(
                 f"{approved} {t.get('timestamp','')[:10]} | "
                 f"{t.get('side','')} | edge={t.get('edge',0):.3f} | "

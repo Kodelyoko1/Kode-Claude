@@ -82,6 +82,33 @@ class RiskManager:
             self._state["daily_start_bankroll"] = self._state["bankroll"]
             self._state["daily_pnl"]            = 0.0
 
+    def _expire_stale_positions(self, max_age_days: int = 30):
+        """
+        Remove open positions that are older than max_age_days.
+        Dry-run positions (order_id starts with 'DRY') are expired after 7 days.
+        Real positions are expired after max_age_days to avoid stale locks.
+        """
+        now = datetime.now(timezone.utc)
+        fresh = []
+        for pos in self._state.get("open_positions", []):
+            opened_str = pos.get("opened", "")
+            is_dry = str(pos.get("order_id", "")).startswith("DRY")
+            age_limit = 7 if is_dry else max_age_days
+            try:
+                opened_dt = datetime.fromisoformat(opened_str.replace("Z", "+00:00"))
+                age_days = (now - opened_dt).days
+                if age_days < age_limit:
+                    fresh.append(pos)
+            except Exception:
+                # Can't parse date -> keep position (conservative)
+                if not is_dry:
+                    fresh.append(pos)
+        expired = len(self._state["open_positions"]) - len(fresh)
+        if expired > 0:
+            self._state["open_positions"] = fresh
+            self._save_state()
+        return expired
+
     # -----------------------------------------------------------------------
     # Kill switch
     # -----------------------------------------------------------------------
@@ -118,6 +145,7 @@ class RiskManager:
         Call this before every order.
         """
         self._reset_daily_if_needed()
+        self._expire_stale_positions()
 
         if self.is_halted:
             return False, f"Trading halted: {self._state['halt_reason']}"
