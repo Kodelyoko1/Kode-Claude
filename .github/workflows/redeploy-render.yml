@@ -28,15 +28,98 @@ jobs:
           echo "Service ID: $SERVICE_ID"
 
       - name: Trigger redeploy from main
+        id: trigger_deploy
         run: |
-          curl -s -X POST \
+          RESP=$(curl -s -X POST \
             "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/deploys" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache": false, "branch": "main"}' | python3 -c "
+            -d '{"clearCache": false, "branch": "main"}')
+          echo "$RESP" | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
           print('Deploy triggered — ID:', d.get('id', d))
           print('Commit:', d.get('commit', {}).get('id', 'n/a'))
           "
+
+      - name: Wait for Render to come back up
+        run: |
+          BASE="https://polymarket-weather-agent.onrender.com"
+          echo "Waiting up to 5 min for Render to respond..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s --max-time 10 "$BASE/health" || echo "down")
+            echo "Attempt $i: $STATUS"
+            if echo "$STATUS" | python3 -c "import json,sys; d=json.load(sys.stdin); exit(0 if d.get('status')=='ok' else 1)" 2>/dev/null; then
+              echo "Service is up!"
+              break
+            fi
+            sleep 10
+          done
+
+      - uses: actions/checkout@v4
+
+      - name: Fetch status snapshot from Render
+        run: |
+          BASE="https://polymarket-weather-agent.onrender.com"
+          mkdir -p data/pw_trades
+
+          curl -s --max-time 30 "$BASE/status" \
+            -o data/pw_render_status.json \
+            || echo '{"error":"unreachable"}' > data/pw_render_status.json
+
+          curl -s --max-time 90 "$BASE/scan" \
+            -o data/pw_render_scan.json \
+            || echo '{"error":"scan unreachable"}' > data/pw_render_scan.json
+
+          python3 -c "
+          import json
+          with open('data/pw_render_status.json') as f:
+            d = json.load(f)
+          risk = d.get('last_result', {}).get('risk', {})
+          trades = d.get('trades', [])
+          try:
+            with open('data/pw_render_scan.json') as f:
+              scan = json.load(f)
+          except Exception:
+            scan = {}
+          print(json.dumps({
+            'cycles':          d.get('cycles'),
+            'boot_done':       d.get('boot_done'),
+            'last_cycle':      d.get('last_cycle'),
+            'live_trading':    d.get('last_result', {}).get('live_trading'),
+            'opportunities':   d.get('last_result', {}).get('opportunities'),
+            'trades_placed':   d.get('last_result', {}).get('trades_placed'),
+            'bankroll':        risk.get('bankroll'),
+            'total_pnl':       risk.get('total_pnl'),
+            'daily_pnl':       risk.get('daily_pnl'),
+            'open_positions':  risk.get('open_positions'),
+            'trade_count':     risk.get('trade_count'),
+            'halted':          risk.get('halted'),
+            'halt_reason':     risk.get('halt_reason'),
+            'trade_log_count': len(trades),
+            'scan_opportunities': scan.get('opportunities'),
+            'scan_total_markets': scan.get('total_markets'),
+          }, indent=2))
+          " > data/pw_render_summary.json 2>/dev/null \
+            || echo '{"error":"parse failed"}' > data/pw_render_summary.json
+
+          python3 -c "
+          import json
+          with open('data/pw_render_status.json') as f:
+            d = json.load(f)
+          trades = d.get('trades', [])
+          with open('data/pw_trades/trade_log.json', 'w') as f:
+            json.dump(trades, f, indent=2)
+          print(f'Extracted {len(trades)} trades')
+          " 2>/dev/null || echo '[]' > data/pw_trades/trade_log.json
+
+      - name: Commit status snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/pw_render_status.json data/pw_render_summary.json \
+                  data/pw_render_scan.json data/pw_trades/trade_log.json
+          git diff --cached --quiet || git commit -m "chore: render status snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git pull --rebase origin main
+          git push
