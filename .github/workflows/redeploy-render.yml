@@ -33,18 +33,21 @@ jobs:
       - name: Trigger redeploy from main
         id: trigger_deploy
         run: |
+          # Render v1 API: POST body must be empty or {"clearCache":true}
+          # Do NOT pass "branch" — it causes an "invalid JSON" rejection
           RESP=$(curl -s -X POST \
             "https://api.render.com/v1/services/${{ steps.find_service.outputs.service_id }}/deploys" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache": false, "branch": "main"}')
+            -d '{}')
+          echo "Deploy response: $RESP"
           echo "$RESP" | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
-          print('Deploy triggered — ID:', d.get('id', d))
-          print('Commit:', d.get('commit', {}).get('id', 'n/a'))
-          "
+          print('Deploy ID:', d.get('id', 'none'))
+          print('Status:', d.get('status', d.get('message', '?')))
+          " 2>/dev/null || echo "Deploy response was not JSON"
 
       - name: Wait for Render to come back up
         run: |
