@@ -86,4 +86,5 @@ print(f'Extracted {len(trades)} trades')
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/pw_render_status.json data/pw_render_summary.json data/pw_render_scan.json data/pw_trades/trade_log.json
           git diff --cached --quiet || git commit -m "chore: render status snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git pull --rebase origin main
           git push
