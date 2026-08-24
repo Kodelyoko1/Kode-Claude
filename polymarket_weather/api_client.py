@@ -53,10 +53,13 @@ _WEATHER_RE = re.compile(
 
 
 def _is_weather_market(question: str, tags: list[str]) -> bool:
-    """Return True if the market question or tags indicate a weather event."""
-    tag_set = {t.lower() for t in tags}
-    if "weather" in tag_set or "climate" in tag_set or "meteorology" in tag_set:
-        return True
+    """Return True only when the question text itself contains weather keywords.
+
+    Tag-based shortcuts are intentionally absent: the /events endpoint propagates
+    parent-event tags to all sub-markets, so earthquake and disease markets inside
+    a weather-tagged event would pass a tags-only check.  Question text is the only
+    reliable gate.
+    """
     return bool(_WEATHER_RE.search(question))
 
 
@@ -122,6 +125,24 @@ def _get(url: str, params: dict | None = None, timeout: int = 20) -> dict | list
     return resp.json()
 
 
+def _parse_clob_ids(raw) -> list[str]:
+    """
+    Safely extract a list of token ID strings from clobTokenIds.
+    The field is a parsed list in the /markets endpoint but a JSON-encoded
+    string in the /events nested-market objects — handle both.
+    """
+    if isinstance(raw, list):
+        return [str(x) for x in raw if x]
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return [str(x) for x in parsed if x]
+        except (ValueError, TypeError):
+            pass
+    return []
+
+
 def _parse_markets_response(data: dict | list) -> list[Market]:
     """Parse a Gamma API /markets response (list or {data:[...]} envelope)."""
     rows = data if isinstance(data, list) else data.get("data", [])
@@ -131,9 +152,12 @@ def _parse_markets_response(data: dict | list) -> list[Market]:
         for t in m.get("tokens", []) or []:
             if isinstance(t, dict):
                 tokens.append(t)
+            elif isinstance(t, str) and t:
+                # Some endpoints return raw token-id strings; outcome unknown
+                tokens.append({"token_id": t, "outcome": "YES" if not tokens else "NO"})
         if not tokens:
             outcomes = m.get("outcomes", ["Yes", "No"])
-            clob_ids = m.get("clobTokenIds") or []
+            clob_ids = _parse_clob_ids(m.get("clobTokenIds"))
             tokens = [
                 {"token_id": tid, "outcome": out}
                 for tid, out in zip(clob_ids, outcomes)
@@ -161,6 +185,12 @@ def _parse_events_response(data: dict | list) -> list[Market]:
     """
     Parse a Gamma API /events response.  Each event contains a list of
     nested market dicts — flatten them into Market objects.
+
+    Important: we do NOT propagate event-level tags down to individual markets.
+    Doing so causes false positives: a weather-tagged event can contain
+    non-weather sub-markets (disease counts, earthquake odds, etc.) which would
+    inherit the "weather" tag and wrongly pass _is_weather_market().  The
+    question text is the sole gate (see _is_weather_market).
     """
     rows = data if isinstance(data, list) else data.get("data", [])
     all_markets: list[Market] = []
@@ -170,14 +200,18 @@ def _parse_events_response(data: dict | list) -> list[Market]:
             for t in m.get("tokens", []) or []:
                 if isinstance(t, dict):
                     tokens.append(t)
+                elif isinstance(t, str) and t:
+                    tokens.append({"token_id": t, "outcome": "YES" if not tokens else "NO"})
             if not tokens:
                 outcomes = m.get("outcomes", ["Yes", "No"])
-                clob_ids = m.get("clobTokenIds") or []
+                # clobTokenIds is a JSON-encoded string in the events endpoint
+                clob_ids = _parse_clob_ids(m.get("clobTokenIds"))
                 tokens = [
                     {"token_id": tid, "outcome": out}
                     for tid, out in zip(clob_ids, outcomes)
                 ]
-            raw_tags = (event.get("tags") or []) + (m.get("tags") or [])
+            # Use only market-level tags (not event-level) to avoid false positives
+            raw_tags = m.get("tags") or []
             tag_slugs = [
                 t.get("slug", "") if isinstance(t, dict) else str(t)
                 for t in raw_tags
