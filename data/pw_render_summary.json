@@ -1,18 +1,18 @@
 {
-  "cycles": 53,
+  "cycles": 1,
   "boot_done": true,
-  "last_cycle": "2026-08-24T02:58:50.124886+00:00",
+  "last_cycle": "2026-08-24T04:17:11.885190+00:00",
   "live_trading": true,
-  "opportunities": 0,
-  "trades_placed": 0,
-  "new_resolutions": 0,
-  "total_resolutions": 0,
+  "opportunities": 83,
+  "trades_placed": 83,
   "bankroll": 1000.0,
   "total_pnl": 0.0,
   "daily_pnl": 0.0,
-  "open_positions": 10,
+  "open_positions": 0,
   "trade_count": 10,
   "halted": false,
   "halt_reason": "",
-  "trade_log_count": 0
+  "trade_log_count": 120,
+  "scan_opportunities": 82,
+  "scan_total_markets": 633
 }
