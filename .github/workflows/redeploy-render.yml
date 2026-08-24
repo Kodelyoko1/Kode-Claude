@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]   # also auto-trigger on every push to main
 
+permissions:
+  contents: write
+
 jobs:
   redeploy:
     runs-on: ubuntu-latest
