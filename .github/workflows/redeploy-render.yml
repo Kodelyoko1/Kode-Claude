@@ -1,9 +1,9 @@
 name: Redeploy Render Service
 
 on:
-  workflow_dispatch:   # trigger manually from GitHub Actions UI
-  push:
-    branches: [main]   # also auto-trigger on every push to main
+  workflow_dispatch:   # trigger manually from GitHub Actions UI only
+  # Removed push trigger — auto-redeploying on every commit was restarting
+  # the live trading agent and resetting cycle counts to 0.
 
 permissions:
   contents: write

@@ -4,6 +4,8 @@ on:
   workflow_dispatch:   # trigger manually on demand
   schedule:
     - cron: "*/30 * * * *"   # every 30 minutes
+  push:
+    branches: [main]   # run on every push (fetch-only; commit only on schedule/dispatch)
 
 permissions:
   contents: write
