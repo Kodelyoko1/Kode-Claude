@@ -2,6 +2,15 @@ name: Redeploy Render Service
 
 on:
   workflow_dispatch:   # trigger manually from GitHub Actions UI only
+    inputs:
+      action:
+        description: '"redeploy" to restart the service, "status" to fetch status only'
+        required: false
+        default: redeploy
+        type: choice
+        options:
+          - redeploy
+          - status
   # Removed push trigger — auto-redeploying on every commit was restarting
   # the live trading agent and resetting cycle counts to 0.
 
@@ -14,6 +23,7 @@ jobs:
     steps:
       - name: Find service ID
         id: find_service
+        if: ${{ github.event.inputs.action != 'status' }}
         run: |
           SERVICE_ID=$(curl -s "https://api.render.com/v1/services?limit=50" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
@@ -32,6 +42,7 @@ jobs:
 
       - name: Trigger redeploy from main
         id: trigger_deploy
+        if: ${{ github.event.inputs.action != 'status' }}
         run: |
           # Render v1 API: POST body must be empty or {"clearCache":true}
           # Do NOT pass "branch" — it causes an "invalid JSON" rejection
@@ -51,6 +62,7 @@ jobs:
           echo "Deploy ID: $DEPLOY_ID"
 
       - name: Wait for new deploy to go live
+        if: ${{ github.event.inputs.action != 'status' }}
         run: |
           SVC_ID="${{ steps.find_service.outputs.service_id }}"
           DEPLOY_ID="${{ steps.trigger_deploy.outputs.deploy_id }}"
@@ -111,22 +123,28 @@ jobs:
           except Exception:
             scan = {}
           print(json.dumps({
-            'cycles':          d.get('cycles'),
-            'boot_done':       d.get('boot_done'),
-            'last_cycle':      d.get('last_cycle'),
-            'live_trading':    d.get('last_result', {}).get('live_trading'),
-            'opportunities':   d.get('last_result', {}).get('opportunities'),
-            'trades_placed':   d.get('last_result', {}).get('trades_placed'),
-            'bankroll':        risk.get('bankroll'),
-            'total_pnl':       risk.get('total_pnl'),
-            'daily_pnl':       risk.get('daily_pnl'),
-            'open_positions':  risk.get('open_positions'),
-            'trade_count':     risk.get('trade_count'),
-            'halted':          risk.get('halted'),
-            'halt_reason':     risk.get('halt_reason'),
-            'trade_log_count': len(trades),
-            'scan_opportunities': scan.get('opportunities'),
-            'scan_total_markets': scan.get('total_markets'),
+            'cycles':            d.get('cycles'),
+            'boot_done':         d.get('boot_done'),
+            'last_cycle':        d.get('last_cycle'),
+            'live_trading':      d.get('last_result', {}).get('live_trading'),
+            'opportunities':     d.get('last_result', {}).get('opportunities'),
+            'trades_placed':     d.get('last_result', {}).get('trades_placed'),
+            'new_resolutions':   d.get('last_result', {}).get('new_resolutions'),
+            'total_resolutions': d.get('last_result', {}).get('total_resolutions'),
+            'bankroll':          risk.get('bankroll'),
+            'total_pnl':         risk.get('total_pnl'),
+            'daily_pnl':         risk.get('daily_pnl'),
+            'open_positions':    risk.get('open_positions'),
+            'trade_count':       risk.get('trade_count'),
+            'halted':            risk.get('halted'),
+            'halt_reason':       risk.get('halt_reason'),
+            'trade_log_count':   len(trades),
+            'scan_total_markets':   scan.get('total_markets'),
+            'scan_low_liquidity':   scan.get('low_liquidity_skipped'),
+            'scan_no_city_match':   scan.get('no_city_match'),
+            'scan_price_extreme':   scan.get('price_at_extreme'),
+            'scan_below_edge':      scan.get('below_edge_threshold'),
+            'scan_opportunities':   scan.get('opportunities'),
           }, indent=2))
           " > data/pw_render_summary.json 2>/dev/null \
             || echo '{"error":"parse failed"}' > data/pw_render_summary.json
