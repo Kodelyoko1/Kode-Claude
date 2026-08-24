@@ -42,23 +42,44 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{}')
           echo "Deploy response: $RESP"
-          echo "$RESP" | python3 -c "
+          DEPLOY_ID=$(echo "$RESP" | python3 -c "
           import json, sys
           d = json.load(sys.stdin)
-          print('Deploy ID:', d.get('id', 'none'))
-          print('Status:', d.get('status', d.get('message', '?')))
-          " 2>/dev/null || echo "Deploy response was not JSON"
+          print(d.get('id', ''))
+          " 2>/dev/null || echo "")
+          echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
+          echo "Deploy ID: $DEPLOY_ID"
 
-      - name: Wait for Render to come back up
+      - name: Wait for new deploy to go live
         run: |
-          BASE="https://polymarket-weather-agent.onrender.com"
-          echo "Waiting up to 5 min for Render to respond..."
-          for i in $(seq 1 30); do
-            STATUS=$(curl -s --max-time 10 "$BASE/health" || echo "down")
-            echo "Attempt $i: $STATUS"
-            if echo "$STATUS" | python3 -c "import json,sys; d=json.load(sys.stdin); exit(0 if d.get('status')=='ok' else 1)" 2>/dev/null; then
-              echo "Service is up!"
-              break
+          SVC_ID="${{ steps.find_service.outputs.service_id }}"
+          DEPLOY_ID="${{ steps.trigger_deploy.outputs.deploy_id }}"
+          echo "Polling deploy $DEPLOY_ID until live (up to 8 min)..."
+          for i in $(seq 1 48); do
+            if [ -n "$DEPLOY_ID" ]; then
+              # Poll the specific deploy status via Render API
+              DEPLOY_STATUS=$(curl -s \
+                "https://api.render.com/v1/services/$SVC_ID/deploys/$DEPLOY_ID" \
+                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+                -H "Accept: application/json" | \
+                python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status','unknown'))" 2>/dev/null || echo "unknown")
+              echo "Attempt $i: deploy status=$DEPLOY_STATUS"
+              if [ "$DEPLOY_STATUS" = "live" ]; then
+                echo "Deploy is live!"
+                break
+              fi
+              if [ "$DEPLOY_STATUS" = "failed" ] || [ "$DEPLOY_STATUS" = "canceled" ]; then
+                echo "Deploy $DEPLOY_STATUS — fetching current service status anyway"
+                break
+              fi
+            else
+              # No deploy ID: just wait for health endpoint
+              STATUS=$(curl -s --max-time 10 "https://polymarket-weather-agent.onrender.com/health" || echo "down")
+              echo "Attempt $i: health=$STATUS"
+              if echo "$STATUS" | python3 -c "import json,sys; d=json.load(sys.stdin); exit(0 if d.get('status')=='ok' else 1)" 2>/dev/null; then
+                echo "Service is up!"
+                break
+              fi
             fi
             sleep 10
           done
