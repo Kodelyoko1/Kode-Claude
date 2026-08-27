@@ -1,10 +1,10 @@
 """
-Trading agent — scans live PolyMarket weather markets, compares model probabilities
+Trading agent — scans live Kalshi weather markets, compares model probabilities
 to market prices, and places trades when edge exceeds the configured threshold.
 
 Cycle:
-  1. Fetch all open PolyMarket weather markets
-  2. For each market, determine the relevant city/event from the question text
+  1. Fetch all open Kalshi weather markets (KXHIGHTEMP, KXRAIN, KXSNOW, etc.)
+  2. For each market, determine the relevant city/event from the ticker
   3. Fetch live weather forecast for that location
   4. Run the appropriate model to get P(event=YES)
   5. Compare to the current market mid-price
@@ -12,6 +12,7 @@ Cycle:
   7. Log everything to data/pw_trades/trade_log.jsonl
 
 Set PW_LIVE_TRADING=1 to place real orders. Default is dry-run.
+Credentials: KALSHI_KEY_ID + KALSHI_PRIVATE_KEY in Render env vars.
 """
 from __future__ import annotations
 
@@ -27,8 +28,11 @@ from polymarket_weather.api_client import (
     get_weather_markets,
     get_midpoint_price,
     get_order_book,
-    PolyMarketTrader,
+    KalshiTrader,
     Market,
+    extract_city_from_ticker,
+    extract_series_from_ticker,
+    series_to_event_type,
 )
 from polymarket_weather.data_pipeline import (
     fetch_forecast_weather,
@@ -87,10 +91,17 @@ EVENT_KEYWORDS: dict[str, str] = {
 }
 
 
-def _extract_city(question: str) -> Optional[str]:
+def _extract_city(question: str, ticker: str = "") -> Optional[str]:
+    """
+    Extract city key from a Kalshi ticker first, then fall back to question text.
+    Ticker-based extraction is more reliable (e.g. KXHIGHTEMP-25AUG26-T85-NYC).
+    """
+    if ticker:
+        city = extract_city_from_ticker(ticker)
+        if city:
+            return city
+    # Text fallback
     q = question.lower()
-    # Use word-boundary matching so "la" doesn't hit "dallas"/"atlanta"/"philadelphia"
-    import re
     for keyword, city_key in CITY_KEYWORDS.items():
         pattern = r'\b' + re.escape(keyword) + r'\b'
         if re.search(pattern, q):
@@ -98,12 +109,21 @@ def _extract_city(question: str) -> Optional[str]:
     return None
 
 
-def _extract_event_type(question: str) -> str:
+def _extract_event_type(question: str, ticker: str = "") -> str:
+    """
+    Extract event type from Kalshi series (ticker prefix) first,
+    then fall back to question-text keyword matching.
+    """
+    if ticker:
+        series = extract_series_from_ticker(ticker)
+        if series:
+            return series_to_event_type(series)
+    # Text fallback
     q = question.lower()
     for keyword, event_type in EVENT_KEYWORDS.items():
         if keyword in q:
             return event_type
-    return "temp_above_90f"  # default to most common market type
+    return "temp_above_90f"
 
 
 # ---------------------------------------------------------------------------
@@ -173,7 +193,7 @@ class WeatherTradingAgent:
             min_edge=min_edge,
             max_position_pct=max_position_pct,
         )
-        self.trader          = PolyMarketTrader()
+        self.trader          = KalshiTrader()
         self._model_cache:   dict[str, WeatherForecastModel] = {}
         self._forecast_cache:dict[str, list[dict]] = {}
 
@@ -247,11 +267,11 @@ class WeatherTradingAgent:
             if market.liquidity < self.min_liquidity:
                 continue
 
-            city = _extract_city(market.question)
+            city = _extract_city(market.question, ticker=market.ticker)
             if city is None:
                 continue
 
-            event_type = _extract_event_type(market.question)
+            event_type = _extract_event_type(market.question, ticker=market.ticker)
 
             yes_token = market.yes_token_id()
             if not yes_token:

@@ -1,10 +1,10 @@
 """
 polymarket_weather/resolver.py
-Collects real resolved PolyMarket weather market data to improve model accuracy.
+Collects resolved Kalshi weather market data to improve model accuracy.
 
 Flow:
-  1. Fetch closed/resolved weather markets from Gamma API
-  2. Extract YES/NO outcome from final token prices
+  1. Fetch settled weather markets from Kalshi (WEATHER_SERIES, status=settled)
+  2. Extract YES/NO outcome from market.result field
   3. Align each market with historical Open-Meteo weather for city + date
   4. Save labeled records to data/pw_resolved/resolved.jsonl for training
 """
@@ -26,8 +26,10 @@ RESOLVED_DIR.mkdir(parents=True, exist_ok=True)
 RESOLVED_FILE = RESOLVED_DIR / "resolved.jsonl"
 SEEN_IDS_FILE = RESOLVED_DIR / "seen_ids.json"
 
-GAMMA_API     = "https://gamma-api.polymarket.com"
+KALSHI_BASE   = "https://trading-api.kalshi.com/trade-api/v2"
 OPEN_METEO    = "https://archive-api.open-meteo.com/v1/archive"
+
+WEATHER_SERIES = ["KXHIGHTEMP", "KXLOWTEMP", "KXRAIN", "KXSNOW", "KXWIND"]
 
 # Weather-related keywords to filter markets
 WEATHER_KEYWORDS = [
@@ -91,27 +93,13 @@ def _save_seen_ids(seen: set[str]) -> None:
 def _extract_outcome(market: dict) -> Optional[int]:
     """
     Return 1 if YES won, 0 if NO won, None if undetermined.
-    Checks token final prices (≥ 0.95 = winner).
+    Kalshi provides an explicit `result` field: "yes", "no", or "" (open).
     """
-    tokens = market.get("tokens") or []
-    for tok in tokens:
-        outcome_str = str(tok.get("outcome", "")).upper()
-        price = float(tok.get("price", 0) or 0)
-        if price >= 0.95:
-            return 1 if outcome_str == "YES" else 0
-
-    # Fallback: outcomePrices list [yes_price, no_price]
-    prices_raw = market.get("outcomePrices") or []
-    try:
-        prices = [float(p) for p in prices_raw]
-        if len(prices) >= 2:
-            if prices[0] >= 0.95:
-                return 1
-            if prices[1] >= 0.95:
-                return 0
-    except (ValueError, TypeError):
-        pass
-
+    result = str(market.get("result") or "").lower().strip()
+    if result == "yes":
+        return 1
+    if result == "no":
+        return 0
     return None
 
 
@@ -171,9 +159,10 @@ def _align_weather(city: str, date_str: str) -> Optional[dict]:
 # ---------------------------------------------------------------------------
 
 def _resolution_date(market: dict) -> Optional[str]:
-    """Extract YYYY-MM-DD from endDate / resolutionTime fields."""
-    for field in ("endDate", "resolutionTime", "end_date_iso"):
-        val = market.get(field)
+    """Extract YYYY-MM-DD from Kalshi close_time / expected_expiration_time fields."""
+    for key in ("close_time", "expected_expiration_time", "expiration_time",
+                "endDate", "resolutionTime", "end_date_iso"):
+        val = market.get(key)
         if val:
             try:
                 dt = datetime.fromisoformat(str(val).replace("Z", "+00:00"))
@@ -189,7 +178,7 @@ def _resolution_date(market: dict) -> Optional[str]:
 
 def collect_new_resolutions(days_back: int = 60) -> dict:
     """
-    Fetch recently closed weather markets, extract outcomes, align weather, save.
+    Fetch recently settled Kalshi weather markets, extract outcomes, align weather, save.
 
     Returns:
         {"new_records": int, "total_records": int, "errors": int, "markets_checked": int}
@@ -201,43 +190,40 @@ def collect_new_resolutions(days_back: int = 60) -> dict:
 
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days_back)).strftime("%Y-%m-%d")
 
-    # Fetch closed markets from Gamma API
-    try:
-        resp = requests.get(
-            f"{GAMMA_API}/markets",
-            params={
-                "closed":    "true",
-                "limit":     200,
-                "active":    "false",
-                "order":     "endDate",
-                "ascending": "false",
-            },
-            timeout=20,
-        )
-        resp.raise_for_status()
-        markets = resp.json()
-        if isinstance(markets, dict):
-            markets = markets.get("markets") or markets.get("data") or []
-    except Exception as exc:
-        return {"new_records": 0, "total_records": _count_total(), "errors": 1,
-                "markets_checked": 0, "error": str(exc)}
+    all_markets: list[dict] = []
+
+    # Fetch settled markets from Kalshi for each weather series
+    for series in WEATHER_SERIES:
+        try:
+            resp = requests.get(
+                f"{KALSHI_BASE}/markets",
+                params={"series_ticker": series, "status": "settled", "limit": 200},
+                timeout=20,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            rows = data.get("markets", data) if isinstance(data, dict) else data
+            all_markets.extend(rows)
+        except Exception as exc:
+            errors += 1
+            continue
+
+    if not all_markets and errors:
+        return {"new_records": 0, "total_records": _count_total(), "errors": errors,
+                "markets_checked": 0}
 
     records_batch: list[dict] = []
 
-    for mkt in markets:
+    for mkt in all_markets:
         checked += 1
-        mkt_id   = str(mkt.get("id") or mkt.get("conditionId") or "")
-        question = str(mkt.get("question") or "")
-
-        # Skip non-weather markets
-        if not any(kw in question.lower() for kw in WEATHER_KEYWORDS):
-            continue
+        mkt_id   = str(mkt.get("ticker") or "")
+        title    = str(mkt.get("title") or mkt.get("subtitle") or mkt_id)
 
         # Skip already collected
         if mkt_id and mkt_id in seen:
             continue
 
-        # Skip markets that resolved before the cutoff
+        # Resolve date from close_time or expected_expiration_time
         res_date = _resolution_date(mkt)
         if res_date and res_date < cutoff:
             continue
@@ -246,19 +232,27 @@ def collect_new_resolutions(days_back: int = 60) -> dict:
         if outcome is None:
             continue
 
-        city = _detect_city(question)
+        # City from ticker first, then title text
+        from polymarket_weather.api_client import (
+            extract_city_from_ticker, KALSHI_LOC_MAP
+        )
+        city = extract_city_from_ticker(mkt_id) or _detect_city(title)
         if not city:
             continue
 
         weather = _align_weather(city, res_date) if res_date else None
 
+        # Market price at settlement (last traded price in cents → 0-1)
+        last_price_cents = mkt.get("last_price") or 50
+        market_price = float(last_price_cents) / 100.0
+
         record: dict = {
-            "market_id":   mkt_id,
-            "question":    question,
-            "city":        city,
-            "outcome":     outcome,
-            "date":        res_date,
-            "market_price": float(mkt.get("bestBid") or mkt.get("lastTradedPrice") or 0.5),
+            "market_id":    mkt_id,
+            "question":     title,
+            "city":         city,
+            "outcome":      outcome,
+            "date":         res_date,
+            "market_price": market_price,
             "collected_at": datetime.now(timezone.utc).isoformat(),
         }
         if weather:
@@ -269,10 +263,8 @@ def collect_new_resolutions(days_back: int = 60) -> dict:
             seen.add(mkt_id)
         new_records += 1
 
-        # Gentle rate limiting
-        time.sleep(0.2)
+        time.sleep(0.1)   # gentle pacing
 
-    # Append to JSONL file
     if records_batch:
         with RESOLVED_FILE.open("a") as fh:
             for rec in records_batch:
@@ -281,9 +273,9 @@ def collect_new_resolutions(days_back: int = 60) -> dict:
 
     total = _count_total()
     return {
-        "new_records":    new_records,
-        "total_records":  total,
-        "errors":         errors,
+        "new_records":     new_records,
+        "total_records":   total,
+        "errors":          errors,
         "markets_checked": checked,
     }
 

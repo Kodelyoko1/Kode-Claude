@@ -4,4 +4,4 @@ rich>=13.0.0
 python-dotenv>=1.0.0
 numpy>=1.26.0
 xgboost>=2.0.0
-py-clob-client>=0.18.0
+cryptography>=42.0.0   # RSA signing for Kalshi API auth

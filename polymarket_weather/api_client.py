@@ -1,13 +1,18 @@
 """
-PolyMarket API client — wraps both the public Gamma API (market discovery/metadata)
-and the CLOB API (prices, order books, authenticated order placement).
+Kalshi API client — replaces the PolyMarket CLOB/Gamma client.
 
-Public endpoints work with no credentials.
-Order placement requires PW_PRIVATE_KEY + optional L2 API creds in .env.
-Set PW_LIVE_TRADING=1 to actually submit orders (default: dry-run only).
+Market discovery and orderbooks are public (no auth required).
+Order placement requires KALSHI_KEY_ID + KALSHI_PRIVATE_KEY in .env.
+Set PW_LIVE_TRADING=1 to submit real orders (default: dry-run only).
+
+Credentials — set in Render dashboard (never commit):
+  KALSHI_KEY_ID       = your API key ID from kalshi.com/profile/api
+  KALSHI_PRIVATE_KEY  = PEM private key string (newlines as \\n)
+                        OR set KALSHI_PRIVATE_KEY_PATH to a .pem file path
 """
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -19,12 +24,14 @@ from typing import Optional
 
 import requests
 
-GAMMA_API  = "https://gamma-api.polymarket.com"
-CLOB_API   = "https://clob.polymarket.com"
-CHAIN_ID   = 137  # Polygon mainnet
+KALSHI_BASE = "https://trading-api.kalshi.com/trade-api/v2"
+KALSHI_DEMO = "https://demo-api.kalshi.co/trade-api/v2"
 
 _SESSION = requests.Session()
-_SESSION.headers.update({"User-Agent": "WholesaleOmniverse-PolyWeather/1.0"})
+_SESSION.headers.update({
+    "Content-Type": "application/json",
+    "User-Agent": "WholesaleOmniverse-KalshiWeather/1.0",
+})
 
 # Diagnostics written by get_weather_markets() and read by the /scan endpoint
 _last_fetch_info: dict = {
@@ -35,74 +42,106 @@ _last_fetch_info: dict = {
 }
 
 # ---------------------------------------------------------------------------
-# Weather market detection (post-fetch filter)
+# Kalshi weather series + location mappings
 # ---------------------------------------------------------------------------
 
-_WEATHER_RE = re.compile(
-    r'\b('
-    r'temperatur|temp\b|degree|°f|°c|fahrenheit|celsius|'
-    r'rain|precipit|shower|drizzle|flood|'
-    r'snow|blizzard|frost|freeze|frozen|'
-    r'wind|mph|knots|gust|hurricane|tornado|cyclone|typhoon|'
-    r'forecast|weather|humidity|drought|heatwave|heat wave|'
-    r'high of|low of|above \d+|below \d+|exceed \d+|over \d+|'
-    r'storm|hail|lightning|thunder|cloudy|sunny|overcast'
-    r')',
-    re.IGNORECASE,
-)
+# Kalshi weather series tickers — fetched in priority order
+WEATHER_SERIES = [
+    "KXHIGHTEMP",   # daily high temperature above threshold
+    "KXLOWTEMP",    # daily low temperature below threshold
+    "KXRAIN",       # will it rain
+    "KXSNOW",       # will it snow
+    "KXWIND",       # will wind exceed threshold
+]
 
+# Kalshi location codes → CITY_COORDS keys (data_pipeline.py)
+KALSHI_LOC_MAP: dict[str, str] = {
+    # New York
+    "NYC": "new_york", "NYS": "new_york", "NY": "new_york",
+    # Chicago
+    "CHI": "chicago",  "CHIL": "chicago", "ORD": "chicago",
+    # Miami
+    "MIA": "miami",    "MIAM": "miami",
+    # Atlanta
+    "ATL": "atlanta",
+    # Dallas / Fort Worth
+    "DFW": "dallas",   "DAL": "dallas",
+    # Phoenix
+    "PHX": "phoenix",
+    # Houston
+    "HOU": "houston",
+    # Philadelphia
+    "PHI": "philadelphia",
+    # San Antonio
+    "SA":  "san_antonio", "SATX": "san_antonio",
+    # Los Angeles
+    "LAX": "los_angeles", "LA": "los_angeles",
+    # Seattle
+    "SEA": "seattle",
+    # Boston
+    "BOS": "boston",
+    # Denver
+    "DEN": "denver",
+    # Minneapolis
+    "MSP": "minneapolis",
+    # Detroit
+    "DTW": "detroit",
+    # Washington DC
+    "IAD": "washington_dc", "DCA": "washington_dc",
+}
 
-def _is_weather_market(question: str, tags: list[str]) -> bool:
-    """Return True only when the question text itself contains weather keywords.
-
-    Tag-based shortcuts are intentionally absent: the /events endpoint propagates
-    parent-event tags to all sub-markets, so earthquake and disease markets inside
-    a weather-tagged event would pass a tags-only check.  Question text is the only
-    reliable gate.
-    """
-    return bool(_WEATHER_RE.search(question))
+# Map series ticker → event_type for the ML model
+SERIES_EVENT_MAP: dict[str, str] = {
+    "KXHIGHTEMP": "temp_above_90f",
+    "KXLOWTEMP":  "temp_above_32f",
+    "KXRAIN":     "precip_any",
+    "KXSNOW":     "precip_any",
+    "KXWIND":     "wind_above_25mph",
+}
 
 
 # ---------------------------------------------------------------------------
-# Data containers
+# Data containers (interface-compatible with old PolyMarket client)
 # ---------------------------------------------------------------------------
 
 @dataclass
 class Market:
-    condition_id: str
+    condition_id: str       # = ticker for Kalshi
     question: str
-    slug: str
+    slug: str               # = ticker for Kalshi
     end_date: str
-    tokens: list[dict]           # [{token_id, outcome}]
+    tokens: list[dict]      # [{"token_id": "TICKER:yes", "outcome": "YES"},
+                            #  {"token_id": "TICKER:no",  "outcome": "NO"}]
     volume: float = 0.0
     liquidity: float = 0.0
     closed: bool = False
     tags: list[str] = field(default_factory=list)
+    # Kalshi extras
+    ticker: str = ""
+    series: str = ""
+    yes_price_cents: int = 50   # 1-99
+    no_price_cents: int = 50
 
     def yes_token_id(self) -> Optional[str]:
-        for t in self.tokens:
-            if t.get("outcome", "").upper() == "YES":
-                return t["token_id"]
-        return self.tokens[0]["token_id"] if self.tokens else None
+        """Return YES side identifier — ticker:yes."""
+        return f"{self.ticker}:yes" if self.ticker else None
 
     def no_token_id(self) -> Optional[str]:
-        for t in self.tokens:
-            if t.get("outcome", "").upper() == "NO":
-                return t["token_id"]
-        return self.tokens[1]["token_id"] if len(self.tokens) > 1 else None
+        """Return NO side identifier — ticker:no."""
+        return f"{self.ticker}:no" if self.ticker else None
 
 
 @dataclass
 class PricePoint:
     timestamp: int
-    price: float   # 0–1, where 1 = $1 = YES resolved
+    price: float   # 0–1 probability
 
 
 @dataclass
 class OrderBook:
-    token_id: str
-    bids: list[dict]   # [{price, size}] sorted desc
-    asks: list[dict]   # [{price, size}] sorted asc
+    token_id: str   # "TICKER:yes" or "TICKER:no" — the side this book is for
+    bids: list[dict]    # [{price, size}] sorted desc — in 0-1 prob space
+    asks: list[dict]    # [{price, size}] sorted asc
     spread: float = 0.0
 
     def best_bid(self) -> float:
@@ -116,7 +155,7 @@ class OrderBook:
 
 
 # ---------------------------------------------------------------------------
-# Public API helpers (no auth required)
+# HTTP helpers
 # ---------------------------------------------------------------------------
 
 def _get(url: str, params: dict | None = None, timeout: int = 20) -> dict | list:
@@ -125,191 +164,169 @@ def _get(url: str, params: dict | None = None, timeout: int = 20) -> dict | list
     return resp.json()
 
 
-def _parse_clob_ids(raw) -> list[str]:
+def _post(url: str, payload: dict, headers: dict | None = None, timeout: int = 20) -> dict:
+    resp = _SESSION.post(url, json=payload, headers=headers or {}, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+
+# ---------------------------------------------------------------------------
+# RSA auth for authenticated endpoints
+# ---------------------------------------------------------------------------
+
+def _load_private_key():
+    """Load the RSA private key from env var or file. Returns a cryptography key object."""
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+    pem: bytes = b""
+    raw = os.getenv("KALSHI_PRIVATE_KEY", "").strip()
+    if raw:
+        # Env var may have literal \n instead of real newlines
+        pem = raw.replace("\\n", "\n").encode()
+    else:
+        path = os.getenv("KALSHI_PRIVATE_KEY_PATH", "").strip()
+        if path and Path(path).exists():
+            pem = Path(path).read_bytes()
+
+    if not pem:
+        return None
+    return load_pem_private_key(pem, password=None)
+
+
+def _make_auth_headers(method: str, path: str, body: str = "") -> dict:
     """
-    Safely extract a list of token ID strings from clobTokenIds.
-    The field is a parsed list in the /markets endpoint but a JSON-encoded
-    string in the /events nested-market objects — handle both.
+    Build Kalshi RSA auth headers.
+    Signature covers: timestamp_ms + METHOD + path (no host, no body).
     """
-    if isinstance(raw, list):
-        return [str(x) for x in raw if x]
-    if isinstance(raw, str):
-        try:
-            parsed = json.loads(raw)
-            if isinstance(parsed, list):
-                return [str(x) for x in parsed if x]
-        except (ValueError, TypeError):
-            pass
-    return []
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
+
+    key_id = os.getenv("KALSHI_KEY_ID", "").strip()
+    if not key_id:
+        return {}
+
+    private_key = _load_private_key()
+    if private_key is None:
+        return {}
+
+    timestamp_ms = str(int(time.time() * 1000))
+    msg_str = timestamp_ms + method.upper() + path
+    signature = private_key.sign(
+        msg_str.encode(),
+        asym_padding.PKCS1v15(),
+        hashes.SHA256(),
+    )
+    return {
+        "KALSHI-ACCESS-KEY":       key_id,
+        "KALSHI-ACCESS-SIGNATURE": base64.b64encode(signature).decode(),
+        "KALSHI-ACCESS-TIMESTAMP": timestamp_ms,
+    }
 
 
-def _parse_markets_response(data: dict | list) -> list[Market]:
-    """Parse a Gamma API /markets response (list or {data:[...]} envelope)."""
-    rows = data if isinstance(data, list) else data.get("data", [])
-    markets = []
-    for m in rows:
-        tokens = []
-        for t in m.get("tokens", []) or []:
-            if isinstance(t, dict):
-                tokens.append(t)
-            elif isinstance(t, str) and t:
-                # Some endpoints return raw token-id strings; outcome unknown
-                tokens.append({"token_id": t, "outcome": "YES" if not tokens else "NO"})
-        if not tokens:
-            outcomes = m.get("outcomes", ["Yes", "No"])
-            clob_ids = _parse_clob_ids(m.get("clobTokenIds"))
-            tokens = [
-                {"token_id": tid, "outcome": out}
-                for tid, out in zip(clob_ids, outcomes)
-            ]
-        raw_tags = m.get("tags") or []
-        tag_slugs = [
-            t.get("slug", "") if isinstance(t, dict) else str(t)
-            for t in raw_tags
-        ]
-        markets.append(Market(
-            condition_id=m.get("conditionId", m.get("condition_id", "")),
-            question=m.get("question", ""),
-            slug=m.get("slug", ""),
-            end_date=m.get("endDate", m.get("end_date", "")),
-            tokens=tokens,
-            volume=float(m.get("volume", 0) or 0),
-            liquidity=float(m.get("liquidity", 0) or 0),
-            closed=m.get("closed", False),
-            tags=tag_slugs,
-        ))
-    return markets
+# ---------------------------------------------------------------------------
+# Market discovery
+# ---------------------------------------------------------------------------
 
+def _parse_kalshi_market(m: dict) -> Optional[Market]:
+    """Convert a Kalshi /markets API dict to a Market dataclass."""
+    ticker  = m.get("ticker", "")
+    series  = m.get("series_ticker", "")
+    status  = m.get("status", "")
+    closed  = status not in ("open", "unopened")
+    title   = m.get("title") or m.get("subtitle") or ticker
 
-def _parse_events_response(data: dict | list) -> list[Market]:
-    """
-    Parse a Gamma API /events response.  Each event contains a list of
-    nested market dicts — flatten them into Market objects.
+    # Prices in cents (1-99); fall back to 50 if missing
+    yes_bid = int(m.get("yes_bid") or 0)
+    yes_ask = int(m.get("yes_ask") or 99)
+    no_bid  = int(m.get("no_bid")  or 0)
+    no_ask  = int(m.get("no_ask")  or 99)
 
-    Important: we do NOT propagate event-level tags down to individual markets.
-    Doing so causes false positives: a weather-tagged event can contain
-    non-weather sub-markets (disease counts, earthquake odds, etc.) which would
-    inherit the "weather" tag and wrongly pass _is_weather_market().  The
-    question text is the sole gate (see _is_weather_market).
-    """
-    rows = data if isinstance(data, list) else data.get("data", [])
-    all_markets: list[Market] = []
-    for event in rows:
-        for m in event.get("markets", []):
-            tokens = []
-            for t in m.get("tokens", []) or []:
-                if isinstance(t, dict):
-                    tokens.append(t)
-                elif isinstance(t, str) and t:
-                    tokens.append({"token_id": t, "outcome": "YES" if not tokens else "NO"})
-            if not tokens:
-                outcomes = m.get("outcomes", ["Yes", "No"])
-                # clobTokenIds is a JSON-encoded string in the events endpoint
-                clob_ids = _parse_clob_ids(m.get("clobTokenIds"))
-                tokens = [
-                    {"token_id": tid, "outcome": out}
-                    for tid, out in zip(clob_ids, outcomes)
-                ]
-            # Use only market-level tags (not event-level) to avoid false positives
-            raw_tags = m.get("tags") or []
-            tag_slugs = [
-                t.get("slug", "") if isinstance(t, dict) else str(t)
-                for t in raw_tags
-            ]
-            all_markets.append(Market(
-                condition_id=m.get("conditionId", m.get("condition_id", "")),
-                question=m.get("question", ""),
-                slug=m.get("slug", ""),
-                end_date=m.get("endDate", m.get("end_date", "")),
-                tokens=tokens,
-                volume=float(m.get("volume", 0) or 0),
-                liquidity=float(m.get("liquidity", 0) or 0),
-                closed=m.get("closed", False),
-                tags=tag_slugs,
-            ))
-    return all_markets
+    yes_mid_cents = (yes_bid + yes_ask) // 2 if yes_bid and yes_ask else 50
+    no_mid_cents  = (no_bid  + no_ask)  // 2 if no_bid  and no_ask  else 50
+
+    close_time = (
+        m.get("close_time") or
+        m.get("expected_expiration_time") or
+        m.get("end_date") or ""
+    )
+    # Normalise to YYYY-MM-DD
+    end_date = close_time[:10] if close_time else ""
+
+    liquidity     = float(m.get("liquidity")      or m.get("dollar_open_interest") or
+                          m.get("open_interest")   or 0)
+    volume        = float(m.get("volume")          or 0)
+
+    return Market(
+        condition_id    = ticker,
+        question        = title,
+        slug            = ticker,
+        end_date        = end_date,
+        tokens          = [
+            {"token_id": f"{ticker}:yes", "outcome": "YES"},
+            {"token_id": f"{ticker}:no",  "outcome": "NO"},
+        ],
+        volume          = volume,
+        liquidity       = liquidity,
+        closed          = closed,
+        tags            = [series] if series else [],
+        ticker          = ticker,
+        series          = series,
+        yes_price_cents = yes_mid_cents,
+        no_price_cents  = no_mid_cents,
+    )
 
 
 def get_weather_markets(limit: int = 200, closed: bool = False) -> list[Market]:
     """
-    Return PolyMarket weather markets via Gamma API.
+    Return Kalshi weather markets, one fetch per WEATHER_SERIES entry.
 
-    Multi-strategy fetch (each stage post-filters for actual weather questions):
-      1. /markets?tag_slug=weather  — primary attempt
-      2. /events?tag_slug=weather   — events endpoint (different schema)
-      3. /markets (no tag filter, larger page) + text-based weather filter
-      4. On-disk synthetic cache
-
-    Any raw API response is always filtered through _is_weather_market() so
-    non-weather markets returned by a misbehaving tag filter are discarded.
-    Falls back to cached synthetic data when live API is unreachable.
+    Falls back to on-disk synthetic cache if all series fail.
     """
     global _last_fetch_info
-    closed_str = str(closed).lower()
 
-    def _record(strategy: str, raw: int, kept: int, source: str) -> None:
-        _last_fetch_info.update({"strategy": strategy, "raw_fetched": raw,
-                                  "weather_kept": kept, "source": source})
+    status_filter = "settled" if closed else "open"
+    all_markets: list[Market] = []
+    series_fetched = []
 
-    # --- Strategy 1: /markets?tag_slug=weather ---
-    try:
-        data = _get(f"{GAMMA_API}/markets", params={
-            "tag_slug": "weather",
-            "closed": closed_str,
-            "limit": limit,
-        })
-        markets = _parse_markets_response(data)
-        weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
-        _record("markets?tag_slug=weather", len(markets), len(weather), "live")
-        if weather:
-            return weather
-    except Exception:
-        pass
-
-    # --- Strategy 2: /events?tag_slug=weather (events can have different tag index) ---
-    try:
-        data = _get(f"{GAMMA_API}/events", params={
-            "tag_slug": "weather",
-            "closed": closed_str,
-            "active": "true",
-            "limit": 100,
-        })
-        markets = _parse_events_response(data)
-        weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
-        _record("events?tag_slug=weather", len(markets), len(weather), "live")
-        if weather:
-            return weather
-    except Exception:
-        pass
-
-    # --- Strategy 3: broad fetch + weather keyword filter ---
-    # Fetch a large page of active markets and text-filter for weather content.
-    for sort_by in ("volume24hr", "liquidity", "end_date_min"):
+    for series in WEATHER_SERIES:
         try:
-            data = _get(f"{GAMMA_API}/markets", params={
-                "closed": closed_str,
-                "active": "true",
-                "limit": 500,
-                "order": sort_by,
+            data = _get(f"{KALSHI_BASE}/markets", params={
+                "series_ticker": series,
+                "status":        status_filter,
+                "limit":         min(limit, 1000),
             })
-            markets = _parse_markets_response(data)
-            weather = [m for m in markets if _is_weather_market(m.question, m.tags)]
-            _record(f"markets?order={sort_by} (broad)", len(markets), len(weather), "live")
-            if weather:
-                return weather
+            rows = data.get("markets", data) if isinstance(data, dict) else data
+            for m in rows:
+                parsed = _parse_kalshi_market(m)
+                if parsed:
+                    all_markets.append(parsed)
+            series_fetched.append(series)
         except Exception:
             continue
 
-    # --- Strategy 4: on-disk cache (synthetic or previously fetched) ---
+    if all_markets:
+        strategy = "series: " + ",".join(series_fetched)
+        _last_fetch_info.update({
+            "strategy":     strategy,
+            "raw_fetched":  len(all_markets),
+            "weather_kept": len(all_markets),
+            "source":       "live",
+        })
+        return all_markets
+
+    # Fallback: synthetic cache
     cached = _load_cached_markets(closed=closed)
-    _record("cache", len(cached), len(cached), "cache")
+    _last_fetch_info.update({
+        "strategy":     "cache",
+        "raw_fetched":  len(cached),
+        "weather_kept": len(cached),
+        "source":       "cache",
+    })
     return cached
 
 
 def _load_cached_markets(closed: bool = False) -> list[Market]:
-    """Load markets from the on-disk cache (synthetic or previously fetched)."""
-    import json
-    from pathlib import Path
+    """Load markets from on-disk synthetic cache."""
     cache = Path(__file__).parent.parent / "data" / "pw_historical" / "markets_cache.json"
     if not cache.exists():
         return []
@@ -321,78 +338,277 @@ def _load_cached_markets(closed: bool = False) -> list[Market]:
     for m in raw:
         if m.get("closed", False) != closed and not m.get("_synthetic"):
             continue
+        ticker = m.get("condition_id", m.get("slug", ""))
         markets.append(Market(
-            condition_id=m.get("condition_id", ""),
-            question=m.get("question", ""),
-            slug=m.get("slug", ""),
-            end_date=m.get("end_date", ""),
-            tokens=m.get("tokens", []),
-            volume=float(m.get("volume", 0) or 0),
-            liquidity=float(m.get("liquidity", 0) or 0),
-            closed=m.get("closed", False),
-            tags=[t.get("slug", t) if isinstance(t, dict) else t
-                  for t in (m.get("tags") or [])],
+            condition_id = ticker,
+            question     = m.get("question", ""),
+            slug         = ticker,
+            end_date     = m.get("end_date", ""),
+            tokens       = [
+                {"token_id": f"{ticker}:yes", "outcome": "YES"},
+                {"token_id": f"{ticker}:no",  "outcome": "NO"},
+            ],
+            volume       = float(m.get("volume",    0) or 0),
+            liquidity    = float(m.get("liquidity", 0) or 0),
+            closed       = m.get("closed", False),
+            tags         = [t.get("slug", t) if isinstance(t, dict) else t
+                            for t in (m.get("tags") or [])],
+            ticker       = ticker,
+            series       = "",
         ))
     return markets
 
 
-def get_market_price(token_id: str, side: str = "buy") -> float:
-    """Best ask (side='buy') or best bid (side='sell') from CLOB. Returns 0–1."""
-    try:
-        data = _get(f"{CLOB_API}/price", params={"token_id": token_id, "side": side})
-        return float(data.get("price", 0.5))
-    except Exception:
-        return _synthetic_price_for_token(token_id)
-
+# ---------------------------------------------------------------------------
+# Orderbook
+# ---------------------------------------------------------------------------
 
 def get_order_book(token_id: str) -> OrderBook:
-    """Fetch full order book for a token. Falls back to synthetic spread when offline."""
+    """
+    Fetch orderbook for a Kalshi market side.
+    `token_id` is "TICKER:yes" or "TICKER:no" — we always query YES-side depth
+    and flip the frame for NO.
+
+    Falls back to a synthetic spread when the API is unreachable.
+    """
+    # Split ticker and side
+    if ":" in token_id:
+        ticker, side = token_id.rsplit(":", 1)
+    else:
+        ticker, side = token_id, "yes"
+
+    want_yes = side.lower() == "yes"
+
     try:
-        data = _get(f"{CLOB_API}/book", params={"token_id": token_id})
-        bids = [{"price": float(b["price"]), "size": float(b["size"])}
-                for b in data.get("bids", [])]
-        asks = [{"price": float(a["price"]), "size": float(a["size"])}
-                for a in data.get("asks", [])]
+        data = _get(f"{KALSHI_BASE}/markets/{ticker}/orderbook", params={"depth": 20})
+        ob   = data.get("orderbook", data)
+
+        # Kalshi orderbook: {"yes": [[price_cents, size], ...], "no": [...]}
+        # Prices are integers 1-99; sizes are number of contracts
+        raw_yes = ob.get("yes", [])   # bids on YES (descending)
+        raw_no  = ob.get("no",  [])   # bids on NO  (descending)
+
+        def to_levels(raw: list) -> list[dict]:
+            return [{"price": p / 100.0, "size": float(s)} for p, s in raw if p]
+
+        yes_bids = sorted(to_levels(raw_yes), key=lambda x: -x["price"])
+        no_bids  = sorted(to_levels(raw_no),  key=lambda x: -x["price"])
+
+        # YES ask is implied by the best NO bid: ask_yes = 1 - best_no_bid
+        yes_asks = [{"price": round(1.0 - nb["price"], 4), "size": nb["size"]}
+                    for nb in no_bids[:5]] if no_bids else []
+        no_asks  = [{"price": round(1.0 - yb["price"], 4), "size": yb["size"]}
+                    for yb in yes_bids[:5]] if yes_bids else []
+
+        if want_yes:
+            bids, asks = yes_bids, sorted(yes_asks, key=lambda x: x["price"])
+        else:
+            bids, asks = no_bids,  sorted(no_asks,  key=lambda x: x["price"])
+
     except Exception:
-        mid = _synthetic_price_for_token(token_id)
-        spread = 0.02
+        mid = _synthetic_price(ticker, want_yes)
+        spread = 0.04
         bids = [{"price": round(mid - spread / 2, 4), "size": 100.0}]
         asks = [{"price": round(mid + spread / 2, 4), "size": 100.0}]
 
-    bids.sort(key=lambda x: -x["price"])
-    asks.sort(key=lambda x:  x["price"])
     book = OrderBook(token_id=token_id, bids=bids, asks=asks)
     if bids and asks:
         book.spread = asks[0]["price"] - bids[0]["price"]
     return book
 
 
-def _synthetic_price_for_token(token_id: str) -> float:
-    """
-    Look up the synthetic mid-price for a token from the on-disk cache.
-    Deterministic fallback: hash the token_id to a stable probability.
-    """
-    import json, hashlib
-    from pathlib import Path
+def _synthetic_price(ticker: str, want_yes: bool) -> float:
+    """Deterministic fallback price from cache or hash."""
+    import hashlib
     cache = Path(__file__).parent.parent / "data" / "pw_historical" / "markets_cache.json"
     if cache.exists():
         try:
             for m in json.loads(cache.read_text()):
-                for t in m.get("tokens", []):
-                    if t.get("token_id") == token_id:
-                        p = m.get("_mid_price")
-                        if p is not None:
-                            return float(p)
-                        # Derive from YES/NO position
-                        is_yes = t.get("outcome", "YES").upper() == "YES"
-                        base = m.get("_mid_price", 0.5) or 0.5
-                        return base if is_yes else 1 - base
+                if m.get("condition_id") == ticker or m.get("slug") == ticker:
+                    p = float(m.get("_mid_price", 0.5) or 0.5)
+                    return p if want_yes else 1.0 - p
         except Exception:
             pass
-    # Last resort: deterministic hash
-    h = int(hashlib.md5(token_id.encode()).hexdigest(), 16)
-    return 0.15 + (h % 700) / 1000.0
+    h = int(hashlib.md5(ticker.encode()).hexdigest(), 16)
+    p = 0.15 + (h % 700) / 1000.0
+    return p if want_yes else 1.0 - p
 
+
+def get_midpoint_price(token_id: str) -> float:
+    """Convenience: mid-price of best bid/ask."""
+    return get_order_book(token_id).mid_price()
+
+
+def get_market_price(token_id: str, side: str = "buy") -> float:
+    """Best ask (side='buy') or best bid (side='sell'). Returns 0–1."""
+    book = get_order_book(token_id)
+    return book.best_ask() if side == "buy" else book.best_bid()
+
+
+# ---------------------------------------------------------------------------
+# Location + series helpers (used by agent.py)
+# ---------------------------------------------------------------------------
+
+def extract_city_from_ticker(ticker: str) -> Optional[str]:
+    """
+    Extract city key from a Kalshi ticker.
+    Tickers look like KXHIGHTEMP-25AUG26-T85-NYC or KXRAIN-25AUG26-MIA.
+    The last segment before any threshold segment is the location code.
+    """
+    parts = ticker.upper().split("-")
+    # Location is typically the last part; sometimes it's the part after the threshold
+    for part in reversed(parts):
+        if part in KALSHI_LOC_MAP:
+            return KALSHI_LOC_MAP[part]
+    # Try all parts (some tickers have the location in the middle)
+    for part in parts:
+        if part in KALSHI_LOC_MAP:
+            return KALSHI_LOC_MAP[part]
+    return None
+
+
+def extract_series_from_ticker(ticker: str) -> str:
+    """Return the series prefix from a ticker, e.g. 'KXHIGHTEMP'."""
+    parts = ticker.upper().split("-")
+    return parts[0] if parts else ""
+
+
+def series_to_event_type(series: str) -> str:
+    """Map series ticker → event_type for ML model."""
+    return SERIES_EVENT_MAP.get(series.upper(), "temp_above_90f")
+
+
+# ---------------------------------------------------------------------------
+# Authenticated order placement
+# ---------------------------------------------------------------------------
+
+class KalshiTrader:
+    """
+    Wraps Kalshi Trade API v2 for authenticated order placement.
+    Gracefully degrades to dry-run when credentials are absent.
+
+    Env vars (set in Render dashboard — never commit):
+      KALSHI_KEY_ID       API key ID from kalshi.com/profile/api
+      KALSHI_PRIVATE_KEY  PEM private key (newlines as \\n)
+    """
+
+    def __init__(self):
+        self.key_id  = os.getenv("KALSHI_KEY_ID", "").strip()
+        self.live    = os.getenv("PW_LIVE_TRADING", "0").strip() == "1"
+        # Demo mode: use demo API when KALSHI_DEMO=1
+        self._base   = KALSHI_DEMO if os.getenv("KALSHI_DEMO", "0") == "1" else KALSHI_BASE
+        self._has_key = bool(self.key_id and _load_private_key() is not None)
+
+    def _auth_headers(self, method: str, path: str) -> dict:
+        return _make_auth_headers(method, path)
+
+    def place_limit_order(
+        self,
+        token_id: str,    # "TICKER:yes" or "TICKER:no"
+        side: str,        # always "BUY" from agent.py
+        price: float,     # 0-1 probability (mid-price from orderbook)
+        size: float,      # dollar amount to risk
+    ) -> dict:
+        """
+        Place a limit order on Kalshi.
+
+        Converts dollar size → contract count:
+          count = round(size / price_per_contract)
+          price_per_contract = price_cents / 100
+
+        In dry-run mode returns a simulated receipt.
+        """
+        # Parse side from token_id
+        if ":" in token_id:
+            ticker, kalshi_side = token_id.rsplit(":", 1)
+        else:
+            ticker, kalshi_side = token_id, "yes"
+
+        # Clamp price to valid Kalshi range (1-99 cents)
+        price_clamped = max(0.01, min(0.99, price))
+        price_cents   = max(1, min(99, round(price_clamped * 100)))
+
+        # Contract count: how many $1-max contracts we can buy with `size` dollars
+        cost_per_contract = price_cents / 100.0
+        count = max(1, round(size / cost_per_contract))
+
+        receipt = {
+            "token_id":    token_id,
+            "ticker":      ticker,
+            "kalshi_side": kalshi_side,
+            "side":        side,
+            "price":       price_clamped,
+            "price_cents": price_cents,
+            "count":       count,
+            "size":        round(count * cost_per_contract, 2),
+            "timestamp":   int(time.time()),
+            "dry_run":     not self.live,
+        }
+
+        if not self.live:
+            receipt["status"]   = "dry_run"
+            receipt["order_id"] = f"DRY-{int(time.time())}"
+            return receipt
+
+        if not self._has_key:
+            receipt["status"] = "error"
+            receipt["error"]  = "No KALSHI_KEY_ID / KALSHI_PRIVATE_KEY configured"
+            return receipt
+
+        path    = "/trade-api/v2/portfolio/orders"
+        payload = {
+            "ticker":     ticker,
+            "side":       kalshi_side.lower(),
+            "action":     "buy",
+            "type":       "limit",
+            "count":      count,
+            # Kalshi expects yes_price for YES orders, no_price for NO orders
+            (f"{kalshi_side.lower()}_price"): price_cents,
+        }
+
+        try:
+            headers = self._auth_headers("POST", path)
+            resp = _post(f"{self._base}/portfolio/orders", payload, headers=headers)
+            order = resp.get("order", resp)
+            receipt["status"]   = order.get("status", "submitted")
+            receipt["order_id"] = order.get("order_id", order.get("id", ""))
+        except Exception as exc:
+            receipt["status"] = "error"
+            receipt["error"]  = str(exc)
+
+        return receipt
+
+    def get_positions(self) -> list[dict]:
+        """List open positions from the authenticated account."""
+        if not self._has_key:
+            return []
+        path = "/trade-api/v2/portfolio/positions"
+        try:
+            headers = self._auth_headers("GET", path)
+            resp    = _get(f"{self._base}/portfolio/positions", headers)  # type: ignore
+            return resp.get("market_positions", [])
+        except Exception:
+            return []
+
+    def cancel_order(self, order_id: str) -> bool:
+        if not self._has_key:
+            return False
+        path = f"/trade-api/v2/portfolio/orders/{order_id}"
+        try:
+            from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
+            headers = self._auth_headers("DELETE", path)
+            resp = _SESSION.delete(f"{self._base}/portfolio/orders/{order_id}",
+                                   headers=headers, timeout=20)
+            return resp.status_code in (200, 204)
+        except Exception:
+            return False
+
+
+# ---------------------------------------------------------------------------
+# Compatibility stubs — functions that existed in the PolyMarket client
+# but have no direct Kalshi equivalent; return safe empty values.
+# ---------------------------------------------------------------------------
 
 def get_price_history(
     market: str,
@@ -401,151 +617,11 @@ def get_price_history(
     fidelity: int = 60,
 ) -> list[PricePoint]:
     """
-    Hourly (fidelity=60) or minute-level price history from CLOB.
-    `market` is the conditionId (not the token_id).
+    Kalshi does not expose a public historical price API.
+    Returns an empty list; the data_pipeline skips this gracefully.
     """
-    params = {
-        "market": market,
-        "startTs": start_ts,
-        "endTs": end_ts,
-        "fidelity": fidelity,
-    }
-    try:
-        data = _get(f"{CLOB_API}/prices-history", params=params)
-        history = data.get("history", [])
-        return [
-            PricePoint(timestamp=int(p["t"]), price=float(p["p"]))
-            for p in history
-        ]
-    except Exception:
-        return []
+    return []
 
 
-def get_midpoint_price(token_id: str) -> float:
-    """Convenience: midpoint of best bid/ask."""
-    book = get_order_book(token_id)
-    return book.mid_price()
-
-
-# ---------------------------------------------------------------------------
-# Authenticated order placement
-# ---------------------------------------------------------------------------
-
-class PolyMarketTrader:
-    """
-    Wraps py_clob_client for authenticated order placement.
-
-    Auth strategy (in priority order):
-      L2: api_key + api_secret + api_passphrase + private_key  (preferred)
-      L1: private_key only — signs every request directly with the wallet key
-          (works when passphrase is unavailable or API key is read-only)
-
-    Gracefully degrades to dry-run when credentials are absent entirely.
-    """
-
-    def __init__(self):
-        self.private_key    = os.getenv("PW_PRIVATE_KEY", "")
-        self.api_key        = os.getenv("PW_API_KEY", "")
-        self.api_secret     = os.getenv("PW_API_SECRET", "")
-        self.api_passphrase = os.getenv("PW_API_PASSPHRASE", "")
-        self.live           = os.getenv("PW_LIVE_TRADING", "0").strip() == "1"
-        self._client        = None
-
-    def _get_client(self):
-        if self._client:
-            return self._client
-        if not self.private_key:
-            return None
-        try:
-            from py_clob_client.client import ClobClient
-            from py_clob_client.clob_types import ApiCreds
-
-            # Use L2 only when ALL three API creds are present
-            creds = None
-            if self.api_key and self.api_secret and self.api_passphrase:
-                creds = ApiCreds(
-                    api_key=self.api_key,
-                    api_secret=self.api_secret,
-                    api_passphrase=self.api_passphrase,
-                )
-
-            sig_type = 1 if creds else 0   # 1 = L2 API key, 0 = L1 private key
-            self._client = ClobClient(
-                host=CLOB_API,
-                key=self.private_key,
-                chain_id=CHAIN_ID,
-                signature_type=sig_type,
-                creds=creds,
-            )
-        except ImportError:
-            pass
-        return self._client
-
-    def place_limit_order(
-        self,
-        token_id: str,
-        side: str,         # "BUY" or "SELL"
-        price: float,      # limit price 0–1
-        size: float,       # USDC amount
-    ) -> dict:
-        """
-        Place a limit order. Returns order receipt dict.
-        In dry-run mode returns a simulated receipt without touching the API.
-        """
-        receipt = {
-            "token_id": token_id,
-            "side": side,
-            "price": price,
-            "size": size,
-            "timestamp": int(time.time()),
-            "dry_run": not self.live,
-        }
-        if not self.live:
-            receipt["status"] = "dry_run"
-            receipt["order_id"] = f"DRY-{int(time.time())}"
-            return receipt
-
-        client = self._get_client()
-        if not client:
-            receipt["status"] = "error"
-            receipt["error"] = "No PW_PRIVATE_KEY set"
-            return receipt
-
-        try:
-            from py_clob_client.order_builder.constants import BUY, SELL
-            from py_clob_client.clob_types import OrderArgs, PartialCreateOrderOptions
-
-            order_args = OrderArgs(
-                token_id=token_id,
-                price=price,
-                size=size,
-                side=BUY if side.upper() == "BUY" else SELL,
-            )
-            signed_order = client.create_order(order_args)
-            resp = client.post_order(signed_order)
-            receipt["status"]   = resp.get("status", "submitted")
-            receipt["order_id"] = resp.get("orderID", "")
-        except Exception as exc:
-            receipt["status"] = "error"
-            receipt["error"]  = str(exc)
-        return receipt
-
-    def get_positions(self) -> list[dict]:
-        """List open positions from the authenticated account."""
-        client = self._get_client()
-        if not client:
-            return []
-        try:
-            return client.get_positions() or []
-        except Exception:
-            return []
-
-    def cancel_order(self, order_id: str) -> bool:
-        client = self._get_client()
-        if not client:
-            return False
-        try:
-            client.cancel_order({"orderID": order_id})
-            return True
-        except Exception:
-            return False
+# PolyMarketTrader alias for any leftover import
+PolyMarketTrader = KalshiTrader
