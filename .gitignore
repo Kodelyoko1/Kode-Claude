@@ -62,6 +62,12 @@ data/ip_reports/
 data/ip_candles/
 data/ip_predictions.json
 data/ip_forward_results.json
+# AI Asset Manager Agent — runtime trading state (auto-generated)
+data/asset_manager.db
+data/asset_manager.db-wal
+data/asset_manager.db-shm
+data/am_paper_prices.json
+data/am_logs/
 
 # Per-agent runtime data (auto-generated; never commit)
 # Lead lists, delivery logs, prospect drafts, queue state, owner inputs/outputs

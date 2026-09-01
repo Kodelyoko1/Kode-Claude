@@ -1,0 +1,13 @@
+# Target portfolio weights for the Rebalance strategy
+# (asset_manager/strategies/rebalance.py). Loaded fresh every cycle by
+# asset_manager.config.settings.load_target_allocations().
+#
+# Weights must each be within [0, 1] and must not sum to more than 1.0 —
+# whatever isn't allocated is implicitly held as cash. Symbol format must
+# match whatever your connector expects (ccxt: "BTC/USDT"; yfinance: "AAPL").
+
+allocations:
+  BTC/USDT: 0.40
+  ETH/USDT: 0.35
+  SOL/USDT: 0.15
+  # remaining 10% held as cash

@@ -1,0 +1,23 @@
+# AI Asset Manager Agent — dependencies
+# Install with: pip install -r requirements-asset-manager.txt
+# (also needs the root requirements.txt for shared infra: rich, python-dotenv, requests)
+
+# Data validation — signals, portfolio state, order schemas
+pydantic>=2.6.0
+pydantic-settings>=2.2.0
+
+# Config files
+PyYAML>=6.0.1
+
+# Market data / broker connectors — both optional at import time (the
+# PaperConnector needs neither). Install whichever your AM_CONNECTOR uses.
+ccxt>=4.2.0          # crypto exchanges — AM_CONNECTOR=ccxt
+yfinance>=0.2.36      # equities market data — AM_CONNECTOR=yfinance
+                       # (live equities execution additionally uses Alpaca's
+                       #  REST API via `requests`, already in requirements.txt)
+
+# Autonomous scheduling loop
+APScheduler>=3.10.4
+
+# Tests
+pytest>=8.0.0

@@ -1,0 +1,35 @@
+# Pre-trade risk guardrails for the AI Asset Manager Agent.
+# Loaded fresh every cycle by asset_manager.config.settings.load_risk_limits().
+# Any key omitted here falls back to the AM_* environment variable, then to
+# the RiskLimitsConfig default in asset_manager/config/settings.py.
+#
+# These are HARD limits enforced by asset_manager/risk/manager.py before any
+# order reaches an execution engine — a strategy cannot exceed them no
+# matter what it proposes.
+
+# Maximum fraction of total portfolio equity a single symbol may reach after
+# a proposed trade fills. A BUY that would push the position above this is
+# trimmed to the max allowed size (or rejected if already at/over the cap).
+max_allocation_pct: 0.25
+
+# If today's realized+unrealized loss exceeds this fraction of the equity
+# the portfolio started the day with, trading halts for the rest of the day
+# (all new BUY signals are rejected; SELL signals to reduce risk still pass).
+max_daily_loss_pct: 0.05
+
+# Reject an order outright if its expected slippage (limit vs. quoted price,
+# or the paper engine's simulated fill slippage) exceeds this fraction.
+max_slippage_pct: 0.01
+
+# Optional absolute cap (in quote-currency notional, e.g. USD) on any single
+# position's market value, independent of the percentage cap above. Leave
+# null to only enforce max_allocation_pct.
+max_position_notional: null
+
+# Circuit breaker: no more than this many orders may be submitted in a
+# single agent cycle, regardless of how many signals were generated.
+max_orders_per_cycle: 5
+
+# Orders below this notional value are skipped rather than sent to an
+# execution engine (avoids dust trades from tiny rounding drift).
+min_order_notional: 10.0
