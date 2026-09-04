@@ -11,7 +11,9 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone, timedelta
 
-ASSET_LABELS = {"GC": "GC (Gold)", "CL": "CL (Crude Oil)"}
+from ict_predictor import instruments
+
+ASSET_LABELS = {k: v["label"] for k, v in instruments.INSTRUMENTS.items()}
 
 
 def _hhmm_est(t: int | None) -> str:
@@ -27,13 +29,20 @@ def _fmt(v, decimals: int = 2) -> str:
     return f"{v:,.{decimals}f}"
 
 
+def _fmt_asset(v, pred: dict) -> str:
+    """Like _fmt, but rounds to the instrument's own precision (2 decimals
+    for gold/oil, 5 for most FX pairs, 3 for JPY pairs) instead of always 2 —
+    a bare _fmt() would truncate an FX quote like 1.08543 down to 1.09."""
+    return _fmt(v, instruments.decimals_for(pred.get("asset", "")))
+
+
 def _dol_line(pred: dict) -> str:
     dol = pred.get("dol") or {}
     parts = []
     if dol.get("bsl") is not None:
-        parts.append(f"BSL at {_fmt(dol['bsl'])}")
+        parts.append(f"BSL at {_fmt_asset(dol['bsl'], pred)}")
     if dol.get("ssl") is not None:
-        parts.append(f"SSL at {_fmt(dol['ssl'])}")
+        parts.append(f"SSL at {_fmt_asset(dol['ssl'], pred)}")
     return "Target " + " / ".join(parts) if parts else "No unswept liquidity identified"
 
 
@@ -41,7 +50,7 @@ def _sweep_line(pred: dict) -> str:
     sweep = pred.get("sweep")
     if not sweep:
         return "None this cycle"
-    return f"Swept {sweep['swept']} at {_fmt(sweep['level'])} at {_hhmm_est(sweep['t'])}"
+    return f"Swept {sweep['swept']} at {_fmt_asset(sweep['level'], pred)} at {_hhmm_est(sweep['t'])}"
 
 
 def _mss_line(pred: dict) -> str:
@@ -49,7 +58,7 @@ def _mss_line(pred: dict) -> str:
     if not mss:
         return "Not confirmed"
     verb = "above" if mss["direction"] == "bullish" else "below"
-    return f"Confirmed {mss['direction'].capitalize()} MSS {verb} {_fmt(mss['break_level'])}"
+    return f"Confirmed {mss['direction'].capitalize()} MSS {verb} {_fmt_asset(mss['break_level'], pred)}"
 
 
 def _fvg_line(pred: dict) -> str:
@@ -58,7 +67,7 @@ def _fvg_line(pred: dict) -> str:
         return "No FVG formed"
     direction = "Bullish" if pred.get("direction") == "LONG" else "Bearish"
     lo, hi = sorted((fvg["bottom"], fvg["top"]))
-    return f"{direction} FVG between {_fmt(lo)} - {_fmt(hi)}"
+    return f"{direction} FVG between {_fmt_asset(lo, pred)} - {_fmt_asset(hi, pred)}"
 
 
 def _heuristic_summary(pred: dict) -> str:
@@ -70,8 +79,8 @@ def _heuristic_summary(pred: dict) -> str:
     sweep = pred.get("sweep", {})
     mss = pred.get("mss", {})
     return (
-        f"Liquidity was raided at {_fmt(sweep.get('level'))} before an aggressive "
-        f"{mss.get('direction', '')} displacement broke {_fmt(mss.get('break_level'))}, "
+        f"Liquidity was raided at {_fmt_asset(sweep.get('level'), pred)} before an aggressive "
+        f"{mss.get('direction', '')} displacement broke {_fmt_asset(mss.get('break_level'), pred)}, "
         f"confirming a {pred['direction'].lower()} bias into the {pred.get('asset')} FVG. "
         f"Risk:reward to the opposing liquidity pool is {pred.get('risk_reward', 0):.2f}:1, "
         f"clearing the 1:2 minimum for submission."
@@ -95,8 +104,8 @@ def _claude_summary(pred: dict) -> str:
             f"Sweep: {_sweep_line(pred)}\n"
             f"MSS: {_mss_line(pred)}\n"
             f"FVG entry: {_fvg_line(pred)}\n"
-            f"Target: {_fmt(pred.get('target'))}\n"
-            f"Invalidation: {_fmt(pred.get('invalidation'))}\n"
+            f"Target: {_fmt_asset(pred.get('target'), pred)}\n"
+            f"Invalidation: {_fmt_asset(pred.get('invalidation'), pred)}\n"
             f"Risk:Reward: {pred.get('risk_reward')}:1\n"
         )
         msg = client.messages.create(
@@ -135,8 +144,8 @@ def format_report(pred: dict) -> str:
         "--- MT5 PREDICTION DIRECTIVE ---",
         f"• PREDICTION DIRECTION: {direction}",
         f"• CONFIDENCE LEVEL: {pred.get('confidence', 'Low')}",
-        f"• DIRECTIONAL TARGET: {_fmt(pred.get('target'))}",
-        f"• INVALIDATION LEVEL: {_fmt(pred.get('invalidation'))}",
+        f"• DIRECTIONAL TARGET: {_fmt_asset(pred.get('target'), pred)}",
+        f"• INVALIDATION LEVEL: {_fmt_asset(pred.get('invalidation'), pred)}",
         f"• EXECUTION SUMMARY: {execution_summary(pred)}",
         "=" * 50,
     ]
@@ -147,7 +156,7 @@ _STATUS_LABEL = {
     "submitted": "✅ SUBMITTED — live order placed on MT5",
     "simulated": "🧪 SIMULATED — dry-run only, nothing sent (set IP_MT5_LIVE=1 to arm)",
     "connect_failed": "⚠️ CONNECT FAILED — could not reach/login to the MT5 terminal",
-    "symbol_not_found": "⚠️ SYMBOL NOT FOUND — check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL",
+    "symbol_not_found": "⚠️ SYMBOL NOT FOUND — check IP_MT5_SYMBOL_<ASSET> (see --doctor)",
     "mt5_unavailable": "⚠️ MT5 PACKAGE NOT INSTALLED",
     "real_account_blocked": "🛑 BLOCKED — not a demo account (demo/test accounts only)",
     "algo_trading_disabled": "⚠️ BLOCKED — 'Allow algorithmic trading' is off in MT5",
@@ -170,14 +179,16 @@ def format_mt5_status(order_result: dict) -> str:
 
     plan = order_result.get("plan")
     if plan:
+        dp = instruments.decimals_for(plan.get("asset", ""))
         lines.append(
             f"• Order: {plan['order_type']} {plan['volume']} lot(s) {plan['symbol']} "
-            f"@ {_fmt(plan['entry'])} | SL {_fmt(plan['sl'])} | TP {_fmt(plan['tp'])}"
+            f"@ {_fmt(plan['entry'], dp)} | SL {_fmt(plan['sl'], dp)} | TP {_fmt(plan['tp'], dp)}"
         )
     if plan and plan.get("spread_applied"):
+        dp = instruments.decimals_for(plan.get("asset", ""))
         lines.append(
-            f"• Spread adj: entry moved {plan['structural_entry']:,.2f} -> "
-            f"{plan['entry']:,.2f} (+{plan['spread_applied']:.2f} spread; a BUY "
+            f"• Spread adj: entry moved {_fmt(plan['structural_entry'], dp)} -> "
+            f"{_fmt(plan['entry'], dp)} (+{plan['spread_applied']:.{dp}f} spread; a BUY "
             f"fills on the ASK)")
     if order_result.get("ticket"):
         lines.append(f"• Ticket: {order_result['ticket']}")

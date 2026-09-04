@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from typing import Optional
 
-from ict_predictor import structure
+from ict_predictor import structure, instruments
 
 MIN_RR = float(os.getenv("IP_MIN_RR", "2.0"))
 INVALIDATION_BUFFER_PCT = float(os.getenv("IP_INVALIDATION_BUFFER_PCT", "0.0015"))  # 0.15%
@@ -173,13 +173,19 @@ def build_prediction(asset: str, killzone: str, htf_candles: list[dict],
     else:
         confidence = "Low"
 
+    # Rounding precision is asset-specific: 2 decimals for gold/oil dollar
+    # terms, 5 for most FX pairs, 3 for JPY-quoted pairs (see instruments.py).
+    # Rounding gold-style to 2 decimals would collapse an FX quote like
+    # 1.08543 to 1.09, destroying the pip-level precision the setup was
+    # actually computed at.
+    dp = instruments.decimals_for(asset)
     out.update({
         "direction": "LONG" if direction == "bullish" else "SHORT",
         "confidence": confidence,
         "entry_zone": {"low": min(fvg["top"], fvg["bottom"]), "high": max(fvg["top"], fvg["bottom"])},
-        "entry": round(entry, 2),
-        "target": round(opposing_dol, 2),
-        "invalidation": round(invalidation, 2),
-        "current_price": round(current_price, 2),
+        "entry": round(entry, dp),
+        "target": round(opposing_dol, dp),
+        "invalidation": round(invalidation, dp),
+        "current_price": round(current_price, dp),
     })
     return out

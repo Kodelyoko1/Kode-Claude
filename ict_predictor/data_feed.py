@@ -1,15 +1,18 @@
 """
-Intraday price feed for Gold (GC) and WTI Crude Oil (CL).
+Intraday price feed for every instrument in ict_predictor.instruments
+(Gold, WTI Crude, and the FX majors/crosses).
 
 TWO SOURCES, and which one is used matters enormously:
 
   1. MT5 (preferred whenever a terminal is connected) — bars for the exact
      symbol the agent will place orders on.
-  2. Yahoo Finance chart JSON (fallback, no API key) — COMEX futures
-     (GC=F / CL=F).
+  2. Yahoo Finance chart JSON (fallback, no API key) — for GC/CL this is the
+     COMEX futures contract (GC=F / CL=F); for FX pairs it's Yahoo's spot
+     cross rate (e.g. EURUSD=X).
 
-These are NOT interchangeable. MT5 brokers typically quote *spot* gold
-(XAUUSD) while Yahoo's GC=F is the *futures* contract, and the two differ
+Gold/Crude are NOT interchangeable across sources. MT5 brokers typically
+quote *spot* gold (XAUUSD) while Yahoo's GC=F is the *futures* contract, and
+the two differ
 by the cost of carry — observed at ~62 points (1.44%) on a live demo
 account. Computing an entry/stop/target from futures prices and then
 submitting that order against spot produces levels on the wrong side of the
@@ -36,9 +39,9 @@ import requests
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 from autonomous import storage
-from ict_predictor import killzone
+from ict_predictor import killzone, instruments
 
-YF_SYMBOLS = {"GC": "GC=F", "CL": "CL=F"}
+YF_SYMBOLS = {k: v["yahoo"] for k, v in instruments.INSTRUMENTS.items() if v.get("yahoo")}
 
 YF_HEADERS = {
     "User-Agent": (
@@ -226,7 +229,8 @@ def _http_hint(status: int) -> str:
 def _fetch_from_yahoo(asset: str, interval: str) -> list[dict]:
     symbol = YF_SYMBOLS.get(asset)
     if not symbol:
-        raise FeedError(f"Unknown asset '{asset}' — expected GC or CL")
+        raise FeedError(f"Unknown asset '{asset}' — expected one of "
+                        f"{', '.join(sorted(YF_SYMBOLS))}")
 
     params = {"interval": interval, "range": _RANGE_FOR_INTERVAL.get(interval, "5d")}
     payload = None
@@ -372,7 +376,8 @@ def active_source() -> str:
 
 def get_candles(asset: str, interval: str = "15m", force: bool = False) -> list[dict]:
     """
-    Return OHLC candles for `asset` ("GC" or "CL") at `interval`
+    Return OHLC candles for `asset` (any key in ict_predictor.instruments,
+    e.g. "GC", "CL", "EURUSD") at `interval`
     ("1m"/"5m"/"15m"), newest last.
 
     Prefers MT5 (the instrument actually traded); falls back to Yahoo

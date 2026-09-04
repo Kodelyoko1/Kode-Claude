@@ -44,50 +44,77 @@ from typing import Callable, Optional
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from ict_predictor import killzone
+from ict_predictor import killzone, instruments
 from ict_predictor.predictor import build_prediction
 
 # --- Cost model ---------------------------------------------------------
 # Every figure below is in PRICE UNITS of the instrument (dollars per ounce
-# for gold, dollars per barrel for crude), because that is the unit the fills
-# are in. Converting a broker's per-lot quote is one division by the contract
-# size: $7 round-turn commission on a 100 oz gold lot is 7/100 = 0.07.
+# for gold, dollars per barrel for crude, quote-currency-per-unit for FX —
+# e.g. ~0.00012 is about 1.2 pips on a 5-decimal pair), because that is the
+# unit the fills are in. Converting a broker's per-lot quote is one division
+# by the contract size: $7 round-turn commission on a 100 oz gold lot is
+# 7/100 = 0.07.
+#
+# A $0.30 spread is a sane retail number for gold; on a 1.08-scale FX pair
+# it would be a nonsensical 3,000-pip spread. So these globals are ONLY the
+# explicit-override path — env vars a user sets to force one number across
+# every asset. The actual per-run default is asset-aware: Costs() falls back
+# to each instrument's own bt_spread/bt_slippage/bt_swap_per_night (see
+# instruments.py) unless the matching IP_BT_* env var is explicitly set.
 #
 # Defaults are retail-realistic rather than flattering. Charging spread alone
 # was the largest remaining overstatement in this backtest: an intraday
 # strategy risking only a few price units per trade gives up a real slice of
 # every R to costs, and an edge already sitting inside its own error bars
 # cannot afford that slice.
+_SPREAD_OVERRIDDEN = "IP_BT_SPREAD" in os.environ
 DEFAULT_SPREAD = float(os.getenv("IP_BT_SPREAD", "0.30"))
-# Round-turn commission. Zero on a typical "spread only" retail gold account,
-# ~0.07 on a raw-spread account that charges per lot instead.
+# Round-turn commission. Zero on a typical "spread only" retail account,
+# ~0.07 on a raw-spread gold account that charges per lot instead. There's no
+# reliable "typical" per-asset default worth guessing here, so unlike the
+# other three costs this one has no per-instrument fallback — it stays 0
+# unless explicitly set.
 DEFAULT_COMMISSION = float(os.getenv("IP_BT_COMMISSION", "0.0"))
 # Adverse slippage on STOP exits only. Entries are pending limit orders: they
 # slip by failing to fill, not by filling worse, and unfilled setups are
 # already counted as "expired". Stops are market orders and do get filled
 # through the level - especially on the displacement moves this strategy
 # deliberately trades into.
+_SLIPPAGE_OVERRIDDEN = "IP_BT_SLIPPAGE" in os.environ
 DEFAULT_SLIPPAGE = float(os.getenv("IP_BT_SLIPPAGE", "0.10"))
 # Overnight financing per night held, charged in both directions. A short
 # usually earns where a long pays, and one signed number cannot model both, so
 # the pessimistic reading charges either way. Setups are intraday and orders
 # expire same-day, so this only touches trades whose exit lands in a later
 # session.
+_SWAP_OVERRIDDEN = "IP_BT_SWAP" in os.environ
 DEFAULT_SWAP_PER_NIGHT = float(os.getenv("IP_BT_SWAP", "0.15"))
 
 
 class Costs:
-    """Everything charged against a trade beyond the raw price move."""
+    """Everything charged against a trade beyond the raw price move.
+
+    Resolution order for spread/slippage/swap, per field:
+      1. explicit constructor argument
+      2. IP_BT_SPREAD / IP_BT_SLIPPAGE / IP_BT_SWAP env var, if the user set it
+      3. the `asset`'s own default from instruments.py
+      4. the original gold-shaped hardcoded constant (only reached for an
+         asset missing from the registry)
+    """
 
     __slots__ = ("spread", "commission", "slippage", "swap_per_night")
 
     def __init__(self, spread=None, commission=None, slippage=None,
-                 swap_per_night=None):
-        self.spread = DEFAULT_SPREAD if spread is None else float(spread)
+                 swap_per_night=None, asset: str = "GC"):
+        meta = instruments.get(asset)
+        self.spread = spread if spread is not None else (
+            DEFAULT_SPREAD if _SPREAD_OVERRIDDEN else meta.get("bt_spread", DEFAULT_SPREAD))
         self.commission = DEFAULT_COMMISSION if commission is None else float(commission)
-        self.slippage = DEFAULT_SLIPPAGE if slippage is None else float(slippage)
-        self.swap_per_night = (DEFAULT_SWAP_PER_NIGHT if swap_per_night is None
-                               else float(swap_per_night))
+        self.slippage = slippage if slippage is not None else (
+            DEFAULT_SLIPPAGE if _SLIPPAGE_OVERRIDDEN else meta.get("bt_slippage", DEFAULT_SLIPPAGE))
+        self.swap_per_night = swap_per_night if swap_per_night is not None else (
+            DEFAULT_SWAP_PER_NIGHT if _SWAP_OVERRIDDEN
+            else meta.get("bt_swap_per_night", DEFAULT_SWAP_PER_NIGHT))
 
     def to_dict(self) -> dict:
         return {"spread": self.spread, "commission": self.commission,
@@ -139,13 +166,13 @@ class Trade:
         self.r_gross: float = 0.0           # same fills, costs switched off
         self.cost_r: float = 0.0            # r_gross - r_multiple
 
-    def to_dict(self) -> dict:
+    def to_dict(self, decimals: int = 2) -> dict:
         return {
             "direction": self.direction,
             "signal_time": datetime.fromtimestamp(self.signal_t, tz=timezone.utc).isoformat(),
-            "entry": round(self.entry, 2),
-            "sl": round(self.sl, 2),
-            "tp": round(self.tp, 2),
+            "entry": round(self.entry, decimals),
+            "sl": round(self.sl, decimals),
+            "tp": round(self.tp, decimals),
             "rr_planned": self.rr_planned,
             "confidence": self.confidence,
             "outcome": self.outcome,
@@ -262,7 +289,7 @@ def run_backtest(htf_bars: list[dict], ltf_bars: list[dict], asset: str = "GC",
     its own for callers that only want to vary that one term.
     """
     if costs is None:
-        costs = Costs(spread=spread)
+        costs = Costs(spread=spread, asset=asset)
     elif spread is not None:
         costs.spread = float(spread)
     if len(htf_bars) < WARMUP_BARS + 10:
@@ -407,7 +434,7 @@ def _summarize(trades: list[Trade], signals: int, kz_bars: int, costs: Costs,
         "spread_charged": costs.spread,
         "funnel": funnel or {},
         "equity_curve_r": curve,
-        "trades": [t.to_dict() for t in trades],
+        "trades": [t.to_dict(decimals=instruments.decimals_for(asset)) for t in trades],
     }
 
 
@@ -450,6 +477,10 @@ def format_report(result: dict, asset: str, period: str) -> str:
 
     n = result["resolved"]
     _c = result.get("costs") or {"spread": result.get("spread_charged", 0.0)}
+    # Cost figures span very different scales (0.30 for gold vs ~0.00012 for
+    # a 5-decimal FX pair) — round to the instrument's own display precision
+    # rather than a flat 2 decimals, which would print every FX cost as 0.00.
+    _cost_dp = max(instruments.decimals_for(asset), 2)
     lines = [
         "=" * 62,
         f"ICT STRATEGY BACKTEST — {asset}",
@@ -471,11 +502,11 @@ def format_report(result: dict, asset: str, period: str) -> str:
         f"Avg win / avg loss   : {result['avg_win_r']:+.2f} R / {result['avg_loss_r']:+.2f} R",
         f"Sharpe (per trade)   : {result['sharpe_per_trade']:.3f}",
         "",
-        "--- TRADING COSTS (price units: $/oz gold, $/bbl crude) ---",
-        f"Spread on entry      : {_c.get('spread', 0.0):.2f}",
-        f"Commission per turn  : {_c.get('commission', 0.0):.2f}",
-        f"Slippage on stops    : {_c.get('slippage', 0.0):.2f}",
-        f"Swap per night held  : {_c.get('swap_per_night', 0.0):.2f}",
+        f"--- TRADING COSTS (price units of {asset}) ---",
+        f"Spread on entry      : {_c.get('spread', 0.0):.{_cost_dp}f}",
+        f"Commission per turn  : {_c.get('commission', 0.0):.{_cost_dp}f}",
+        f"Slippage on stops    : {_c.get('slippage', 0.0):.{_cost_dp}f}",
+        f"Swap per night held  : {_c.get('swap_per_night', 0.0):.{_cost_dp}f}",
         f"Expectancy gross     : {result.get('expectancy_gross_r', 0.0):+.3f} R/trade",
         f"  cost drag          : -{result.get('cost_drag_r', 0.0):.3f} R/trade",
         f"Expectancy net       : {result['expectancy_r']:+.3f} R/trade",

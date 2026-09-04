@@ -38,10 +38,10 @@ sys.path.insert(0, str(ROOT))
 
 from ict_predictor.backtest import Costs, run_backtest
 
-# The sweep charges the same costs as a single backtest run. Tuning against
-# cost-free numbers would rank settings by how well they exploit a fill model
-# nobody trades against.
-_costs = Costs()
+# The sweep charges the same costs as a single backtest run (see run_backtest
+# -> Costs(asset=...) for the actual per-trade cost model, which is
+# asset-aware). Tuning against cost-free numbers would rank settings by how
+# well they exploit a fill model nobody trades against.
 
 # Grid. displacement_mult is first because it is the measured bottleneck.
 DEFAULT_GRID = {
@@ -194,7 +194,7 @@ def format_report(sweep: dict, asset: str, period: str) -> str:
         f"Combinations      : {len(rows)}",
         f"Trade threshold   : {MIN_TRADES_FOR_CLAIM} resolved trades before an "
         f"expectancy is treated as evidence",
-        f"Costs             : {_costs.describe()}",
+        f"Costs             : {Costs(asset=asset).describe()}",
         "",
         "Every expectancy below is NET of those costs, so a setting that only",
         "looks good gross is already shown losing here.",

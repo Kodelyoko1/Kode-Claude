@@ -26,8 +26,11 @@ Credentials (.env, never hardcoded):
 Env knobs:
   IP_MT5_LIVE          default "0" — set "1" to actually place orders
   IP_MT5_ALLOW_REAL    default "0" — required to trade a non-demo account
-  IP_MT5_SYMBOL_GC     default "XAUUSD" — must match your broker's symbol
-  IP_MT5_SYMBOL_CL     default "USOIL"  — must match your broker's symbol
+  IP_MT5_SYMBOL_<ASSET> per-asset broker symbol override, e.g.
+                        IP_MT5_SYMBOL_GC=XAUUSD, IP_MT5_SYMBOL_EURUSD=EURUSD.a
+                        — defaults come from ict_predictor.instruments and
+                        only need overriding when a broker uses a
+                        non-standard suffix (see --doctor for auto-discovery)
   IP_MT5_RISK_PCT      default "0.5"  — % of account balance risked/trade
   IP_MT5_LOT_SIZE      default "0.01" — fallback volume when balance is unknown
   IP_MT5_MAGIC         default "990101"
@@ -36,7 +39,13 @@ Env knobs:
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 from typing import Optional
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+from ict_predictor import instruments
 
 try:
     import MetaTrader5 as mt5
@@ -53,9 +62,14 @@ LIVE = os.getenv("IP_MT5_LIVE", "0") == "1"
 # gate fails CLOSED, so an account we can't positively identify as demo is
 # treated as real and blocked.
 ALLOW_REAL = os.getenv("IP_MT5_ALLOW_REAL", "0") == "1"
+# Per-asset broker symbol, defaulting from the instrument registry and
+# overridable per-asset via IP_MT5_SYMBOL_<ASSET> (e.g. IP_MT5_SYMBOL_GC,
+# IP_MT5_SYMBOL_EURUSD). symbol_for() falls back to the asset code itself for
+# anything not in the registry, so a typo'd IP_ASSETS entry still resolves
+# to *something* rather than raising.
 SYMBOL_MAP = {
-    "GC": os.getenv("IP_MT5_SYMBOL_GC", "XAUUSD"),
-    "CL": os.getenv("IP_MT5_SYMBOL_CL", "USOIL"),
+    asset: os.getenv(f"IP_MT5_SYMBOL_{asset}", meta["mt5_symbol_default"])
+    for asset, meta in instruments.INSTRUMENTS.items()
 }
 RISK_PCT = float(os.getenv("IP_MT5_RISK_PCT", "0.5")) / 100.0
 FALLBACK_LOT = float(os.getenv("IP_MT5_LOT_SIZE", "0.01"))
@@ -77,7 +91,13 @@ SPREAD_ADJUST = os.getenv("IP_MT5_SPREAD_ADJUST", "1") == "1"
 
 
 def symbol_for(asset: str) -> str:
-    return SYMBOL_MAP.get(asset, asset)
+    # Check SYMBOL_MAP (registered instruments, already resolved against
+    # IP_MT5_SYMBOL_<ASSET> at import time) first; for anything else, still
+    # honor a per-asset env override before falling back to the asset code
+    # itself as the symbol name.
+    if asset in SYMBOL_MAP:
+        return SYMBOL_MAP[asset]
+    return os.getenv(f"IP_MT5_SYMBOL_{asset}", asset)
 
 
 def account_kind() -> tuple[str, str]:
@@ -299,6 +319,7 @@ def build_order_plan(pred: dict, connected: bool = False) -> dict:
 
     return {
         "symbol": symbol,
+        "asset": asset,
         "direction": direction,
         "order_type": order_type_name,
         "volume": volume,
@@ -391,7 +412,8 @@ def submit(pred: dict) -> dict:
         if info is None or not mt5.symbol_select(plan["symbol"], True):
             return {"status": "symbol_not_found", "live": True, "plan": plan,
                     "note": f"Symbol '{plan['symbol']}' not found on this broker — "
-                            f"check IP_MT5_SYMBOL_GC / IP_MT5_SYMBOL_CL."}
+                            f"check IP_MT5_SYMBOL_{pred['asset']} (run --doctor to see "
+                            f"what this broker actually calls it)."}
 
         # Duplicate guard. Fails closed: if we cannot determine current
         # exposure we refuse rather than risk stacking orders.

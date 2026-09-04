@@ -49,9 +49,14 @@ _EQUITY_PATH_HINTS = ("STOCK", "ETF", "NASDAQ", "NYSE", "SHARE", "EQUIT", "BOND"
 
 
 def discover_symbols(asset: str) -> list[str]:
-    """Ask the connected broker which symbols plausibly ARE gold / crude oil.
-    Equities and ETFs whose tickers merely contain 'OIL'/'WTI' are excluded —
-    they are not the underlying commodity. Returns [] if nothing qualifies."""
+    """Ask the connected broker which symbols plausibly match `asset`.
+    For gold/crude, matches on curated commodity-name hints below (and
+    excludes equities/ETFs whose tickers merely contain 'OIL'/'WTI' — they
+    are not the underlying commodity). For anything else (FX pairs), falls
+    back to substring-matching the asset code itself, since broker FX
+    naming is almost always the pair code plus an account-type suffix
+    (EURUSD, EURUSDm, EURUSD.a, RAW_EURUSD, ...). Returns [] if nothing
+    qualifies."""
     if not mt5_execution.MT5_PACKAGE_AVAILABLE:
         return []
     try:
@@ -59,7 +64,7 @@ def discover_symbols(asset: str) -> list[str]:
         symbols = mt5.symbols_get()
         if not symbols:
             return []
-        hints = _SYMBOL_HINTS.get(asset, ())
+        hints = _SYMBOL_HINTS.get(asset, (asset,))
         found = []
         for s in symbols:
             if not any(h in s.name.upper() for h in hints):

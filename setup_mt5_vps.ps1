@@ -78,10 +78,18 @@ MT5_PASSWORD=$mt5Password
 MT5_SERVER=$mt5Server
 # MT5_PATH=C:\Program Files\MetaTrader 5\terminal64.exe   # only if not default install path
 
+# Which instruments to trade - comma-separated codes from
+# ict_predictor/instruments.py. Default is Gold+Crude; for currency pairs
+# use e.g. EURUSD,GBPUSD instead (see IP_ASSETS in CLAUDE.md).
+# IP_ASSETS=GC,CL
+
 # Broker symbol names - run '--doctor' and it will tell you the exact values
-# to put here if the defaults (XAUUSD / USOIL) don't exist on your broker.
+# to put here if an instrument's default symbol doesn't exist on your broker
+# (defaults: XAUUSD for GC, USOIL for CL, the pair code itself for FX, e.g.
+# EURUSD - some brokers suffix these, e.g. EURUSD.a or EURUSDm).
 # IP_MT5_SYMBOL_GC=XAUUSD
 # IP_MT5_SYMBOL_CL=USOIL
+# IP_MT5_SYMBOL_EURUSD=EURUSD
 
 # Leave IP_MT5_LIVE at 0 for dry-run. Set to 1 only once you've confirmed
 # dry-run output looks correct against your real account balance.

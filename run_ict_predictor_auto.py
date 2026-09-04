@@ -3,14 +3,19 @@
 ICT Gold & Crude Prediction Agent — entry point.
 
 Runs the ICT (Inner Circle Trader) killzone/liquidity-sweep/MSS/FVG
-strategy against Gold (GC) and WTI Crude Oil (CL) and prints/logs a
-prediction report per asset, formatted for MetaTrader 5. Every LONG/SHORT
-signal is also turned into an MT5 order plan (see ict_predictor/mt5_execution.py).
+strategy against every asset in IP_ASSETS (default Gold/GC + WTI Crude/CL;
+also supports FX majors/crosses — EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD,
+USDCHF, NZDUSD, EURJPY, GBPJPY — see ict_predictor/instruments.py for the
+full registry) and prints/logs a prediction report per asset, formatted for
+MetaTrader 5. Every LONG/SHORT signal is also turned into an MT5 order plan
+(see ict_predictor/mt5_execution.py).
 
 Usage:
-  python3 run_ict_predictor_auto.py             # full cycle (all configured assets)
-  python3 run_ict_predictor_auto.py --asset GC  # single-asset scan
-  python3 run_ict_predictor_auto.py --status    # show recent predictions
+  python3 run_ict_predictor_auto.py                  # full cycle (all configured assets)
+  python3 run_ict_predictor_auto.py --asset GC        # single-asset scan
+  python3 run_ict_predictor_auto.py --asset EURUSD    # trade a currency pair instead
+  IP_ASSETS=EURUSD,GBPUSD python3 run_ict_predictor_auto.py   # switch the whole fleet to FX
+  python3 run_ict_predictor_auto.py --status          # show recent predictions
 
 Pricing: $147/mo signal feed | $397/mo priority alerts | $997/yr white-label
 
@@ -265,8 +270,10 @@ def cmd_forward():
 
 
 def main():
+    from ict_predictor.instruments import INSTRUMENTS
+
     parser = argparse.ArgumentParser(description="ICT Gold & Crude Prediction Agent")
-    parser.add_argument("--asset", choices=["GC", "CL"],
+    parser.add_argument("--asset", choices=sorted(INSTRUMENTS),
                         help="Scan a single asset and print its report, then exit")
     parser.add_argument("--status", action="store_true",
                         help="Show recently logged predictions, then exit")

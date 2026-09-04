@@ -1,5 +1,5 @@
 """
-Killzone / session-timing rules for the ICT Gold & Crude Prediction Agent.
+Killzone / session-timing rules for the ICT Predictor (Gold, Crude, and FX).
 
 ICT killzones are defined in NEW YORK local time (London 02:00-05:00 NY,
 NY AM 07:00-10:00 NY) because they track when those desks are actually
@@ -28,6 +28,8 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import os
+
+from ict_predictor import instruments
 
 # Windows in NEW YORK local hours, end exclusive. These are the definition;
 # the UTC equivalents are derived per-date so DST is handled automatically.
@@ -81,11 +83,13 @@ def killzone_windows_utc(now: Optional[datetime] = None) -> dict:
                            (NY_AM_KILLZONE_NY[1] + off) % 24),
     }
 
-# Which assets the spec treats as "ideal" for each killzone.
-ASSET_KILLZONE_FIT = {
-    "London Killzone": {"GC"},
-    "NY AM Killzone": {"GC", "CL"},
-}
+# Which assets are "ideal" for each killzone, derived from each instrument's
+# `killzones` entry in ict_predictor.instruments (single source of truth —
+# see that module to add a new instrument or change its session fit).
+ASSET_KILLZONE_FIT: dict[str, set] = {}
+for _asset, _meta in instruments.INSTRUMENTS.items():
+    for _kz in _meta.get("killzones", ()):
+        ASSET_KILLZONE_FIT.setdefault(_kz, set()).add(_asset)
 
 
 def _in_window(hour: int, window: tuple[int, int]) -> bool:
@@ -115,10 +119,16 @@ def current_killzone(now: Optional[datetime] = None) -> Optional[str]:
 
 
 def asset_active_in_killzone(asset: str, killzone_name: Optional[str]) -> bool:
-    """Is `asset` (GC/CL) eligible to be evaluated in the given killzone?"""
+    """Is `asset` eligible to be evaluated in the given killzone? Falls back
+    to instruments.get()'s default (both killzones) for an asset that isn't
+    in the registry, rather than silently excluding it."""
     if not killzone_name:
         return False
-    return asset in ASSET_KILLZONE_FIT.get(killzone_name, set())
+    if asset in ASSET_KILLZONE_FIT.get(killzone_name, set()):
+        return True
+    if asset not in instruments.INSTRUMENTS:
+        return killzone_name in instruments.get(asset).get("killzones", set())
+    return False
 
 
 def est_label(now: Optional[datetime] = None) -> str:
